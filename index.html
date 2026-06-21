@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSHB Personal Momscare · Claude Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp .35s ease both; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+        }
+
+        /* Print / Save as PDF */
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            .print-area { width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; border: none !important; }
+            @page { margin: 1.5cm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body class="bg-rose-50 text-gray-800">
+    <div id="app"></div>
+
+    <script>
+        /* =========================================================
+           RSHB Personal Momscare — Claude Edition (Single Page)
+           - Semua input dalam satu halaman, tanpa langkah/klik next
+           - AI "RAMLI" ditenagai Claude (Anthropic API)
+           - Suara via mesin suara bawaan browser
+           - Riwayat pakai localStorage bila tersedia, fallback memori
+        ========================================================= */
+
+        const memStore = {};
+        const safeStorage = {
+            get(key) { try { return localStorage.getItem(key); } catch (e) { return key in memStore ? memStore[key] : null; } },
+            set(key, val) { try { localStorage.setItem(key, val); } catch (e) { memStore[key] = val; } },
+            remove(key) { try { localStorage.removeItem(key); } catch (e) { delete memStore[key]; } }
+        };
+        function getStoredKey() {
+            try { const k = safeStorage.get('rshb_anthropic_key'); return k && k.trim() ? k.trim() : ''; }
+            catch (e) { return ''; }
+        }
+        function loadHistory() {
+            try { return JSON.parse(safeStorage.get('rshb_momscare_history')) || []; }
+            catch (e) { return []; }
+        }
+
+        let state = {
+            isAnalyzing: false,
+            aiAnalysis: null,
+            aiError: false,
+            isSpeaking: false,
+            voiceNote: '',
+            isSharedView: false,
+            copySuccess: '',
+            generatedLink: '',
+            history: loadHistory(),
+            showHistory: false,
+            showSettings: false,
+            keyNote: '',
+            saveSuccess: false,
+            results: null
+        };
+
+        let formData = {
+            nama: '', usia: 28, tinggiBadan: 155, beratBadanSebelum: 55, beratBadanSekarang: 58, mingguKehamilan: 12,
+            hamilKe: 1, jarakKehamilan: 0, riwayatObstetri: [], riwayatKeluarga: [],
+            pekerjaan: 'Kantoran', stresPekerjaan: 'Sedang', kondisiMedis: [], kondisiJanin: [],
+            tekananDarah: 'Normal', hasilUsg: 'Sesuai Usia Kehamilan', usgCRL: '', usgNT: '', usgDJJ: ''
+        };
+
+        // ---- Render helpers ----
+        function renderApp() {
+            const appDiv = document.getElementById('app');
+            appDiv.innerHTML = `
+                ${renderNavbar()}
+                <main class="max-w-4xl mx-auto p-4 md:p-8 print-area">
+                    ${state.showSettings ? renderSettings() : state.showHistory ? renderHistory() : `
+                        ${!state.isSharedView ? renderForm() : ''}
+                        ${state.results ? `<div id="hasil">${renderResults()}</div>` : ''}
+                    `}
+                    <footer class="text-center text-[11px] text-gray-400 mt-8 no-print">
+                        RSHB Personal Momscare · Claude Edition · Alat bantu edukasi, bukan pengganti pemeriksaan dokter.
+                    </footer>
+                </main>
+            `;
+        }
+        function reRenderKeepScroll() {
+            const y = window.scrollY;
+            renderApp();
+            requestAnimationFrame(() => window.scrollTo(0, y));
+        }
+        function scrollToTop() { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } }
+        function scrollToHasil() {
+            const el = document.getElementById('hasil');
+            if (el) { try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { el.scrollIntoView(); } }
+        }
+
+        // ---- Field updates ----
+        window.updateField = (key, val, type = 'text') => {
+            if (type === 'int') val = parseInt(val) || 0;
+            if (type === 'float') val = parseFloat(val) || 0;
+            formData[key] = val;
+        };
+        window.updateFieldRender = (key, val, type = 'text') => {
+            window.updateField(key, val, type);
+            reRenderKeepScroll();
+        };
+        window.toggleArray = (key, item) => {
+            const arr = formData[key];
+            const index = arr.indexOf(item);
+            if (index > -1) arr.splice(index, 1);
+            else arr.push(item);
+            reRenderKeepScroll();
+        };
+        window.toggleHistory = (show) => {
+            state.showHistory = show;
+            if (show) state.showSettings = false;
+            renderApp();
+            scrollToTop();
+        };
+        window.toggleSettings = (show) => {
+            state.showSettings = show;
+            if (show) state.showHistory = false;
+            state.keyNote = '';
+            renderApp();
+            scrollToTop();
+        };
+        window.saveApiKey = () => {
+            const el = document.getElementById('apiKeyInput');
+            const val = el ? el.value.trim() : '';
+            if (!val) { state.keyNote = '⚠ Masukkan API key terlebih dahulu.'; reRenderKeepScroll(); return; }
+            safeStorage.set('rshb_anthropic_key', val);
+            if (state.results) {
+                state.showSettings = false;
+                renderApp();
+                rerunAnalysis();
+            } else {
+                state.keyNote = '✓ Kunci tersimpan. AI akan aktif pada analisis berikutnya.';
+                reRenderKeepScroll();
+            }
+        };
+        window.clearApiKey = () => {
+            safeStorage.remove('rshb_anthropic_key');
+            state.keyNote = 'Kunci dihapus dari perangkat ini.';
+            reRenderKeepScroll();
+        };
+        window.rerunAnalysis = () => {
+            const r = state.results;
+            if (!r) return;
+            getAIAnalysis({ bmi: r.bmi, ksprScore: r.kspr, ksprCategory: r.ksprCategory, plan: r.plan });
+            setTimeout(scrollToHasil, 60);
+        };
+
+        function calculateBMI() {
+            const tb = formData.tinggiBadan || 0;
+            const bb = formData.beratBadanSebelum || 0;
+            if (tb === 0) return 0;
+            const heightM = tb / 100;
+            return (bb / (heightM * heightM)).toFixed(1);
+        }
+        function getWeightGainRecommendation(bmi) {
+            if (bmi < 18.5) return "12.5 - 18 kg (Underweight)";
+            if (bmi >= 18.5 && bmi < 25) return "11.5 - 16 kg (Normal)";
+            if (bmi >= 25 && bmi < 30) return "7 - 11.5 kg (Overweight)";
+            return "5 - 9 kg (Obesitas)";
+        }
+
+        window.calculatePersonalizedPlan = () => {
+            if (!formData.nama || !formData.nama.trim()) formData.nama = 'Bunda';
+
+            const bmi = calculateBMI();
+            const weightRec = getWeightGainRecommendation(bmi);
+
+            let kspr = 2;
+            let ksprDetails = ['Skor Awal Ibu Hamil (2)'];
+
+            if (formData.usia <= 16) { kspr += 4; ksprDetails.push('Terlalu Muda (4)'); }
+            if (formData.usia >= 35) { kspr += 4; ksprDetails.push('Terlalu Tua (4)'); }
+            if (formData.jarakKehamilan >= 10 && formData.hamilKe > 1) { kspr += 4; ksprDetails.push('Terlalu Lama Jarak Kehamilan (4)'); }
+            if (formData.jarakKehamilan < 2 && formData.jarakKehamilan > 0 && formData.hamilKe > 1) { kspr += 4; ksprDetails.push('Terlalu Cepat Jarak Kehamilan (4)'); }
+            if (formData.hamilKe >= 4) { kspr += 4; ksprDetails.push('Terlalu Banyak Anak (4)'); }
+            if (formData.tinggiBadan < 145 && formData.tinggiBadan > 0) { kspr += 4; ksprDetails.push('Terlalu Pendek (4)'); }
+
+            if (formData.riwayatObstetri.includes('Keguguran')) { kspr += 4; ksprDetails.push('Pernah Gagal Hamil (4)'); }
+            if (formData.riwayatObstetri.includes('Persalinan Sulit')) { kspr += 4; ksprDetails.push('Pernah Persalinan Sulit (4)'); }
+            if (formData.riwayatObstetri.includes('Caesar')) { kspr += 8; ksprDetails.push('Pernah Caesar (8)'); }
+
+            const penyakitAGO = ['Anemia', 'Malaria', 'TBC', 'Penyakit Jantung', 'Diabetes', 'Penyakit Menular Seksual'];
+            penyakitAGO.forEach(p => {
+                if (formData.kondisiMedis.includes(p)) { kspr += 4; ksprDetails.push(`Penyakit: ${p} (4)`); }
+            });
+            if (formData.kondisiMedis.includes('Bengkak Muka/Tungkai')) { kspr += 4; ksprDetails.push('Bengkak/Tensi Tinggi (4)'); }
+
+            const janinAGO = ['Kembar', 'Ketuban Berlebih (Hidramnion)', 'Letak Sungsang/Lintang'];
+            janinAGO.forEach(j => {
+                if (formData.kondisiJanin.includes(j)) { kspr += 4; ksprDetails.push(`Kondisi Janin: ${j} (4)`); }
+            });
+
+            if (formData.kondisiMedis.includes('Perdarahan')) { kspr += 8; ksprDetails.push('Perdarahan Kehamilan (8)'); }
+            if (formData.kondisiMedis.includes('Kejang / Preeklamsia Berat')) { kspr += 8; ksprDetails.push('Preeklamsia Berat/Kejang (8)'); }
+
+            let ksprCategory = '';
+            let ksprColor = '';
+            if (kspr === 2) {
+                ksprCategory = 'Kehamilan Risiko Rendah (KRR)';
+                ksprColor = 'bg-green-100 text-green-700 border-green-500';
+            } else if (kspr >= 6 && kspr <= 10) {
+                ksprCategory = 'Kehamilan Risiko Tinggi (KRT)';
+                ksprColor = 'bg-yellow-100 text-yellow-700 border-yellow-500';
+            } else {
+                ksprCategory = 'Kehamilan Risiko Sangat Tinggi (KRST)';
+                ksprColor = 'bg-red-100 text-red-700 border-red-500';
+            }
+
+            const plan = { vitamins: [], recommendations: [], warnings: [] };
+
+            if (formData.mingguKehamilan <= 12) {
+                plan.vitamins.push({ name: 'Asam Folat (400mcg-800mcg)', reason: 'Sangat krusial untuk mencegah kelainan saraf tulang belakang janin di trimester pertama.' });
+            } else {
+                plan.vitamins.push({ name: 'Kalsium & Vitamin D3', reason: 'Mendukung pembentukan tulang bayi dan mencegah ibu osteoporosis.' });
+            }
+
+            if (formData.kondisiMedis.includes('Anemia')) {
+                plan.vitamins.push({ name: 'Tablet Tambah Darah (Fe)', reason: 'Cegah risiko perdarahan persalinan dengan suplemen zat besi untuk mengatasi anemia.' });
+            } else {
+                plan.vitamins.push({ name: 'Multivitamin Prenatal', reason: 'Nutrisi pendukung keseimbangan gizi harian.' });
+            }
+
+            if (formData.riwayatKeluarga.includes('Kelainan Bawaan Keluarga')) {
+                plan.recommendations.push('Disarankan melakukan skrining genetik/NIPT lanjutan karena ada riwayat kelainan bawaan pada keluarga.');
+            }
+
+            const activities = [];
+            if (kspr > 2 || formData.kondisiMedis.includes('Perdarahan') || formData.kondisiMedis.includes('Kejang / Preeklamsia Berat')) {
+                activities.push('Bed rest parsial atau kurangi aktivitas fisik berat. Hindari senam hamil untuk sementara waktu sampai mendapat izin dokter.');
+            } else {
+                if (formData.mingguKehamilan <= 12) {
+                    activities.push('Jalan santai 15-20 menit sehari. Hindari aktivitas yang memicu detak jantung terlalu cepat.');
+                    activities.push('Latihan pernapasan dan relaksasi ringan di rumah.');
+                } else if (formData.mingguKehamilan > 12 && formData.mingguKehamilan <= 28) {
+                    activities.push('Senam hamil ringan atau yoga prenatal 2-3 kali seminggu untuk kelenturan panggul.');
+                    activities.push('Berenang santai untuk mengurangi beban punggung (opsional jika fasilitas tersedia).');
+                } else {
+                    activities.push('Jalan pagi teratur untuk mengoptimalkan posisi masuknya kepala janin ke panggul.');
+                    activities.push('Senam kegel rutin untuk memperkuat otot dasar panggul persiapan persalinan.');
+                }
+            }
+            plan.activities = activities;
+
+            let usgConclusion = 'Hasil indikator USG menunjukkan perkembangan janin dalam batas normal sesuai usia kehamilan.';
+            let isUsgAbnormal = false;
+            let usgDetails = [];
+
+            if (formData.hasilUsg !== 'Sesuai Usia Kehamilan') {
+                isUsgAbnormal = true;
+                usgDetails.push(`Kondisi posisi/ketuban: ${formData.hasilUsg}.`);
+            }
+
+            if (formData.mingguKehamilan <= 14 && (formData.usgNT || formData.usgDJJ)) {
+                if (formData.usgNT && parseFloat(formData.usgNT) > 3.0) {
+                    isUsgAbnormal = true;
+                    usgDetails.push(`Penebalan Nuchal Translucency (NT: ${formData.usgNT} mm). Risiko kelainan bawaan/kromosom meningkat.`);
+                }
+                if (formData.usgDJJ) {
+                    const djj = parseInt(formData.usgDJJ);
+                    if (djj < 110 || djj > 160) {
+                        isUsgAbnormal = true;
+                        usgDetails.push(`Detak Jantung Janin (DJJ: ${djj} bpm) terdeteksi di luar batas normal (110-160 bpm).`);
+                    }
+                }
+            }
+
+            if (isUsgAbnormal) {
+                usgConclusion = `⚠️ Ditemukan Catatan Medis pada USG: ${usgDetails.join(' ')} Disarankan untuk segera melakukan pemeriksaan lanjutan atau konsultasi dengan Dokter Spesialis Fetomaternal.`;
+            }
+            plan.usgConclusion = usgConclusion;
+            plan.isUsgAbnormal = isUsgAbnormal;
+
+            state.results = { bmi, weightRec, kspr, ksprDetails, ksprCategory, ksprColor, plan };
+            state.aiAnalysis = null;
+            state.aiError = false;
+            renderApp();
+            setTimeout(scrollToHasil, 60);
+
+            getAIAnalysis({ bmi, ksprScore: kspr, ksprCategory, plan });
+        };
+
+        function extractJSON(text) {
+            if (!text) return null;
+            let t = String(text).trim();
+            t = t.replace(/^```(?:json)?/i, '').replace(/```$/m, '').trim();
+            const start = t.indexOf('{');
+            const end = t.lastIndexOf('}');
+            if (start === -1 || end === -1 || end < start) return null;
+            try { return JSON.parse(t.slice(start, end + 1)); } catch (e) { return null; }
+        }
+
+        // ---- RAMLI analysis, powered by Claude ----
+        async function getAIAnalysis(clinicalData) {
+            state.isAnalyzing = true;
+            state.aiError = false;
+            reRenderKeepScroll();
+
+            const systemPrompt = `Anda adalah RAMLI, asisten medis cerdas di RSHB Personal Momscare yang ramah, empatik, dan paham obstetri.
+Tugas Anda menganalisis data ibu hamil (BMI, skor risiko KSPR, hasil USG, kondisi klinis) dan memberi panduan yang menenangkan namun akurat.
+Jawab HANYA dengan satu objek JSON valid, tanpa teks lain dan tanpa pembungkus markdown. Gunakan Bahasa Indonesia yang hangat dan ringkas.
+Struktur:
+{
+  "summary": "Sapaan hangat 1-2 kalimat, perkenalkan diri sebagai RAMLI",
+  "deepDive": "Analisis singkat (3-4 kalimat) tentang risiko, BMI, penyulit, dan makna hasil USG",
+  "usgAnalysis": "Kesimpulan singkat khusus hasil USG (1-2 kalimat)",
+  "mealPlan": ["Saran menu 1", "Saran menu 2", "Saran menu 3"],
+  "mentalHealth": "Saran manajemen stres yang spesifik untuk pekerjaan & kondisinya (2-3 kalimat)",
+  "activityPlan": ["Saran aktivitas/senam 1", "Saran aktivitas/senam 2"]
+}`;
+
+            const userQuery = `Data Pasien:
+Nama: ${formData.nama}, Usia Kehamilan: ${formData.mingguKehamilan} minggu.
+Fisik: Usia ${formData.usia} th, BMI Pra-hamil: ${clinicalData.bmi}, Kenaikan BB: ${formData.beratBadanSekarang - formData.beratBadanSebelum} kg.
+Pekerjaan: ${formData.pekerjaan}, Stres: ${formData.stresPekerjaan}.
+Skor Risiko KSPR: ${clinicalData.ksprScore} (Kategori: ${clinicalData.ksprCategory}).
+Kondisi/Riwayat: ${[...formData.riwayatObstetri, ...formData.riwayatKeluarga, ...formData.kondisiMedis, ...formData.kondisiJanin].join(', ') || 'Tidak ada catatan khusus'}.
+Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, USG Trimester 1 (CRL: ${formData.usgCRL || '-'} mm, NT: ${formData.usgNT || '-'} mm, DJJ: ${formData.usgDJJ || '-'} bpm).`;
+
+            try {
+                const _key = getStoredKey();
+                const _headers = { "Content-Type": "application/json" };
+                if (_key) {
+                    _headers["x-api-key"] = _key;
+                    _headers["anthropic-version"] = "2023-06-01";
+                    _headers["anthropic-dangerous-direct-browser-access"] = "true";
+                }
+                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: _headers,
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-6",
+                        max_tokens: 1000,
+                        system: systemPrompt,
+                        messages: [{ role: "user", content: userQuery }]
+                    })
+                });
+
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+                const parsed = extractJSON(text);
+                if (parsed) state.aiAnalysis = parsed;
+                else state.aiError = true;
+            } catch (error) {
+                console.error("RAMLI analysis failed:", error);
+                state.aiError = true;
+            } finally {
+                state.isAnalyzing = false;
+                reRenderKeepScroll();
+            }
+        }
+
+        // ---- Voice briefing via built-in speech engine ----
+        let cachedVoices = [];
+        function refreshVoices() {
+            try { cachedVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; } catch (e) { cachedVoices = []; }
+        }
+        if ('speechSynthesis' in window) {
+            refreshVoices();
+            window.speechSynthesis.onvoiceschanged = refreshVoices;
+        }
+
+        let voiceWatchdog = null;
+
+        // Build the spoken briefing. Uses RAMLI's AI text when available,
+        // otherwise composes one locally from the scoring results so the voice
+        // still works on a plain static host (no AI needed).
+        function buildBriefingText() {
+            const r = state.results;
+            const a = state.aiAnalysis;
+            if (a) {
+                return `Halo Bunda ${formData.nama}. Saya RAMLI dari RSHB Personal Momscare. ${a.summary || ''} ${a.mentalHealth ? 'Untuk menjaga kesehatan Bunda dan si kecil, ' + a.mentalHealth : ''} Tetap sehat dan semangat ya Bunda!`;
+            }
+            if (!r) return '';
+            let p = `Halo Bunda ${formData.nama}. Saya RAMLI dari RSHB Personal Momscare. `;
+            p += `Berdasarkan data Bunda, indeks risiko kehamilan saat ini ${r.kspr}, termasuk kategori ${r.ksprCategory}. `;
+            p += `Status gizi pra-hamil Bunda dengan nilai BMI ${r.bmi}, dengan target kenaikan berat badan ${r.weightRec}. `;
+            if (r.plan.isUsgAbnormal) {
+                p += `Ada catatan pada hasil USG yang sebaiknya Bunda konsultasikan lebih lanjut dengan dokter spesialis. `;
+            } else {
+                p += `Hasil USG Bunda berada dalam batas normal sesuai usia kehamilan. `;
+            }
+            if (r.kspr > 2 || r.plan.isUsgAbnormal) {
+                p += `Sebaiknya Bunda segera menjadwalkan kontrol dengan dokter spesialis kandungan di RS Harapan Bunda. `;
+            }
+            p += `Tetap sehat dan semangat ya Bunda!`;
+            return p;
+        }
+
+        function speakChunks(chunks, idVoice, flags) {
+            let i = 0;
+            const next = () => {
+                if (i >= chunks.length) { state.isSpeaking = false; reRenderKeepScroll(); return; }
+                const part = chunks[i].trim();
+                if (!part) { i++; next(); return; }
+                const u = new SpeechSynthesisUtterance(part);
+                u.lang = 'id-ID';
+                u.rate = 0.98;
+                u.pitch = 1.05;
+                if (idVoice) u.voice = idVoice;
+                u.onstart = () => { flags.started = true; };
+                u.onend = () => { i++; next(); };
+                u.onerror = () => { i++; next(); };
+                window.speechSynthesis.speak(u);
+            };
+            next();
+        }
+
+        window.playVoiceBriefing = () => {
+            if (!('speechSynthesis' in window)) {
+                state.voiceNote = 'Perangkat/browser ini tidak mendukung suara otomatis. Silakan baca pesan RAMLI di layar ya, Bunda.';
+                reRenderKeepScroll();
+                return;
+            }
+            // Toggle off if already speaking.
+            if (state.isSpeaking) {
+                if (voiceWatchdog) clearTimeout(voiceWatchdog);
+                window.speechSynthesis.cancel();
+                state.isSpeaking = false;
+                reRenderKeepScroll();
+                return;
+            }
+            if (!state.results) return;
+
+            window.speechSynthesis.cancel();
+            const full = buildBriefingText();
+            if (!full) return;
+            // Split into sentence-sized chunks to avoid the long-utterance cutoff bug.
+            const chunks = full.match(/[^.!?]+[.!?]*/g) || [full];
+
+            if (!cachedVoices.length) refreshVoices();
+            const idVoice = cachedVoices.find(v => v.lang && v.lang.toLowerCase().startsWith('id'));
+
+            const flags = { started: false };
+            state.isSpeaking = true;
+            state.voiceNote = idVoice ? '' : 'Catatan: suara Bahasa Indonesia belum terpasang di perangkat ini, jadi pelafalan memakai suara default.';
+            reRenderKeepScroll();
+
+            speakChunks(chunks, idVoice, flags);
+
+            // If nothing actually starts (common inside the in-chat preview sandbox), tell the user how to fix it.
+            if (voiceWatchdog) clearTimeout(voiceWatchdog);
+            voiceWatchdog = setTimeout(() => {
+                if (!flags.started && !window.speechSynthesis.speaking && state.isSpeaking) {
+                    window.speechSynthesis.cancel();
+                    state.isSpeaking = false;
+                    state.voiceNote = 'Suara tidak bisa diputar di tampilan ini (umumnya karena pratinjau di dalam chat). Buka atau host file HTML-nya langsung di browser HP/laptop agar suara RAMLI berfungsi.';
+                    reRenderKeepScroll();
+                }
+            }, 900);
+        };
+
+        // ---- History ----
+        window.handleSaveToCloud = () => {
+            const newRecord = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                formData: JSON.parse(JSON.stringify(formData)),
+                results: JSON.parse(JSON.stringify(state.results)),
+                aiAnalysis: state.aiAnalysis ? JSON.parse(JSON.stringify(state.aiAnalysis)) : null
+            };
+            state.history.unshift(newRecord);
+            safeStorage.set('rshb_momscare_history', JSON.stringify(state.history));
+            state.saveSuccess = true;
+            reRenderKeepScroll();
+            setTimeout(() => { state.saveSuccess = false; reRenderKeepScroll(); }, 3000);
+        };
+        window.loadHistoryRecord = (id) => {
+            const record = state.history.find(h => h.id === id);
+            if (record) {
+                formData = record.formData;
+                state.results = record.results;
+                state.aiAnalysis = record.aiAnalysis;
+                state.aiError = false;
+                state.isSharedView = true;
+                state.showHistory = false;
+                renderApp();
+                scrollToTop();
+            }
+        };
+        window.deleteHistoryRecord = (id) => {
+            state.history = state.history.filter(h => h.id !== id);
+            safeStorage.set('rshb_momscare_history', JSON.stringify(state.history));
+            reRenderKeepScroll();
+        };
+
+        // ---- Share link ----
+        window.handleShareLink = async () => {
+            const payload = { f: formData, r: state.results, a: state.aiAnalysis };
+            const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
+            const base = window.location.href.split('?')[0];
+            const shareUrl = `${base}?share=${encoded}`;
+            state.generatedLink = shareUrl;
+            reRenderKeepScroll();
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(shareUrl);
+                } else {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = shareUrl;
+                    textArea.style.position = "absolute"; textArea.style.left = "-9999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus(); textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+                state.copySuccess = 'Link berhasil disalin!';
+            } catch (err) {
+                state.copySuccess = 'Salin manual link di bawah';
+            }
+            reRenderKeepScroll();
+            setTimeout(() => { state.copySuccess = ''; reRenderKeepScroll(); }, 3000);
+        };
+
+        window.resetApp = () => {
+            try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+            state.aiAnalysis = null;
+            state.aiError = false;
+            state.results = null;
+            state.generatedLink = '';
+            state.copySuccess = '';
+            state.isSharedView = false;
+            state.isSpeaking = false;
+            state.voiceNote = '';
+            formData = {
+                nama: '', usia: 28, tinggiBadan: 155, beratBadanSebelum: 55, beratBadanSekarang: 58, mingguKehamilan: 12,
+                hamilKe: 1, jarakKehamilan: 0, riwayatObstetri: [], riwayatKeluarga: [],
+                pekerjaan: 'Kantoran', stresPekerjaan: 'Sedang', kondisiMedis: [], kondisiJanin: [],
+                tekananDarah: 'Normal', hasilUsg: 'Sesuai Usia Kehamilan', usgCRL: '', usgNT: '', usgDJJ: ''
+            };
+            renderApp();
+            scrollToTop();
+        };
+
+        window.openWa = () => {
+            const message = encodeURIComponent(`Halo RS Harapan Bunda, saya Bunda ${formData.nama} mau kontrol kehamilan.`);
+            window.open(`https://wa.me/6282280144548?text=${message}`, '_blank');
+        };
+
+        // ================= UI =================
+
+        function renderSettings() {
+            if (!state.showSettings) return '';
+            const key = getStoredKey();
+            const status = key
+                ? `<span class="text-green-600 font-bold"><i class="fa-solid fa-circle-check"></i> Terpasang (••••${key.slice(-4)})</span>`
+                : `<span class="text-gray-400 font-bold">Belum dipasang</span>`;
+            const noteColor = state.keyNote.startsWith('⚠') ? 'text-amber-800 bg-amber-50 border-amber-200' : 'text-green-700 bg-green-50 border-green-200';
+            return `
+                <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10 border border-gray-50 mb-8 fade-up no-print">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-indigo-100 p-3 rounded-2xl"><i class="fa-solid fa-robot text-xl text-indigo-600"></i></div>
+                            <div>
+                                <h2 class="text-2xl font-black text-gray-800">RAMLI AI (Opsional)</h2>
+                                <p class="text-gray-500 mt-1 text-sm">Aktifkan analisis cerdas saat aplikasi di-host statis (mis. GitHub Pages).</p>
+                            </div>
+                        </div>
+                        <button onclick="toggleSettings(false)" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"><i class="fa-solid fa-xmark text-gray-600 text-lg"></i></button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-600">Status kunci saat ini: ${status}</div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Anthropic API Key</label>
+                            <input id="apiKeyInput" type="password" autocomplete="off" placeholder="sk-ant-..." class="${inputClass} font-mono" />
+                            <p class="text-[11px] text-gray-400 mt-1">Dapatkan di console.anthropic.com → API Keys. Format diawali <span class="font-mono">sk-ant-</span>.</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button onclick="saveApiKey()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold shadow-md hover:scale-[1.01] transition-all">Simpan & Aktifkan AI</button>
+                            ${key ? `<button onclick="clearApiKey()" class="py-3 px-5 rounded-xl bg-red-50 text-red-600 border-2 border-red-200 font-bold hover:bg-red-100 transition-colors">Hapus Kunci</button>` : ''}
+                        </div>
+                        ${state.keyNote ? `<p class="text-sm border rounded-xl px-4 py-2 ${noteColor}">${state.keyNote}</p>` : ''}
+
+                        <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-800 leading-relaxed space-y-2">
+                            <p class="font-bold text-sm"><i class="fa-solid fa-shield-halved mr-1"></i> Penting soal keamanan</p>
+                            <p>• Kunci hanya disimpan di <b>browser perangkat ini</b> (localStorage) — tidak ikut ter-upload ke GitHub dan tidak terlihat di source code.</p>
+                            <p>• Gunakan hanya di perangkat pribadi Dokter/staf. Jangan masukkan kunci di komputer umum, dan jangan bagikan link berisi kunci.</p>
+                            <p>• Setiap analisis AI ditagihkan ke akun Anthropic pemilik kunci.</p>
+                            <p>• Untuk alat yang dibuka <b>banyak pasien</b>, sebaiknya biarkan AI nonaktif (skoring + suara tetap jalan), atau gunakan proxy serverless gratis (mis. Cloudflare Workers) agar kunci tetap rahasia.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNavbar() {
+            const trimester = Math.min(3, Math.max(1, Math.ceil(formData.mingguKehamilan / 13)));
+            return `
+                <nav class="bg-white/90 backdrop-blur shadow-sm px-4 md:px-6 py-3 flex justify-between items-center sticky top-0 z-50 border-b-2 border-rose-100 no-print">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="bg-gradient-to-br from-rose-500 to-pink-600 p-2 rounded-xl shadow-md shadow-rose-200 shrink-0">
+                            <i class="fa-solid fa-heart text-white text-xl"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h1 class="text-base md:text-xl font-black text-gray-800 tracking-tight truncate">RSHB <span class="text-rose-500">Personal Momscare</span></h1>
+                            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">RAMLI · Claude Edition</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 md:gap-3 shrink-0">
+                        <button onclick="toggleSettings(true)" title="Pengaturan RAMLI AI" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 text-gray-500 bg-gray-50 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                        <button onclick="toggleHistory(true)" class="flex items-center gap-2 text-sm font-bold text-indigo-600 bg-indigo-50 px-3 md:px-4 py-2 rounded-full border border-indigo-100 hover:bg-indigo-100 transition-colors shadow-sm">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span class="hidden sm:inline">Riwayat</span>
+                            ${state.history.length > 0 ? `<span class="bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded-full">${state.history.length}</span>` : ''}
+                        </button>
+                        <div class="hidden md:flex items-center gap-2 text-sm font-medium text-rose-600 bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
+                            <i class="fa-solid fa-calendar"></i>
+                            <span>Trimester ${trimester}</span>
+                        </div>
+                    </div>
+                </nav>
+            `;
+        }
+
+        function renderHistory() {
+            if (!state.showHistory) return '';
+            return `
+                <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10 border border-gray-50 mb-8 fade-up no-print">
+                    <div class="flex justify-between items-center mb-8">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-indigo-100 p-3 rounded-2xl"><i class="fa-solid fa-clock-rotate-left text-xl text-indigo-600"></i></div>
+                            <div>
+                                <h2 class="text-2xl font-black text-gray-800">Riwayat Pemeriksaan</h2>
+                                <p class="text-gray-500 mt-1 text-sm">Pantau perkembangan data medis Bunda dari waktu ke waktu.</p>
+                            </div>
+                        </div>
+                        <button onclick="toggleHistory(false)" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
+                            <i class="fa-solid fa-xmark text-gray-600 text-lg"></i>
+                        </button>
+                    </div>
+                    ${state.history.length === 0 ? `
+                        <div class="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                            <i class="fa-solid fa-clock-rotate-left text-4xl text-gray-300 mb-3"></i>
+                            <p class="text-gray-500 font-medium">Belum ada riwayat tersimpan. Selesaikan satu asesmen lalu tekan "Simpan ke Riwayat".</p>
+                        </div>
+                    ` : `
+                        <div class="space-y-4">
+                            ${state.history.map(record => `
+                                <div class="p-5 bg-white border-2 border-gray-100 hover:border-indigo-200 rounded-2xl shadow-sm transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div>
+                                        <h3 class="font-bold text-gray-800 text-lg">${record.formData.nama} - Minggu ke-${record.formData.mingguKehamilan}</h3>
+                                        <p class="text-xs text-gray-500 font-medium mt-1"><i class="fa-solid fa-calendar mr-1"></i> ${record.date}</p>
+                                        <div class="flex gap-2 mt-3 flex-wrap">
+                                            <span class="text-[10px] font-bold px-2 py-1 rounded-md uppercase ${record.results.ksprColor.replace('bg-', 'bg-opacity-20 text-')}">Skor Risiko: ${record.results.kspr}</span>
+                                            <span class="text-[10px] font-bold px-2 py-1 bg-gray-100 text-gray-600 rounded-md uppercase">BB: ${record.formData.beratBadanSekarang}kg</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2 w-full md:w-auto">
+                                        <button onclick="loadHistoryRecord(${record.id})" class="flex-1 md:flex-none px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold text-sm rounded-xl transition-colors">Buka Detail</button>
+                                        <button onclick="deleteHistoryRecord(${record.id})" class="p-2 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl transition-colors"><i class="fa-solid fa-trash-can"></i></button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        const inputClass = "w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-rose-500 outline-none bg-gray-50 focus:bg-white transition-colors";
+
+        function sectionHeader(num, icon, title, subtitle) {
+            return `
+                <div class="flex items-start gap-3 mb-6">
+                    <div class="bg-rose-100 text-rose-600 w-10 h-10 rounded-xl flex items-center justify-center font-black shrink-0"><i class="fa-solid ${icon}"></i></div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-gray-800">${title}</h2>
+                        <p class="text-gray-500 text-sm mt-0.5">${subtitle}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderForm() {
+            return `
+                <div class="text-center mb-8 fade-up no-print">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-800">Asesmen Kehamilan Personal</h2>
+                    <p class="text-gray-500 mt-2 max-w-xl mx-auto">Isi seluruh data di bawah dalam satu halaman, lalu tekan tombol proses di bagian akhir. RAMLI akan menyusun analisis dan rekomendasi untuk Bunda.</p>
+                </div>
+
+                <div class="space-y-6 no-print">
+
+                    <!-- 1. Fisik & Demografi -->
+                    <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 border border-gray-50">
+                        ${sectionHeader(1, 'fa-weight-scale', 'Fisik & Demografi', 'Data dasar untuk mengukur status gizi dan potensi panggul sempit.')}
+                        <div class="grid md:grid-cols-2 gap-5">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Nama Lengkap Bunda</label>
+                                <input type="text" placeholder="Mis. Siti Rahmawati" class="${inputClass}" value="${formData.nama}" oninput="updateField('nama', this.value, 'text')" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Usia (Thn)</label>
+                                <input type="number" inputmode="numeric" min="12" max="60" class="${inputClass}" value="${formData.usia}" oninput="updateField('usia', this.value, 'int')" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Usia Kehamilan (Minggu)</label>
+                                <input type="number" inputmode="numeric" min="1" max="42" class="${inputClass}" value="${formData.mingguKehamilan}" oninput="updateField('mingguKehamilan', this.value, 'int')" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Tinggi Badan (cm)</label>
+                                <input type="number" inputmode="numeric" min="120" max="200" class="${inputClass}" value="${formData.tinggiBadan}" oninput="updateField('tinggiBadan', this.value, 'int')" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">BB Pra-Hamil (kg)</label>
+                                    <input type="number" inputmode="decimal" min="30" max="200" class="${inputClass}" value="${formData.beratBadanSebelum}" oninput="updateField('beratBadanSebelum', this.value, 'float')" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">BB Sekarang (kg)</label>
+                                    <input type="number" inputmode="decimal" min="30" max="200" class="${inputClass}" value="${formData.beratBadanSekarang}" oninput="updateField('beratBadanSekarang', this.value, 'float')" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Riwayat -->
+                    <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 border border-gray-50">
+                        ${sectionHeader(2, 'fa-baby', 'Riwayat Obstetri & Keluarga', 'Menentukan penanganan kehamilan saat ini (paritas, komplikasi, genetika).')}
+                        <div class="grid md:grid-cols-2 gap-5 mb-6 bg-gray-50 p-4 rounded-2xl">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Ini Kehamilan Ke-</label>
+                                <input type="number" inputmode="numeric" min="1" max="15" class="${inputClass}" value="${formData.hamilKe}" oninput="updateField('hamilKe', this.value, 'int')" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Jarak Kehamilan Sebelumnya (Thn)</label>
+                                <input type="number" inputmode="decimal" step="0.5" min="0" max="20" class="${inputClass}" value="${formData.jarakKehamilan}" oninput="updateField('jarakKehamilan', this.value, 'float')" />
+                                <p class="text-[11px] text-gray-400 mt-1">Isi 0 jika ini kehamilan pertama.</p>
+                            </div>
+                        </div>
+                        <div class="mb-5">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Riwayat Kehamilan Sebelumnya (Jika Ada)</label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                ${['Keguguran', 'Persalinan Sulit', 'Caesar'].map(item => `
+                                    <label class="flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.riwayatObstetri.includes(item) ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-gray-100 hover:border-rose-200'}" onclick="toggleArray('riwayatObstetri', '${item}')">
+                                        <div class="w-4 h-4 rounded mr-3 flex items-center justify-center ${formData.riwayatObstetri.includes(item) ? 'bg-rose-500' : 'border-2 border-gray-300'}">
+                                            ${formData.riwayatObstetri.includes(item) ? '<i class="fa-solid fa-check text-white text-[10px]"></i>' : ''}
+                                        </div>
+                                        <span class="font-semibold text-sm pointer-events-none">${item}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Riwayat Kesehatan Keluarga</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                ${['Kelainan Bawaan Keluarga', 'Kembar', 'Diabetes Keluarga', 'Hipertensi Keluarga'].map(item => `
+                                    <label class="flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.riwayatKeluarga.includes(item) ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-100 hover:border-indigo-200'}" onclick="toggleArray('riwayatKeluarga', '${item}')">
+                                        <div class="w-4 h-4 rounded mr-3 flex items-center justify-center ${formData.riwayatKeluarga.includes(item) ? 'bg-indigo-500' : 'border-2 border-gray-300'}">
+                                            ${formData.riwayatKeluarga.includes(item) ? '<i class="fa-solid fa-check text-white text-[10px]"></i>' : ''}
+                                        </div>
+                                        <span class="font-semibold text-sm pointer-events-none">${item}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Kondisi Medis -->
+                    <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 border border-gray-50">
+                        ${sectionHeader(3, 'fa-shield-halved', 'Kondisi Medis & Gaya Hidup', 'Skrining risiko penyakit bawaan dan kondisi gawat obstetrik.')}
+                        <div class="grid md:grid-cols-2 gap-5 mb-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Jenis Pekerjaan</label>
+                                <select class="${inputClass}" onchange="updateField('pekerjaan', this.value, 'text')">
+                                    <option value="Kantoran" ${formData.pekerjaan === 'Kantoran' ? 'selected' : ''}>Kantoran (Banyak Duduk)</option>
+                                    <option value="Lapangan" ${formData.pekerjaan === 'Lapangan' ? 'selected' : ''}>Lapangan (Aktifitas Fisik)</option>
+                                    <option value="Rumah Tangga" ${formData.pekerjaan === 'Rumah Tangga' ? 'selected' : ''}>Ibu Rumah Tangga</option>
+                                    <option value="Tenaga Medis" ${formData.pekerjaan === 'Tenaga Medis' ? 'selected' : ''}>Tenaga Medis</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Tingkat Stres Kerja/Harian</label>
+                                <div class="flex gap-2">
+                                    ${['Rendah', 'Sedang', 'Tinggi'].map(level => `
+                                        <button onclick="updateFieldRender('stresPekerjaan', '${level}', 'text')" class="flex-1 py-3 rounded-xl border-2 transition-all text-sm font-bold ${formData.stresPekerjaan === level ? 'bg-rose-100 border-rose-500 text-rose-700' : 'border-gray-100 hover:bg-gray-50 text-gray-500'}">${level}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-5">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Penyakit / Kondisi Ibu Saat Ini (Pilih jika ada)</label>
+                            <div class="flex flex-wrap gap-2">
+                                ${['Anemia', 'Malaria', 'TBC', 'Penyakit Jantung', 'Diabetes', 'Penyakit Menular Seksual', 'Bengkak Muka/Tungkai', 'Perdarahan', 'Kejang / Preeklamsia Berat'].map(item => `
+                                    <button onclick="toggleArray('kondisiMedis', '${item}')" class="px-4 py-2 rounded-full border-2 text-sm font-bold transition-all ${formData.kondisiMedis.includes(item) ? (item.includes('Perdarahan') || item.includes('Kejang') ? 'bg-red-500 border-red-500 text-white' : 'bg-orange-100 border-orange-500 text-orange-700') : 'border-gray-200 text-gray-600 hover:border-gray-300'}">${item}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Kondisi Janin Saat Ini</label>
+                            <div class="flex flex-wrap gap-2">
+                                ${['Kembar', 'Ketuban Berlebih (Hidramnion)', 'Letak Sungsang/Lintang'].map(item => `
+                                    <button onclick="toggleArray('kondisiJanin', '${item}')" class="px-4 py-2 rounded-full border-2 text-sm font-bold transition-all ${formData.kondisiJanin.includes(item) ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}">${item}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Lab & USG -->
+                    <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 border border-gray-50">
+                        ${sectionHeader(4, 'fa-stethoscope', 'Hasil Penunjang Lab & USG', 'Data objektif medis untuk meramu kebutuhan nutrisi.')}
+                        <div class="grid md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Tekanan Darah Terakhir</label>
+                                <select class="${inputClass}" onchange="updateField('tekananDarah', this.value, 'text')">
+                                    <option value="Normal" ${formData.tekananDarah === 'Normal' ? 'selected' : ''}>Normal (Dibawah 120/80)</option>
+                                    <option value="Tinggi" ${formData.tekananDarah === 'Tinggi' ? 'selected' : ''}>Tinggi (Diatas 140/90)</option>
+                                    <option value="Rendah" ${formData.tekananDarah === 'Rendah' ? 'selected' : ''}>Rendah (Dibawah 90/60)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Status USG Terakhir</label>
+                                <select class="${inputClass}" onchange="updateField('hasilUsg', this.value, 'text')">
+                                    <option value="Sesuai Usia Kehamilan" ${formData.hasilUsg === 'Sesuai Usia Kehamilan' ? 'selected' : ''}>Normal / Sesuai Usia</option>
+                                    <option value="Posisi Sungsang" ${formData.hasilUsg === 'Posisi Sungsang' ? 'selected' : ''}>Posisi Sungsang</option>
+                                    <option value="Plasenta Previa" ${formData.hasilUsg === 'Plasenta Previa' ? 'selected' : ''}>Plasenta Menutupi Jalan Lahir</option>
+                                    <option value="Ketuban Sedikit" ${formData.hasilUsg === 'Ketuban Sedikit' ? 'selected' : ''}>Air Ketuban Sedikit</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="p-5 bg-rose-50/50 rounded-2xl border border-rose-100 mt-5">
+                            <h3 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-baby text-rose-500"></i> Detail USG Trimester 1 (Opsional — relevan untuk usia kehamilan ≤ 14 minggu)</h3>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-2">CRL (Panjang Janin) - mm</label>
+                                    <input type="number" inputmode="decimal" step="0.1" placeholder="Contoh: 45" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-rose-500 outline-none bg-white" value="${formData.usgCRL}" oninput="updateField('usgCRL', this.value, 'float')" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-2">NT (Cairan Tengkuk) - mm</label>
+                                    <input type="number" inputmode="decimal" step="0.1" placeholder="Normal < 3.0" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-rose-500 outline-none bg-white" value="${formData.usgNT}" oninput="updateField('usgNT', this.value, 'float')" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-2">DJJ (Detak Jantung) - bpm</label>
+                                    <input type="number" inputmode="numeric" placeholder="Normal 110-160" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-rose-500 outline-none bg-white" value="${formData.usgDJJ}" oninput="updateField('usgDJJ', this.value, 'int')" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Process -->
+                    <button onclick="calculatePersonalizedPlan()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white px-8 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-rose-200 hover:scale-[1.01] active:scale-95 transition-all">
+                        ✨ Proses Data dengan RAMLI <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    ${state.results ? '<p class="text-center text-xs text-gray-400 -mt-2">Hasil terbaru ada di bawah. Ubah data lalu tekan tombol ini lagi untuk memperbarui.</p>' : ''}
+                </div>
+            `;
+        }
+
+        function renderResults() {
+            if (!state.results) return '';
+            const res = state.results;
+            const a = state.aiAnalysis;
+            const meals = a && Array.isArray(a.mealPlan) ? a.mealPlan : [];
+            const acts = a && Array.isArray(a.activityPlan) ? a.activityPlan : [];
+
+            return `
+                <div class="space-y-8 fade-up mt-10 pt-2 border-t-2 border-dashed border-rose-200">
+                    <div class="text-center space-y-4 mb-2 pt-6">
+                        <div class="flex justify-center flex-wrap gap-3">
+                            <div class="inline-flex items-center p-4 bg-rose-100 text-rose-600 rounded-full shadow-sm"><i class="fa-solid fa-wand-magic-sparkles text-2xl"></i></div>
+                            <button onclick="playVoiceBriefing()" class="flex items-center gap-2 px-6 py-2 rounded-full border-2 border-rose-500 text-rose-600 font-bold transition-all hover:bg-rose-50 shadow-md ${state.isSpeaking ? 'animate-pulse bg-rose-50' : ''} no-print">
+                                <i class="fa-solid ${state.isSpeaking ? 'fa-stop' : 'fa-volume-high'}"></i> ${state.isSpeaking ? 'Hentikan Suara' : '✨ Dengar Pesan RAMLI'}
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-gray-400 max-w-xl mx-auto no-print">Suara memakai mesin bawaan perangkat — paling lancar saat file dibuka langsung di browser.</p>
+                        ${state.voiceNote ? `<p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 max-w-xl mx-auto no-print">${state.voiceNote}</p>` : ''}
+                        <h2 class="text-2xl md:text-3xl font-black text-gray-800">Analisis Komprehensif Bunda ${formData.nama}</h2>
+                        ${state.isAnalyzing ? `
+                            <div class="flex flex-col items-center justify-center gap-3 text-rose-500 mt-4 no-print">
+                                <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
+                                <span class="font-medium">RAMLI sedang menyusun analisis personal Bunda...</span>
+                            </div>
+                        ` : a ? `
+                            <div class="bg-rose-50 py-4 px-6 rounded-2xl inline-block mt-2 border border-rose-100 shadow-inner max-w-2xl">
+                                <p class="text-rose-700 font-bold italic">" ${a.summary} "</p>
+                            </div>
+                        ` : state.aiError ? `
+                            <div class="bg-amber-50 py-3 px-6 rounded-2xl inline-block mt-2 border border-amber-200 max-w-2xl no-print">
+                                <p class="text-amber-700 font-semibold text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Analisis cerdas RAMLI belum dimuat (lingkungan tanpa kunci AI). Hasil skoring medis & suara di bawah tetap lengkap dan akurat.</p>
+                                <button onclick="toggleSettings(true)" class="mt-2 text-xs font-bold text-amber-800 underline hover:text-amber-900">Aktifkan AI RAMLI dengan API key sendiri →</button>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="p-6 rounded-3xl border-2 ${res.ksprColor} shadow-sm">
+                            <p class="text-sm font-bold uppercase tracking-widest opacity-80 mb-2">Indeks Risiko Kehamilan</p>
+                            <div class="flex items-end gap-4 mb-4">
+                                <span class="text-5xl font-black">${res.kspr}</span>
+                                <span class="text-lg font-bold pb-1">${res.ksprCategory}</span>
+                            </div>
+                            <div class="bg-white/50 p-3 rounded-xl text-sm space-y-1 mt-4">
+                                <p class="font-bold opacity-80 text-xs mb-2">Faktor Penyumbang Skor:</p>
+                                ${res.ksprDetails.map(det => `<div class="flex gap-2 items-start"><i class="fa-solid fa-circle-check mt-1 opacity-70"></i> ${det}</div>`).join('')}
+                            </div>
+                        </div>
+                        <div class="p-6 rounded-3xl border-2 border-blue-200 bg-blue-50 text-blue-800 shadow-sm">
+                            <p class="text-sm font-bold uppercase tracking-widest opacity-80 mb-2">Status Gizi Pra-Hamil</p>
+                            <div class="flex items-end gap-4 mb-4">
+                                <span class="text-5xl font-black">${res.bmi}</span>
+                                <span class="text-lg font-bold pb-1">BMI</span>
+                            </div>
+                            <div class="bg-white/50 p-4 rounded-xl mt-4">
+                                <p class="text-xs font-bold uppercase opacity-70 mb-1">Target Kenaikan BB Selama Hamil</p>
+                                <p class="font-bold text-lg">${res.weightRec}</p>
+                                <p class="text-sm mt-2 opacity-80">Progres saat ini: <span class="font-bold">${formData.beratBadanSekarang - formData.beratBadanSebelum} kg</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${(!state.isAnalyzing && a) ? `
+                        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 md:p-8 rounded-3xl border border-indigo-100 shadow-md">
+                            <div class="flex items-center gap-3 text-indigo-700 font-black text-xl mb-4">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Rekomendasi Pakar RAMLI</span>
+                            </div>
+                            <p class="text-sm text-indigo-900 leading-relaxed mb-6 font-medium">${a.deepDive || ''}</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white/70 p-5 rounded-2xl shadow-sm">
+                                    <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">🍽️ Menu Khusus RAMLI</p>
+                                    <ul class="text-sm text-indigo-900 space-y-2 font-medium">
+                                        ${meals.map(m => `<li class="flex gap-2 items-start"><span class="text-rose-400 font-bold">•</span> ${m}</li>`).join('') || '<li class="opacity-60">Tidak ada saran menu khusus.</li>'}
+                                    </ul>
+                                </div>
+                                <div class="bg-white/70 p-5 rounded-2xl shadow-sm">
+                                    <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">🧘‍♀️ Strategi Mental</p>
+                                    <p class="text-sm text-indigo-900 font-medium">${a.mentalHealth || ''}</p>
+                                    ${acts.length ? `
+                                        <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mt-4 mb-2">🤸‍♀️ Aktivitas RAMLI</p>
+                                        <ul class="text-sm text-indigo-900 space-y-1 font-medium">
+                                            ${acts.map(x => `<li class="flex gap-2 items-start"><span class="text-rose-400 font-bold">•</span> ${x}</li>`).join('')}
+                                        </ul>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="p-6 rounded-3xl border-2 ${res.plan.isUsgAbnormal ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="fa-solid fa-stethoscope text-xl ${res.plan.isUsgAbnormal ? 'text-orange-500' : 'text-blue-500'}"></i>
+                            <h3 class="font-black text-lg ${res.plan.isUsgAbnormal ? 'text-orange-800' : 'text-blue-800'}">Kesimpulan Hasil USG</h3>
+                        </div>
+                        <p class="text-sm font-medium leading-relaxed ${res.plan.isUsgAbnormal ? 'text-orange-900' : 'text-blue-900'}">${res.plan.usgConclusion}</p>
+                        ${(!state.isAnalyzing && a && a.usgAnalysis) ? `
+                            <div class="mt-4 p-4 bg-white/60 rounded-xl">
+                                <p class="text-xs font-bold uppercase mb-1 text-gray-500">Catatan RAMLI:</p>
+                                <p class="text-sm font-medium text-gray-800">${a.usgAnalysis}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="font-black text-xl flex items-center gap-3"><div class="w-2 h-8 bg-rose-500 rounded-full"></div> Resep Vitamin & Catatan Medis RSHB</h3>
+                        ${res.plan.warnings.length > 0 ? `
+                            <div class="bg-red-50 border-2 border-red-200 p-4 rounded-2xl mb-4">
+                                <div class="flex items-center gap-2 text-red-700 font-bold mb-2"><i class="fa-solid fa-circle-exclamation"></i> <span>Peringatan Klinis RSHB</span></div>
+                                <ul class="list-disc list-inside text-sm text-red-800 space-y-1 font-medium">
+                                    ${res.plan.warnings.map(w => `<li>${w}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        <div class="grid md:grid-cols-2 gap-4">
+                            ${res.plan.vitamins.map(v => `
+                                <div class="bg-white border-2 border-rose-100 p-5 rounded-2xl shadow-sm">
+                                    <p class="font-black text-rose-600 text-lg">${v.name}</p>
+                                    <p class="text-sm text-gray-600 mt-2 font-medium leading-relaxed">${v.reason}</p>
+                                </div>
+                            `).join('')}
+                            ${res.plan.recommendations.map(r => `
+                                <div class="flex gap-3 items-start bg-blue-50 border-2 border-blue-100 p-5 rounded-2xl text-sm text-blue-800 font-medium">
+                                    <i class="fa-solid fa-leaf mt-1 text-blue-500"></i> <span>${r}</span>
+                                </div>
+                            `).join('')}
+                            ${res.plan.activities.map(act => `
+                                <div class="flex gap-3 items-start bg-emerald-50 border-2 border-emerald-100 p-5 rounded-2xl text-sm text-emerald-800 font-medium">
+                                    <i class="fa-solid fa-person-running mt-1 text-emerald-500"></i> <span>${act}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-rose-500 to-pink-600 p-6 md:p-8 rounded-3xl mt-8 text-white shadow-xl shadow-rose-200 print-area">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="bg-white/20 p-3 rounded-2xl backdrop-blur-sm"><i class="fa-solid fa-calendar text-3xl"></i></div>
+                            <div>
+                                <h3 class="font-black text-xl md:text-2xl">Jadwal Kontrol RS Harapan Bunda</h3>
+                                <p class="text-rose-100 text-sm font-medium mt-1">Rekomendasi Pemantauan Medis Bunda</p>
+                            </div>
+                        </div>
+                        <div class="bg-black/10 p-5 rounded-2xl border border-white/20 backdrop-blur-sm">
+                            <p class="font-medium leading-relaxed text-sm md:text-base">
+                                ${res.kspr > 2 || res.plan.isUsgAbnormal ? "⚠️ Berdasarkan hasil asesmen (Indeks Risiko/Temuan USG), Bunda disarankan untuk SEGERA menjadwalkan konsultasi dengan Dokter Spesialis Kandungan (Obgyn) di RS Harapan Bunda untuk pemantauan lebih intensif di luar jadwal rutin." : formData.mingguKehamilan < 28 ? "Lakukan kontrol rutin ke RS Harapan Bunda setiap 4 MINGGU sekali. Pastikan USG dan vitamin Bunda selalu dievaluasi oleh Dokter Spesialis kami." : formData.mingguKehamilan >= 28 && formData.mingguKehamilan < 36 ? "Lakukan kontrol rutin ke RS Harapan Bunda setiap 2 MINGGU sekali. Mulai persiapkan fisik dan mental Bunda menjelang persalinan bersama tim medis kami." : "Bunda sudah berada di akhir kehamilan! Lakukan kontrol rutin ke RS Harapan Bunda setiap 1 MINGGU sekali. Pantau gerakan janin dan segera ke IGD RS Harapan Bunda (24 Jam) jika ada tanda persalinan (kontraksi teratur, keluar flek darah, atau ketuban pecah)."}
+                            </p>
+                        </div>
+                        <button onclick="openWa()" class="mt-6 w-full bg-white text-rose-600 font-black py-4 rounded-xl hover:bg-rose-50 transition-colors shadow-sm active:scale-95 flex justify-center items-center gap-2 no-print">
+                            <i class="fa-brands fa-whatsapp text-lg"></i> Buat Janji Temu via WhatsApp
+                        </button>
+                    </div>
+
+                    <div class="bg-gray-900 text-white p-6 rounded-3xl mt-8 print-area">
+                        <p class="text-xs text-gray-400 italic leading-relaxed">*Disclaimer RSHB: Sistem RAMLI dirancang menggunakan protokol Kartu Skor Poedji Rochjati (KSPR) dan parameter medis obstetri dasar sebagai alat bantu edukasi interaktif. Skor dan rekomendasi tidak menggantikan diagnosis resmi. Selalu konsultasikan cetak biru ini dengan Dokter Spesialis Kandungan Bunda.</p>
+                    </div>
+
+                    ${!state.isSharedView ? `
+                        <div class="flex flex-col gap-3 mt-6 no-print">
+                            <button onclick="handleSaveToCloud()" ${state.saveSuccess ? 'disabled' : ''} class="w-full py-4 font-bold rounded-xl transition-all flex justify-center items-center gap-2 ${state.saveSuccess ? 'bg-green-100 text-green-700 border-2 border-green-200' : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md hover:scale-[1.01]'}">
+                                <i class="fa-solid ${state.saveSuccess ? 'fa-circle-check' : 'fa-clock-rotate-left'}"></i> ${state.saveSuccess ? 'Tersimpan di Riwayat' : 'Simpan ke Riwayat'}
+                            </button>
+                            <button onclick="handleShareLink()" class="w-full py-4 bg-indigo-50 text-indigo-600 border-2 border-indigo-200 hover:bg-indigo-100 font-bold rounded-xl transition-colors flex justify-center items-center gap-2">
+                                <i class="fa-solid fa-link"></i> ${state.copySuccess ? state.copySuccess : 'Salin Link Hasil untuk Pasien'}
+                            </button>
+                            ${state.generatedLink ? `
+                                <div class="p-4 bg-white border border-gray-200 rounded-xl flex flex-col gap-2">
+                                    <label class="text-xs font-bold text-gray-500 uppercase">Link Pasien (Salin Manual):</label>
+                                    <p class="text-xs text-gray-500 mb-1">Jika salin otomatis diblokir, klik kotak di bawah lalu salin (Ctrl/Cmd + C):</p>
+                                    <textarea readonly class="w-full bg-gray-50 p-3 rounded-lg text-xs outline-none border border-gray-200 text-gray-600 font-mono h-24 resize-none cursor-text" onfocus="this.select()">${state.generatedLink}</textarea>
+                                </div>
+                            ` : ''}
+                            <div class="flex flex-col gap-1">
+                                <button onclick="window.print()" class="w-full py-4 bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100 font-bold rounded-xl transition-colors flex justify-center items-center gap-2">
+                                    <i class="fa-solid fa-print"></i> Cetak / Simpan PDF
+                                </button>
+                                <p class="text-[11px] text-center text-gray-400 italic">*Tekan <b>Ctrl + P</b> (Windows) atau <b>Cmd + P</b> (Mac) jika tombol tidak merespon.</p>
+                            </div>
+                            <button onclick="resetApp()" class="w-full py-4 text-gray-400 hover:text-rose-500 font-bold transition-colors uppercase tracking-wider text-sm mt-2">↻ Mulai Asesmen Baru (Kosongkan Form)</button>
+                        </div>
+                    ` : `
+                        <div class="mt-6 text-center no-print">
+                            <p class="text-sm font-bold text-rose-500 bg-rose-50 py-3 px-6 rounded-full inline-block border border-rose-100">Bunda sedang melihat mode rekam hasil personal.</p>
+                            <div class="flex flex-col gap-1 mt-4">
+                                <button onclick="window.print()" class="w-full py-4 bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100 font-bold rounded-xl transition-colors flex justify-center items-center gap-2">
+                                    <i class="fa-solid fa-print"></i> Cetak / Simpan PDF Rekam Medis
+                                </button>
+                                <p class="text-[11px] text-center text-gray-400 italic">*Tekan <b>Ctrl + P</b> (Windows) atau <b>Cmd + P</b> (Mac) jika tombol tidak merespon.</p>
+                            </div>
+                            <button onclick="resetApp()" class="w-full py-4 text-gray-400 hover:text-indigo-500 font-bold transition-colors uppercase tracking-wider text-sm mt-4">← Tutup & Mulai Asesmen Baru</button>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const shareData = params.get('share');
+            if (shareData) {
+                try {
+                    const decoded = JSON.parse(decodeURIComponent(atob(shareData)));
+                    formData = decoded.f;
+                    state.results = decoded.r;
+                    state.aiAnalysis = decoded.a;
+                    state.isSharedView = true;
+                } catch (e) {
+                    console.error("Link tidak valid", e);
+                }
+            }
+            renderApp();
+        };
+    </script>
+</body>
+</html>
