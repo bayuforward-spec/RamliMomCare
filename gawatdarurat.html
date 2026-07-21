@@ -63,6 +63,7 @@
         const KATEGORI = {
             perdarahan:  { label: 'Perdarahan', ikon: 'fa-droplet', warna: 'red' },
             hipertensi:  { label: 'Hipertensi & Kejang', ikon: 'fa-brain', warna: 'purple' },
+            intrapartum: { label: 'Darurat Intrapartum', ikon: 'fa-hand-holding-medical', warna: 'indigo' },
             janin:       { label: 'Gawat Janin', ikon: 'fa-baby', warna: 'sky' },
             muda:        { label: 'Kehamilan Muda', ikon: 'fa-heart-crack', warna: 'rose' },
             semi:        { label: 'Semi-darurat', ikon: 'fa-triangle-exclamation', warna: 'amber' }
@@ -567,6 +568,102 @@
                 ],
                 penyulit: ['Gangguan pembekuan darah', 'Komplikasi tindakan'],
                 rujukan: ['Penyakit Dalam (bila DIC)']
+            },
+            // ---------------- DARURAT INTRAPARTUM (acuan umum, di luar PPK RSHS 2015) ----------------
+            {
+                id: 'distosia-bahu', kategori: 'intrapartum', nama: 'Distosia Bahu',
+                ringkas: 'Bahu tersangkut setelah kepala lahir',
+                gawat: 'Sangat Tinggi',
+                sumber: 'Acuan umum (WHO/PONEK/ALARM/HELPERR)',
+                catatan: 'Topik ini di luar PPK RSHS 2015. Konten berbasis acuan standar umum — verifikasi dengan protap institusi Anda.',
+                definisi: 'Kegagalan lahirnya bahu secara spontan setelah kepala lahir, sehingga memerlukan manuver tambahan. Ditandai "turtle sign" (kepala tertarik kembali ke perineum). Merupakan kegawatan yang tidak dapat diprediksi — setiap penolong harus hafal urutan manuver.',
+                diagnosis: [
+                    'Kepala lahir namun bahu anterior tidak turun dengan traksi ringan biasa',
+                    '"Turtle sign": kepala tertarik kembali menekan perineum',
+                    'Waktu kepala-badan >60 detik / perlu manuver tambahan',
+                    'Faktor risiko: makrosomia, DM, obesitas, riwayat distosia, kala II memanjang, persalinan dengan alat'
+                ],
+                penunjang: ['Diagnosis klinis saat persalinan — tidak menunggu pemeriksaan penunjang', 'Catat waktu kepala lahir & tiap manuver'],
+                langkah: [
+                    'H — Help: panggil bantuan (bidan/SpOG/anak/anestesi), catat waktu.',
+                    'E — Evaluate for episiotomy: pertimbangkan untuk ruang manuver internal.',
+                    'L — Legs (McRoberts): fleksi maksimal kedua paha ibu ke arah abdomen.',
+                    'P — Suprapubic pressure (Rubin I): tekanan suprapubik ke arah dada janin, JANGAN fundal pressure.',
+                    'E — Enter (manuver internal): rotasi bahu — Rubin II / Woods screw / reverse Woods.',
+                    'R — Remove posterior arm: lahirkan lengan posterior.',
+                    'R — Roll (Gaskin / posisi merangkak) lalu ulangi manuver.',
+                    'HINDARI: tekanan fundus, traksi kepala berlebihan, memutar/menekuk leher janin berlebihan.',
+                    'Manuver terakhir bila gagal: Zavanelli (reposisi kepala + SC), simfisiotomi, atau kleidotomi — oleh SpOG.',
+                    'Setelah lahir: nilai bayi (pleksus brakialis, fraktur), waspadai HPP & robekan pada ibu.'
+                ],
+                obat: [
+                    { n: 'Tanpa obat spesifik', d: 'Kunci penanganan adalah MANUVER berurutan, bukan obat.', c: '—' },
+                    { n: 'Antisipasi HPP', d: 'siapkan uterotonika (oksitosin) — risiko atonia meningkat', c: 'IV/IM' }
+                ],
+                penyulit: ['Cedera pleksus brakialis (Erb palsy)', 'Fraktur klavikula/humerus', 'Asfiksia', 'HPP', 'Robekan perineum berat'],
+                rujukan: ['Anak / Perinatologi', 'SpOG', 'Anestesi']
+            },
+            {
+                id: 'prolaps-tali-pusat', kategori: 'intrapartum', nama: 'Prolaps Tali Pusat',
+                ringkas: 'Tali pusat turun mendahului bagian terendah janin',
+                gawat: 'Sangat Tinggi',
+                sumber: 'Acuan umum (WHO/PONEK/RCOG)',
+                catatan: 'Topik ini di luar PPK RSHS 2015. Konten berbasis acuan standar umum — verifikasi dengan protap institusi Anda.',
+                definisi: 'Turunnya tali pusat melewati bagian terendah janin setelah ketuban pecah (overt/nyata bila keluar dari serviks; occult/tersembunyi bila di samping presentasi). Kompresi tali pusat → gawat janin akut — persalinan harus disegerakan.',
+                diagnosis: [
+                    'Tali pusat teraba/terlihat di vagina atau di luar vulva setelah ketuban pecah',
+                    'Deselerasi/bradikardia DJJ mendadak, terutama segera setelah ketuban pecah',
+                    'Faktor risiko: presentasi abnormal/tinggi, polihidramnion, prematur, gemeli, tali pusat panjang, amniotomi pada bagian terendah belum masuk PAP'
+                ],
+                penunjang: ['Diagnosis klinis (pemeriksaan dalam) + KTG/DJJ — jangan menunda tindakan', 'USG bila meragukan (occult)'],
+                langkah: [
+                    'Panggil bantuan & siapkan SEKSIO SESAREA darurat (bila pembukaan belum lengkap).',
+                    'Angkat bagian terendah janin secara MANUAL (tangan di vagina) untuk mengurangi kompresi tali pusat — pertahankan sampai bayi lahir.',
+                    'Posisi ibu: knee-chest (menungging) atau Trendelenburg / miring kiri dengan bantal di pinggul.',
+                    'Isi kandung kemih 500–750 mL NaCl 0,9% via kateter untuk mengangkat presentasi (bila SC tertunda).',
+                    'Minimal handling tali pusat; jaga tetap hangat & lembab (kasa NaCl hangat). JANGAN mendorong tali pusat kembali secara paksa.',
+                    'Tokolitik bila ada kontraksi kuat & tindakan tertunda (mis. Terbutalin 0,25 mg SC/IV).',
+                    'Persalinan segera: SC bila belum kala II; pervaginam/ekstraksi bila kala II & syarat terpenuhi (lebih cepat).',
+                    'Siapkan resusitasi neonatus.'
+                ],
+                obat: [
+                    { n: 'Terbutalin', d: '0,25 mg (tokolitik, kurangi kompresi bila tindakan tertunda)', c: 'SC/IV' },
+                    { n: 'NaCl 0,9%', d: '500–750 mL isi kandung kemih (elevasi presentasi)', c: 'via kateter' }
+                ],
+                penyulit: ['Gawat janin / asfiksia', 'Kematian janin', 'Cedera hipoksik'],
+                rujukan: ['Anak / Perinatologi', 'Anestesi', 'SpOG']
+            },
+            {
+                id: 'emboli-air-ketuban', kategori: 'intrapartum', nama: 'Emboli Air Ketuban',
+                ringkas: 'Kolaps kardiorespirasi mendadak + DIC',
+                gawat: 'Sangat Tinggi',
+                sumber: 'Acuan umum (WHO/PONEK/AFE guideline)',
+                catatan: 'Topik ini di luar PPK RSHS 2015. Konten berbasis acuan standar umum — verifikasi dengan protap institusi Anda. Tidak ada terapi spesifik; tatalaksana bersifat suportif & resusitatif.',
+                definisi: 'Masuknya cairan ketuban/komponen janin ke sirkulasi ibu, memicu kolaps kardiovaskular, hipoksia, dan koagulopati (DIC) mendadak — umumnya saat persalinan atau segera pascasalin. Diagnosis KLINIS & eksklusi (mengancam jiwa, angka kematian tinggi).',
+                diagnosis: [
+                    'Trias: HIPOKSIA (dispnea/sianosis) + HIPOTENSI (kolaps) + KOAGULOPATI (DIC/perdarahan)',
+                    'Onset mendadak saat/segera setelah persalinan, SC, atau amniotomi',
+                    'Dapat disertai kejang, agitasi, henti jantung, gawat janin mendadak',
+                    'Diagnosis banding: eklampsia, emboli paru, syok anafilaksis/septik, IMA, HPP, ruptur uteri'
+                ],
+                penunjang: ['Diagnosis klinis — JANGAN menunda resusitasi', 'AGD, DPL, koagulasi (PT/APTT, fibrinogen, D-dimer)', 'EKG, foto toraks, ekokardiografi bila memungkinkan'],
+                langkah: [
+                    'Panggil bantuan/aktifkan code — tim: anestesi/ICU, SpOG, hematologi, anak.',
+                    'A-B-C: oksigen aliran tinggi; intubasi & ventilasi bila perlu. RJP segera bila henti jantung (kualitas tinggi).',
+                    'Sirkulasi: 2 jalur IV besar, resusitasi cairan hati-hati, vasopresor/inotropik (noradrenalin, dobutamin) untuk sokong TD & curah jantung.',
+                    'Koreksi koagulopati/DIC: aktifkan protokol transfusi masif — PRC, FFP, kriopresipitat, trombosit; pandu dengan koagulasi.',
+                    'Atasi HPP agresif (uterotonika, dll.) — perdarahan sering hebat.',
+                    'Bila ibu henti jantung & janin viable belum lahir: PERIMORTEM cesarean dalam 4–5 menit RJP.',
+                    'Lanjutkan perawatan intensif di ICU pascastabilisasi.'
+                ],
+                obat: [
+                    { n: 'Oksigen / ventilasi', d: 'aliran tinggi; intubasi bila perlu', c: 'inhalasi' },
+                    { n: 'Vasopresor/inotropik', d: 'Noradrenalin & Dobutamin titrasi', c: 'IV' },
+                    { n: 'Produk darah', d: 'PRC + FFP + kriopresipitat + trombosit (transfusi masif)', c: 'IV' },
+                    { n: 'Uterotonika', d: 'oksitosin dll. untuk atasi HPP', c: 'IV/IM' }
+                ],
+                penyulit: ['Henti jantung', 'DIC & perdarahan masif', 'Gagal napas (ARDS)', 'Cedera neurologis hipoksik', 'Kematian ibu & janin'],
+                rujukan: ['Anestesi / ICU', 'Hematologi', 'Anak / Perinatologi']
             }
         ];
 
@@ -736,6 +833,7 @@
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="font-bold text-slate-800 text-[15px]">${k.nama}</span>
                                         ${gawatBadge(k.gawat)}
+                                        ${k.sumber ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500" title="Di luar PPK RSHS 2015 — acuan umum">acuan umum</span>' : ''}
                                     </div>
                                     <div class="text-xs text-slate-500 truncate">${k.ringkas}</div>
                                 </div>
@@ -762,10 +860,11 @@
                     <div class="flex items-center gap-2 mb-1 flex-wrap">
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-${cat.warna}-100 text-${cat.warna}-700">${cat.label}</span>
                         ${gawatBadge(k.gawat)}
-                        <span class="text-[10px] text-slate-400 ml-auto">PPK Obgyn RSHS 2015 · hal. ${k.hal}</span>
+                        <span class="text-[10px] text-slate-400 ml-auto text-right">${k.sumber ? k.sumber : 'PPK Obgyn RSHS 2015 · hal. ' + k.hal}</span>
                     </div>
                     <h1 class="font-extrabold text-xl text-slate-800">${k.nama}</h1>
                     <p class="text-sm text-slate-600 mt-2 leading-relaxed">${k.definisi}</p>
+                    ${k.catatan ? `<div class="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-[12px] text-amber-800 flex gap-2"><i class="fa-solid fa-circle-info mt-0.5"></i><span>${k.catatan}</span></div>` : ''}
                 </div>
 
                 ${sectionCard('fa-list-check', 'red', 'Langkah Tindakan',
