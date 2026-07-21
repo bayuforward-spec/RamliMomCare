@@ -671,9 +671,8 @@
         //  STATE
         // ==========================================================
         const DEFAULT_CONTACTS = [
-            { label: 'RS Rujukan / PONEK', sub: 'IGD PONEK RS rujukan', tel: '', ikon: 'fa-hospital', warna: 'red' },
-            { label: 'PMI / Bank Darah', sub: 'Unit transfusi darah', tel: '', ikon: 'fa-droplet', warna: 'rose' },
-            { label: 'SpOG on-call', sub: 'Dokter spesialis kandungan', tel: '', ikon: 'fa-user-doctor', warna: 'purple' }
+            { label: 'Call Centre', sub: 'Pusat panggilan darurat', tel: '085381338887', ikon: 'fa-headset', warna: 'red' },
+            { label: 'RS Harapan Bunda / PONEK', sub: 'IGD PONEK', tel: '082181522611', ikon: 'fa-hospital', warna: 'rose' }
         ];
         function loadContacts() {
             try { const c = JSON.parse(safeStorage.get('ramli_contacts')); return Array.isArray(c) && c.length ? c : JSON.parse(JSON.stringify(DEFAULT_CONTACTS)); }
