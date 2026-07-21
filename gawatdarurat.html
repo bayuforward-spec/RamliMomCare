@@ -682,7 +682,7 @@
         let state = {
             view: 'home',          // home | kondisi | kalkulator | triase | rujukan
             kondisiId: null,
-            search: '',
+            search: '', showLegend: false,
             checklist: {},         // {kondisiId: {stepIndex: bool}}
             calc: 'mgso4',         // mgso4 | antihipertensi | oksitosin | darah | steroid | tokolitik
             oksTetes: 40,
@@ -725,6 +725,7 @@
             }
         }
         window.setSearch = (v) => { state.search = v; reRenderKeepFocus(); };
+        window.toggleLegend = () => { state.showLegend = !state.showLegend; reRender(); };
 
         // ---------- Navbar ----------
         function renderNavbar() {
@@ -809,6 +810,22 @@
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                     <input id="searchInput" value="${state.search.replace(/"/g, '&quot;')}" oninput="setSearch(this.value)" placeholder="Cari kondisi, gejala, atau kata kunci..." class="w-full pl-10 pr-9 py-3 rounded-xl border border-slate-200 focus:border-red-400 outline-none text-sm shadow-sm">
                     ${state.search ? `<button onclick="setSearch('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-circle-xmark"></i></button>` : ''}
+                </div>
+                <div class="mb-4 no-print">
+                    <button onclick="toggleLegend()" class="w-full flex items-center justify-between text-left px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+                        <span class="text-xs font-semibold text-slate-600"><i class="fa-solid fa-circle-info text-slate-400 mr-1.5"></i>Arti label tingkat kegawatan</span>
+                        <i class="fa-solid fa-chevron-${state.showLegend ? 'up' : 'down'} text-slate-400 text-xs"></i>
+                    </button>
+                    ${state.showLegend ? `
+                    <div class="mt-2 rounded-xl bg-white border border-slate-100 shadow-sm p-3 space-y-2 fade-up">
+                        ${[
+                            { g: 'Sangat Tinggi', d: 'Mengancam jiwa — tangani SEGERA (detik–menit).' },
+                            { g: 'Tinggi', d: 'Gawat — tangani cepat, stabilkan & rujuk.' },
+                            { g: 'Sedang–Tinggi', d: 'Serius, bisa memburuk — pantau ketat.' },
+                            { g: 'Sedang', d: 'Semi-darurat — penanganan terjadwal/observasi.' }
+                        ].map(x => `<div class="flex items-start gap-2.5">${gawatBadge(x.g)}<span class="text-xs text-slate-600 leading-snug">${x.d}</span></div>`).join('')}
+                        <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Label ini penanda prioritas (triase), bukan klasifikasi resmi protap. Kegawatan sebenarnya tetap dinilai dari kondisi klinis pasien.</p>
+                    </div>` : ''}
                 </div>
                 ${q && totalHit === 0 ? `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-magnifying-glass text-2xl mb-2 block"></i>Tidak ada kondisi cocok dengan "${state.search}".</div>` : ''}
                 ${cats.map(catKey => {
