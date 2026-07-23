@@ -60,7 +60,990 @@
         };
 
         /* KONDISI diisi dari data protap (lihat build). */
-        const KONDISI = /*__KONDISI__*/[]/*__END__*/;
+        const KONDISI = /*__KONDISI__*/[
+  {
+    "id": "asuhan-antenatal",
+    "kategori": "antenatal",
+    "nama": "Asuhan Antenatal",
+    "ringkas": "Pemantauan rutin kesehatan selama kehamilan",
+    "hal": 1,
+    "definisi": "Upaya preventif program pelayanan kesehatan obstetrik untuk optimalisasi luaran maternal dan neonatal melalui serangkaian kegiatan pemantauan rutin selama kehamilan.",
+    "diagnosis": [
+      "Anamnesis keluhan yang dirasakan ibu hamil setiap kunjungan",
+      "Pemeriksaan umum (generalis) dan pemeriksaan khusus (lokalis)",
+      "Pemeriksaan abdomen: inspeksi, palpasi, auskultasi (deteksi DJJ, gerakan janin, ballotement)",
+      "Deteksi pembesaran disertai penipisan dinding uterus",
+      "Menilai kesejahteraan janin",
+      "Pemantauan tinggi fundus terhadap usia kehamilan (uterus lebih besar/kecil dari usia sesungguhnya)"
+    ],
+    "penunjang": [
+      "Uji hormonal kehamilan",
+      "Pemeriksaan laboratorium",
+      "Ultrasonografi, Rontgen, pemeriksaan genetika"
+    ],
+    "langkah": [
+      "Anjurkan ibu melakukan kunjungan antenatal secara berkala dan teratur",
+      "Lakukan pemeriksaan dan pencatatan kesehatan ibu hamil dari satu kunjungan ke kunjungan berikutnya",
+      "Identifikasi dan tatalaksana kehamilan risiko tinggi",
+      "Pantau gejala dan tanda bahaya: perdarahan, hipertensi/kejang, nyeri perut menjelang persalinan",
+      "Berikan edukasi kesehatan esensial: nutrisi adekuat (kalori, protein, kalsium, zat besi, asam folat), perawatan payudara, perawatan gigi, kebersihan tubuh dan pakaian",
+      "Lakukan rujukan optimal dan tepat waktu bila ditemukan kondisi patologis"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Muntah berlebihan yang berlangsung selama kehamilan",
+      "Disuria",
+      "Menggigil atau demam",
+      "Ketuban pecah dini atau sebelum waktunya",
+      "Perdarahan pada kehamilan muda dan lanjut",
+      "Hipertensi atau kejang"
+    ],
+    "rujukan": [
+      "Rujukan untuk gangguan kesehatan penyerta: Tuberkulosis Paru, Malaria, Hepatitis B, IMS, Dekompensatio Kordis, HIV/AIDS (PMTCT)"
+    ]
+  },
+  {
+    "id": "hiperemesis-gravidarum",
+    "kategori": "antenatal",
+    "nama": "Hiperemesis Gravidarum",
+    "ringkas": "Mual muntah hebat disertai dehidrasi",
+    "hal": 3,
+    "definisi": "Mual dan muntah hebat yang mungkin diikuti terjadinya dehidrasi. Muntah persisten menyebabkan hipotensi postural, takikardi, gangguan elektrolit, ketosis, dan kehilangan berat badan; bentuk berat merupakan keadaan darurat.",
+    "diagnosis": [
+      "Kehamilan muda (4-16 minggu)",
+      "Mual disertai muntah hebat dan berulang",
+      "Semua yang diminum atau dimakan kembali dimuntahkan",
+      "Dapat disertai tanda dehidrasi ringan sampai berat",
+      "Turgor kulit menurun",
+      "Diagnosis banding: dispepsia, migrain-vertigo, iritasi peritoneal (mis. Kehamilan Ektopik Terganggu)"
+    ],
+    "penunjang": [
+      "Laboratorium: keton (+)",
+      "USG: menentukan letak kantung kehamilan intra/ekstrauterin, jumlah janin, usia kehamilan, dan menyingkirkan mola hidatidosa"
+    ],
+    "langkah": [
+      "Lini pertama: pemberian antiemetik secara oral",
+      "Bila terapi oral gagal, berikan cairan intravena NaCl atau RL untuk koreksi dehidrasi, ketonemia, defisit elektrolit, dan ketidakseimbangan asam-basa",
+      "Cairan intravena dapat disertai pemberian obat (drip)",
+      "Berikan Dekstrose 5-10% setelah dehidrasi teratasi",
+      "Jika mual muntah hebat tetap terjadi setelah rehidrasi, rawat pasien",
+      "Pulangkan pasien setelah dapat makan dan minum tanpa dimuntahkan kembali"
+    ],
+    "obat": [
+      {
+        "n": "Cairan NaCl atau Ringer Laktat",
+        "d": "untuk koreksi dehidrasi",
+        "c": "intravena"
+      },
+      {
+        "n": "Dekstrose",
+        "d": "5-10% setelah dehidrasi teratasi",
+        "c": "intravena"
+      },
+      {
+        "n": "Antiemetik (promethazin, proklorperazin, klorpromazin, metoklopramid, ondansetron)",
+        "d": "sesuai dosis lazim",
+        "c": "peroral, drip atau i.v bolus"
+      }
+    ],
+    "penyulit": [
+      "Acute kidney injury yang membutuhkan hemodialisa",
+      "Depresi",
+      "Ruptur diafragmatika",
+      "Ruptur esofagus (sindroma Boerhaave)",
+      "Hipoprotrombinemia (defisiensi vitamin)",
+      "Mallory-Weiss tears - perdarahan, pneumothoraks, pneumomediastinum, pneumopericardium",
+      "Ensefalopati Wernicke - defisiensi vitamin B1",
+      "Kejang-kejang",
+      "Penurunan berat badan janin kronis dan gangguan pertumbuhan janin dalam rahim"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "gravidogram",
+    "kategori": "antenatal",
+    "nama": "Gravidogram",
+    "ringkas": "Rekam grafik pemantauan pertumbuhan janin",
+    "hal": 5,
+    "definisi": "Suatu rekam grafik/nomogram untuk memantau pertumbuhan janin dan keadaan ibu dalam kehamilan; formulir status pemeriksaan kehamilan yang memuat data karakteristik pasien, tanda vital, tinggi fundus uteri, dan pemeriksaan penunjang.",
+    "diagnosis": [
+      "Penilaian ada tidaknya gangguan pertumbuhan janin secara klinis dengan melihat tinggi S-F yang sesuai usia kehamilan pada grafik",
+      "Bila tinggi fundus uteri > 2 SD (< 90 persentil) maupun < 2 SD (< 10 persentil) harus dilakukan pemeriksaan lebih lanjut",
+      "Data yang dicatat: karakteristik pasien (umur, paritas, tinggi badan, berat badan), tanda vital, tinggi fundus uteri (cm), lingkaran perut (cm), letak janin, bunyi jantung janin (TBBJ, BJJ)"
+    ],
+    "penunjang": [
+      "Laboratorium",
+      "USG",
+      "Kardiotokografi"
+    ],
+    "langkah": [
+      "Isi formulir untuk setiap pasien yang datang pemeriksaan kehamilan",
+      "Pastikan hari pertama haid terakhir (HPHT) jelas",
+      "Kosongkan kandung kencing sebelum pengukuran tinggi fundus uteri",
+      "Ukur tinggi fundus uteri dari puncak pubis ke puncak fundus (S-F)",
+      "Nilai kesesuaian tinggi S-F terhadap usia kehamilan pada grafik",
+      "Bila tidak sesuai: tanya ulang HPHT untuk penemuan ulang umur kehamilan dan lakukan USG"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Gangguan pertumbuhan janin (tinggi fundus tidak sesuai usia kehamilan)"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "asuhan-kala-i-persalinan",
+    "kategori": "persalinan",
+    "nama": "Asuhan Kala I Persalinan",
+    "ringkas": "Asuhan persalinan normal tahap pembukaan",
+    "hal": 7,
+    "definisi": "Asuhan persalinan normal untuk menjaga kelangsungan hidup dan derajat kesehatan tinggi bagi ibu dan bayi melalui upaya terintegrasi dengan intervensi seminimal mungkin; kala I dimulai dari awal persalinan hingga pembukaan serviks lengkap.",
+    "diagnosis": [
+      "Anamnesis riwayat kesehatan, kehamilan dan persalinan",
+      "Pemeriksaan fisik: keadaan umum, pemeriksaan abdomen, pemeriksaan dalam",
+      "Pengenalan dini masalah dan penyulit"
+    ],
+    "penunjang": [
+      "Partograf sebagai alat bantu memantau kemajuan kala satu persalinan",
+      "Pemeriksaan laboratorium sesuai indikasi"
+    ],
+    "langkah": [
+      "Lakukan pencegahan infeksi (cuci tangan, peralatan steril/DTT, barier protektif)",
+      "Pantau kemajuan persalinan dan buat keputusan klinik",
+      "Terapkan asuhan sayang ibu: dukungan emosional, kehadiran pendamping",
+      "Anjurkan ibu memilih posisi nyaman (jangan telentang lebih dari 10 menit)",
+      "Berikan asupan cairan dan nutrisi selama persalinan",
+      "Gunakan partograf untuk mencatat observasi dan menilai persalinan normal/abnormal",
+      "Siapkan dan rujuk secara tepat waktu bila ditemukan penyulit",
+      "Hindari tindakan yang tidak perlu atau berbahaya"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Riwayat persalinan per abdominam/Seksio Sesarea",
+      "Perdarahan",
+      "Usia gestasi kurang dari 37 minggu",
+      "Ketuban pecah disertai mekonium kental atau gawat janin",
+      "Ketuban pecah lebih dari 24 jam dengan tanda amnionitis",
+      "Tekanan darah lebih dari 140/90 atau pre-eklampsia",
+      "Tinggi fundus 40cm atau lebih (makrosomia, polihidramnion, kehamilan ganda)",
+      "Gawat janin, malpresentasi atau presentasi majemuk",
+      "Tali pusat menumbung, syok",
+      "Fase laten memanjang, partus lama",
+      "Penyakit sistemik berat (ikterus, anemia, vitium cordis, TBC, DM)"
+    ],
+    "rujukan": [
+      "Persiapan rujukan ke fasilitas rujukan dengan dokumentasi tertulis dan partograf"
+    ]
+  },
+  {
+    "id": "partograf",
+    "kategori": "pemantauan",
+    "nama": "Partograf",
+    "ringkas": "Alat pemantau kemajuan persalinan",
+    "hal": 12,
+    "definisi": "Alat yang dipakai untuk memantau kemajuan persalinan, keadaan ibu dan kesejahteraan janin, guna membantu petugas kesehatan mengambil keputusan cepat dalam pelaksanaan persalinan.",
+    "diagnosis": [
+      "Air ketuban: U=selaput utuh, J=pecah jernih, M=bercampur mekoneum, D=bernoda darah, T=tidak ada cairan",
+      "Molase kepala: 0=sutura teraba jelas, 1=sutura tidak teraba, 2=tulang tumpang tindih masih bisa dipisahkan, 3=tumpang tindih tidak bisa dipisahkan",
+      "Kontraksi per 10 menit: kurang dari 20 detik; antara 20-40 detik; lebih dari 40 detik",
+      "Bila temuan melintas ke kanan garis waspada, lakukan penilaian kondisi ibu dan janin dan tindakan tepat"
+    ],
+    "penunjang": [
+      "Pencatatan protein, aseton, dan volume urin setiap ibu berkemih"
+    ],
+    "langkah": [
+      "Mulai partograf pada pembukaan 4 cm (fase aktif)",
+      "Buat partograf untuk setiap ibu bersalin, kecuali yang harus langsung seksio sesarea (perdarahan antepartum, gawat janin, malpresentasi)",
+      "Catat denyut jantung janin setiap 1 jam",
+      "Catat warna air ketuban setiap pemeriksaan vagina",
+      "Nilai pembukaan serviks setiap 4 jam dengan tanda silang (x)",
+      "Catat penurunan kepala (per 5-an) dengan tanda lingkaran (O) setiap pemeriksaan dalam",
+      "Palpasi kontraksi: jumlah dalam 10 menit dan lama tiap kontraksi",
+      "Catat oksitosin (jumlah per volume cairan infus dan tetesan per menit) serta obat lain",
+      "Catat nadi setiap 30-60 menit, tekanan darah setiap 2 jam"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Temuan melintas ke kanan garis waspada menandakan persalinan abnormal"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "nst-uji-tanpa-beban",
+    "kategori": "pemantauan",
+    "nama": "Uji Tanpa Beban / Non Stress Test (NST)",
+    "ringkas": "Penilaian kesehatan janin dengan KTG",
+    "hal": 15,
+    "definisi": "Pemeriksaan kesehatan janin menggunakan kardiotokografi pada kehamilan >= 32 minggu untuk menilai kesehatan janin melalui hubungan perubahan denyut jantung janin dengan gerakan janin.",
+    "diagnosis": [
+      "Reaktif: DJJ basal 110-160 kali per menit, variabilitas 6-25 per menit, ada gerakan janin (>= 5 gerakan dalam 20 menit) dengan kenaikan minimal 15 dpm selama minimal 15 detik",
+      "Tidak reaktif: DJJ basal 110-160 kali per menit, variabilitas < 6 denyut/menit, gerak janin tidak ada atau < 5 gerakan dalam 20 menit, tidak ada akselerasi meski diberi rangsangan",
+      "Non reassuring (bentuk antara): interpretasi sukar, dapat disebabkan obat (barbiturat, demoral, fenotiasid, metildopa)",
+      "Deselerasi lambat berlangsung lebih dari 1 menit berhubungan dengan keadaan janin buruk"
+    ],
+    "penunjang": [
+      "Kardiotokografi"
+    ],
+    "langkah": [
+      "Pastikan ibu telah makan 1-2 jam sebelum prosedur, tidak memakai sedativa, kandung kemih dikosongkan, informed consent",
+      "Tidurkan pasien semi Fowler 45 derajat miring ke kiri",
+      "Ukur tekanan darah setiap 10 menit",
+      "Pasang kardiotokografi dan berikan tombol penanda gerak janin",
+      "Catat frekuensi DJJ selama 10 menit pertama untuk data dasar",
+      "Pantau minimal 20 menit; bila non reaktif lanjutkan 20 menit lagi",
+      "Bila tetap non reassuring tanpa obat, ulangi NST keesokan hari; bila tidak membaik lakukan uji beban kontraksi (OCT)"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Supine hypotension"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "cst-oct-uji-beban-kontraksi",
+    "kategori": "pemantauan",
+    "nama": "Uji Beban Kontraksi (CST) / Oxytocin Challenge Test (OCT)",
+    "ringkas": "Menilai DJJ saat kontraksi rahim",
+    "hal": 18,
+    "definisi": "Cara pemeriksaan janin menggunakan kardiotokografi yang menilai denyut jantung janin pada saat kontraksi rahim, untuk memantau kondisi janin, menilai toleransi terhadap beban persalinan dan fungsi plasenta.",
+    "diagnosis": [
+      "Negatif: tidak ada deselerasi lambat/variabel yang nyata, DJJ normal (120-160 dpm), variabilitas 6-25 dpm; kehamilan dapat diteruskan sampai 7 hari (kecuali DM)",
+      "Positif: deselerasi lambat pada sebagian besar kontraksi; menandakan insufisiensi uteroplasenta, kehamilan harus segera diakhiri kecuali paru belum matang",
+      "Mencurigakan: deselerasi lambat tidak menetap atau deselerasi variabel terus menerus, adanya takikardia; ulangi 1-2 hari kemudian",
+      "Tidak memuaskan: kontraksi < 3 kali dalam 10 menit atau pencatatan kurang baik; ulangi hari berikutnya",
+      "Hiperstimulasi: >= 5 kontraksi dalam 10 menit, lama kontraksi >= 90 detik, tonus basal > 20 mmHg"
+    ],
+    "penunjang": [
+      "Kardiotokografi"
+    ],
+    "langkah": [
+      "Pastikan ibu tidak makan/minum/merokok 4-8 jam sebelumnya, tidak memakai sedativa, informed consent",
+      "Tidurkan pasien semi Fowler dan miring ke kiri",
+      "Ukur tekanan darah setiap 10-15 menit",
+      "Pasang kardiotokografi, catat data dasar selama 10 menit pertama",
+      "Berikan tetes oksitosin untuk mencapai 3 kontraksi dalam 10 menit",
+      "Bila belum ada kontraksi mulai 1 mU/menit (20 tetes/menit); bila sudah ada tapi < 3 kali/10 menit mulai 0,5 mU/menit (10 tetes/menit)",
+      "Naikkan 5 tetes/menit setiap 15 menit sampai maksimal 60 tetes/menit",
+      "Hentikan oksitosin bila terjadi >= 5 kontraksi/10 menit, deselerasi memanjang atau lambat menetap, atau hipertonus",
+      "Awasi 30 menit setelah oksitosin dihentikan bila hasil negatif/mencurigakan/tidak memuaskan"
+    ],
+    "obat": [
+      {
+        "n": "Oksitosin (tetesan)",
+        "d": "mulai 0,5-1 mU/menit, naik 5 tetes/menit tiap 15 menit, maksimal 60 tetes/menit",
+        "c": "infus intravena"
+      }
+    ],
+    "penyulit": [
+      "Persalinan kurang bulan"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "skor-bishop",
+    "kategori": "pemantauan",
+    "nama": "Skor Bishop (Skor Pelvik)",
+    "ringkas": "Skor kelayakan persalinan pervaginam/induksi",
+    "hal": 26,
+    "definisi": "Suatu klasifikasi objektif untuk memilih pasien yang memenuhi syarat untuk persalinan pervaginam pada janin presentasi belakang kepala.",
+    "diagnosis": [
+      "Pembukaan serviks (cm): skor 0=0, 1=1-2, 2=3-4, 3=5-6",
+      "Pendataran serviks (%): skor 0=0-30, 1=40-50, 2=60-70, 3=80",
+      "Station: skor 0=-3, 1=-2, 2=-1 atau 0, 3=+1 atau +2",
+      "Konsistensi serviks: skor 0=kaku, 1=medium, 2=lunak",
+      "Posisi serviks: skor 0=posterior, 1=di tengah, 2=anterior",
+      "Skor total >= 6: keberhasilan induksi persalinan tinggi; < 6: keberhasilan rendah"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Nilai kelima faktor serviks dan station lalu jumlahkan skor",
+      "Gunakan skor total untuk pertimbangan memilih jenis persalinan pervaginam atau per abdominam"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "skor-zatuchni-andros",
+    "kategori": "pemantauan",
+    "nama": "Skor Zatuchni-Andros",
+    "ringkas": "Prediksi keberhasilan persalinan sungsang pervaginam",
+    "hal": 27,
+    "definisi": "Skor dari 6 variabel klinis yang dibuat saat pasien masuk rumah sakit untuk prediksi keberhasilan persalinan letak sungsang pervaginam.",
+    "diagnosis": [
+      "Paritas: skor 0=0, 1=>= 1",
+      "Umur kehamilan (minggu): skor 0=39, 1=38, 2=37",
+      "Taksiran berat janin: skor 0=> 3600, 1=3000-3600, 2=< 3000",
+      "Persalinan sungsang terdahulu: skor 0=tidak pernah, 1=1, 2=2 atau lebih",
+      "Dilatasi (cm): skor 0=2, 1=3, 2=>= 4",
+      "Station: skor 0=>= -3, 1=-2, 2=<= -1",
+      "Skor <= 4: lakukan seksio sesarea; skor >= 5: persalinan pervaginam"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Nilai keenam variabel klinis dan jumlahkan skor",
+      "Bila skor <= 4 lakukan seksio sesarea; bila >= 5 persalinan pervaginam",
+      "Bila TBBJ >= 3500 gram lakukan seksio sesarea",
+      "Pada preterm dapat pervaginam bila TBBJ > 1800 gram"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "pengakhiran-kehamilan",
+    "kategori": "persalinan",
+    "nama": "Pengakhiran Kehamilan",
+    "ringkas": "Terminasi kehamilan janin hidup atau mati",
+    "hal": 28,
+    "definisi": "Pengakhiran kehamilan untuk mengeluarkan buah kehamilan, baik janin dalam keadaan hidup atau mati.",
+    "diagnosis": [
+      "Indikasi: abortus tertunda (missed abortion), telur kosong (blighted ovum), mola hidatidosa",
+      "Abortus insipiens, abortus inkomplit, ketuban pecah dini",
+      "Kehamilan lewat waktu, pertumbuhan janin terhambat (PJT), kematian janin dalam rahim",
+      "Indikasi ibu: penyakit yang membahayakan ibu bila kehamilan diteruskan"
+    ],
+    "penunjang": [
+      "Pada missed abortion: pemeriksaan trombosit, fibrinogen, waktu pembekuan, waktu perdarahan, waktu protrombin"
+    ],
+    "langkah": [
+      "Pastikan keadaan umum memungkinkan (Hb > 10%, tekanan darah baik)",
+      "Pada abortus febrilis berikan antibiotika parenteral sebelum kuretase",
+      "Kehamilan sampai 12 minggu: kuretase vakum, kuretase tajam, atau dilatasi dan kuretase tajam",
+      "Kehamilan > 12-20 minggu: misoprostol 200 mg intravaginal (dapat diulang 1 kali 6 jam), pemasangan batang laminaria 12 jam, atau kombinasi dengan tetes oksitosin",
+      "Kehamilan > 20-28 minggu: misoprostol 100 ug intravaginal (diulang 1 kali 6 jam), laminaria 12 jam, atau tetes oksitosin 5 IU dalam Dekstrose 5%",
+      "Kehamilan > 28 minggu: misoprostol 50 ug intravaginal (diulang 1 kali 6 jam), metrolisa, atau tetes oksitosin 5 IU dalam Dekstrose 5%",
+      "Lakukan kuretase bila masih terdapat sisa jaringan; lakukan SS/histerotomi bila upaya pervaginam gagal atau atas indikasi ibu/janin"
+    ],
+    "obat": [
+      {
+        "n": "Misoprostol (> 12-20 minggu)",
+        "d": "200 mg intravaginal, diulang 1 kali 6 jam",
+        "c": "intravaginal"
+      },
+      {
+        "n": "Misoprostol (> 20-28 minggu)",
+        "d": "100 ug intravaginal, diulang 1 kali 6 jam",
+        "c": "intravaginal"
+      },
+      {
+        "n": "Misoprostol (> 28 minggu)",
+        "d": "50 ug intravaginal, diulang 1 kali 6 jam",
+        "c": "intravaginal"
+      },
+      {
+        "n": "Tetes oksitosin (> 12-20 minggu)",
+        "d": "10 IU dalam 500 cc dekstrose 5%, mulai 20 sampai maksimal 60 tetes/menit",
+        "c": "infus intravena"
+      },
+      {
+        "n": "Tetes oksitosin (> 20 minggu)",
+        "d": "5 IU dalam dekstrose 5%, mulai 20 sampai maksimal 60 tetes/menit (40 tetes untuk grande multigravida)",
+        "c": "infus intravena"
+      },
+      {
+        "n": "Batang laminaria",
+        "d": "dipasang selama 12 jam",
+        "c": "intraservikal"
+      }
+    ],
+    "penyulit": [],
+    "rujukan": [
+      "Histerotomi dengan sepengetahuan konsulen"
+    ]
+  },
+  {
+    "id": "partus-percobaan",
+    "kategori": "persalinan",
+    "nama": "Partus Percobaan",
+    "ringkas": "Percobaan persalinan pervaginam panggul sempit relatif",
+    "hal": 31,
+    "definisi": "Percobaan persalinan pervaginam pada panggul sempit relatif dengan janin presentasi belakang kepala pada kehamilan cukup bulan atau perkiraan berat badan janin >= 2500 gram, dimulai dari awal persalinan hingga bayi lahir atau diyakini persalinan tidak dapat berlangsung pervaginam.",
+    "diagnosis": [
+      "Berhasil: bayi lahir pervaginam dengan keadaan ibu dan bayi baik",
+      "Tidak lengkap: persalinan diakhiri seksio sesarea atas indikasi ibu atau anak",
+      "Gagal: anak lahir mati, pada kala II kepala tidak engaged setelah dipimpin meneran 1 jam, atau partus buatan pervaginam gagal"
+    ],
+    "penunjang": [
+      "Pemantauan janin dan kontraksi rahim dengan kardiotokografi"
+    ],
+    "langkah": [
+      "Bila his belum ada, lakukan induksi persalinan",
+      "Bila didapatkan inersia uteri hipotonik, berikan tetes oksitosin",
+      "Lakukan pemantauan janin dan kontraksi rahim dengan kardiotokografi",
+      "Bila ada indikasi partus buatan pervaginam dan syarat terpenuhi, pilih ekstraksi vakum",
+      "Jangan lakukan partus percobaan pada riwayat partus percobaan gagal, persangkaan bayi besar, atau anak mahal"
+    ],
+    "obat": [
+      {
+        "n": "Tetes oksitosin",
+        "d": "pada inersia uteri hipotonik",
+        "c": "infus intravena"
+      }
+    ],
+    "penyulit": [
+      "Partus percobaan gagal",
+      "Anak lahir mati"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "episiotomi",
+    "kategori": "persalinan",
+    "nama": "Episiotomi",
+    "ringkas": "Insisi perineum pada kala II persalinan",
+    "hal": 35,
+    "definisi": "Insisi perineum pada kala II persalinan untuk mencegah robekan perineum secara total dan memperlebar jalan lahir sehingga memudahkan kelahiran janin, dilakukan atas indikasi saat kepala atau bokong membuka vulva 3-4 cm.",
+    "diagnosis": [
+      "Dilakukan atas indikasi janin atau adanya ancaman robekan perineum total",
+      "Saat pelaksanaan: kepala atau bokong membuka vulva 3-4 cm"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Episiotomi mediana: insisi perineum dari komisura posterior sepanjang garis tengah ke bawah menuju muskulus sfingter ani (untuk persalinan kurang bulan)",
+      "Episiotomi mediolateral: insisi dimulai pada komisura posterior lalu diteruskan ke lateral (untuk persalinan cukup bulan)",
+      "Berikan terapi antibiotik dan kompres betadin pasca tindakan"
+    ],
+    "obat": [
+      {
+        "n": "Antibiotik",
+        "d": "-",
+        "c": "-"
+      },
+      {
+        "n": "Kompres betadin",
+        "d": "-",
+        "c": "topikal"
+      }
+    ],
+    "penyulit": [
+      "Perdarahan (terutama pada episiotomi mediolateral karena pleksus bulbokavernosus terluka)",
+      "Robekan perineum tingkat III"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "versi-luar",
+    "kategori": "malpresentasi",
+    "nama": "Versi Luar",
+    "ringkas": "Mengubah letak janin dari luar",
+    "hal": 39,
+    "definisi": "Suatu tindakan untuk mengubah letak janin dalam rahim yang dikerjakan dari luar, untuk mengubah letak sungsang menjadi letak kepala atau letak lintang menjadi memanjang.",
+    "diagnosis": [
+      "Indikasi: letak lintang pada kehamilan >= 34 minggu, letak sungsang pada kehamilan >= 34 minggu"
+    ],
+    "penunjang": [
+      "Pemeriksaan USG"
+    ],
+    "langkah": [
+      "Kosongkan kandung kemih dan periksa bunyi jantung janin",
+      "Posisikan ibu berbaring dengan kaki fleksi",
+      "Mobilisasi bagian terendah janin",
+      "Sentralisasi: dekatkan kepala dan bokong",
+      "Versi: putar ke arah paling rendah tahanannya (ke arah perut janin) agar tidak terjadi defleksi kepala/tali pusat terkemuka",
+      "Pantau DJJ selama 5-10 menit pasca versi; bila gawat janin putar kembali ke posisi semula",
+      "Fiksasi dinding perut dengan gurita atau stagen setelah ibu berbaring 15 menit",
+      "Versi luar ulangan dapat dilakukan setiap kunjungan antenatal, maksimal 3 kali selama tidak ada kontra indikasi"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Solusio plasenta",
+      "Lilitan tali pusat",
+      "Ruptura uteri",
+      "Gawat janin",
+      "Ketuban pecah"
+    ],
+    "rujukan": [
+      "Dilakukan residen kepala/konsulen"
+    ]
+  },
+  {
+    "id": "letak-sungsang",
+    "kategori": "malpresentasi",
+    "nama": "Letak Sungsang",
+    "ringkas": "Kehamilan bokong/kaki bagian terendah",
+    "hal": 41,
+    "definisi": "Kehamilan dengan anak letak memanjang dengan bokong/kaki sebagai bagian terendah; diklasifikasikan menjadi letak bokong murni, letak bokong kaki, dan letak kaki.",
+    "diagnosis": [
+      "Diagnosis dengan pemeriksaan luar",
+      "Faktor predisposisi: multiparitas, bayi kembar, hidramnion, oligohidramnion, hidrosefal, anensefal, letak sungsang kehamilan sebelumnya, tumor dalam panggul"
+    ],
+    "penunjang": [
+      "USG pada usia kehamilan 32-34 minggu untuk mengetahui kelainan janin/di luar janin penyebab letak sungsang"
+    ],
+    "langkah": [
+      "Dalam kehamilan: lakukan versi luar pada usia kehamilan >= 34 minggu",
+      "Dalam persalinan: bila VL tidak berhasil, perhatikan panggul sempit, anak mahal, primi tua, TBBJ >= 3500 gram, atau usia < 37 minggu dengan TBBJ >= 1800 gram",
+      "Bila didapatkan salah satu keadaan tersebut, lakukan persalinan per abdominam",
+      "Bila tidak ada, rencanakan persalinan pervaginam: persalinan harus lancar, awasi tali pusat menumbung, tetes oksitosin dibatasi 1 labu, nilai skor Zatuchni",
+      "Pada kala II: persalinan spontan (Bracht) atau manual aid dalam keadaan tertentu"
+    ],
+    "obat": [
+      {
+        "n": "Tetes oksitosin",
+        "d": "dibatasi hanya 1 labu",
+        "c": "infus intravena"
+      }
+    ],
+    "penyulit": [
+      "Tali pusat menumbung pada ketuban yang sudah pecah"
+    ],
+    "rujukan": [
+      "Menghubungi bagian perinatologi untuk persalinan preterm"
+    ]
+  },
+  {
+    "id": "letak-muka",
+    "kategori": "malpresentasi",
+    "nama": "Letak Muka",
+    "ringkas": "Letak kepala dengan defleksi maksimal",
+    "hal": 43,
+    "definisi": "Letak muka adalah letak kepala dengan defleksi maksimal.",
+    "diagnosis": [
+      "Biasanya ditegakkan dalam persalinan",
+      "Pemeriksaan luar: tonjolan kepala sepihak dengan bokong, ditemukan sudut Fabre, BJJ sepihak dengan bagian kecil",
+      "Pemeriksaan dalam: teraba pinggir orbita, hidung, tulang pipi, mulut dan dagu",
+      "Etiologi: panggul sempit, bayi besar, multiparitas, lilitan tali pusat di leher, anensefal"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Kala I: observasi sampai pembukaan lengkap",
+      "Kala II: setelah dipimpin meneran, bila dagu di depan lakukan persalinan pervaginam (spontan atau ekstraksi forsep)",
+      "Bila dagu tetap di belakang: lakukan seksio sesarea"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "kehamilan-lewat-waktu",
+    "kategori": "kondisi",
+    "nama": "Kehamilan Lewat Waktu",
+    "ringkas": "Kehamilan 42 minggu atau lebih",
+    "hal": 44,
+    "definisi": "Kehamilan yang berlangsung selama 294 hari (42 minggu) atau lebih dihitung dari hari pertama haid terakhir pada siklus 28 hari, atau 280 hari (40 minggu) dari konsepsi; hasil persalinan buruk sudah meningkat pada usia 41 minggu.",
+    "diagnosis": [
+      "Penentuan usia kehamilan yang akurat (anamnesis ulang, evaluasi status, USG 16-20 minggu)",
+      "Penilaian janin dan pemeriksaan biometri USG",
+      "Diagnosis PJT",
+      "Pemeriksaan KTG dimulai dari umur kehamilan 41 minggu",
+      "Menilai kematangan serviks dengan skor Bishop (belum matang bila skor < 6)"
+    ],
+    "penunjang": [
+      "USG (biometri, profil biofisik, volume cairan amnion)",
+      "NST; bila non-reaktif lanjut CST/OCT atau profil biofisik"
+    ],
+    "langkah": [
+      "Mulai pengelolaan dari umur 41 minggu tergantung derajat kematangan serviks",
+      "Serviks matang (Bishop >= 6): lakukan induksi persalinan bila tidak ada kontra indikasi; seksio sesarea bila taksiran berat janin >= 4000 gram",
+      "Serviks belum matang (Bishop < 6): nilai keadaan janin dengan profil biofisik",
+      "Bila profil biofisik 0-2/oligohidramnion/deselerasi variabel: lakukan induksi dengan pemantauan KTG kontinyu",
+      "Bila cairan amnion normal dan NST tidak reaktif: lakukan CST; bila positif lahirkan janin, bila negatif nilai ulang 3 hari kemudian",
+      "Akhiri kehamilan bila serviks matang atau bila telah mencapai 308 hari (44 minggu) tanpa melihat serviks",
+      "Intrapartum: ibu tidur miring kiri, pemantauan KTG kontinyu, resusitasi intrauterin bila perlu, cegah aspirasi mekonium"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Aspirasi mekonium",
+      "Hipoglikemi, hipovolemi, hipotermi dan polisitemi pada bayi",
+      "Makrosomia"
+    ],
+    "rujukan": [
+      "Kehadiran dokter spesialis anak mutlak diperlukan saat persalinan"
+    ]
+  },
+  {
+    "id": "pertumbuhan-janin-terhambat",
+    "kategori": "kondisi",
+    "nama": "Pertumbuhan Janin Terhambat (PJT)",
+    "ringkas": "Parameter janin di bawah 10 persentil",
+    "hal": 47,
+    "definisi": "Terhambatnya pertumbuhan dan perkembangan janin dalam rahim sehingga beberapa parameter janin berada di bawah 10 persentil (< 2 SD) dari umur kehamilan yang seharusnya.",
+    "diagnosis": [
+      "Anamnesis faktor risiko: hipertensi, penyakit paru kronis, penyakit jantung sianotik, pemakaian obat, merokok, infeksi, riwayat PJT sebelumnya",
+      "Pengukuran TFU dan lingkaran perut: kecurigaan PJT bila TFU menetap pada 2 kali pemeriksaan selang 1-2 minggu atau menurun di bawah 10 persentil",
+      "Pembagian klinik: Tipe I (simetris), Tipe II (asimetris), tipe kombinasi"
+    ],
+    "penunjang": [
+      "USG: diameter biparietal, panjang femur, lingkaran kepala, lingkaran perut, TBBJ, Doppler, cairan amnion",
+      "Pemantauan gerakan janin (fetal kick count) setiap hari",
+      "USG Doppler dan NST setiap minggu; OCT bila NST non reaktif",
+      "BPP (profil biofisik) setiap minggu"
+    ],
+    "langkah": [
+      "Terapi kausal terhadap penyebab/penyakit yang mendasari",
+      "Konservatif: tirah baring (tidur miring)",
+      "Pemberian kalori >= 2600 kal per oral atau parenteral",
+      "Pemberian kortikosteroid (lihat bab prematuritas)",
+      "Pertimbangkan pemberian aspirin bila tidak ada kontra indikasi",
+      "Terminasi kehamilan bila: hamil aterm (>= 37 minggu), atau sudah mendapat kortikosteroid (24-34 minggu) dengan skor biofisik < 2, deselerasi lambat/variabel berulang, atau Doppler a. umbilikalis REDF/AEDF"
+    ],
+    "obat": [
+      {
+        "n": "Kalori",
+        "d": ">= 2600 kal/hari",
+        "c": "per oral atau parenteral"
+      },
+      {
+        "n": "Kortikosteroid",
+        "d": "kehamilan 24-34 minggu (lihat bab prematuritas)",
+        "c": "-"
+      },
+      {
+        "n": "Aspirin",
+        "d": "dipertimbangkan bila tidak ada kontra indikasi",
+        "c": "per oral"
+      }
+    ],
+    "penyulit": [
+      "Hipoksia janin",
+      "Oligohidramnion",
+      "Kematian janin"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "penyakit-jantung-dalam-kehamilan",
+    "kategori": "penyakit",
+    "nama": "Penyakit Jantung dalam Kehamilan",
+    "ringkas": "Kelainan jantung menyertai kehamilan",
+    "hal": 50,
+    "definisi": "Penyakit jantung yang menyertai kehamilan dengan klasifikasi berdasarkan pembatasan kegiatan fisik (kelas I-IV), memerlukan pengelolaan bersama bagian kardiologi.",
+    "diagnosis": [
+      "Anamnesis: riwayat demam rematik, dispneu saat aktivitas/istirahat, paroksismal nokturnal dispneu, angina atau syncope saat aktivitas, hemoptisis",
+      "Pemeriksaan fisik: murmur sistolik dan diastolik, kelainan irama jantung, precordial thrill, kardiomegali, sianosis/clubbing",
+      "Klasifikasi kelas I (tanpa pembatasan) sampai kelas IV (gejala dekompensasi saat istirahat)"
+    ],
+    "penunjang": [
+      "Foto toraks",
+      "Elektrokardiografi",
+      "Ekhokardiografi",
+      "NST dan USG serial setelah umur kehamilan 32 minggu"
+    ],
+    "langkah": [
+      "Konsultasi dan rawat bersama bagian kardiologi",
+      "Bila rawat jalan kontrol setiap minggu ke bagian kebidanan dan kardiologi",
+      "Tirah baring 2 jam siang dan 10 jam malam hari",
+      "Pengobatan tergantung klasifikasi; kelas I-II tanpa pengobatan (hindari kegiatan fisik terutama minggu 28-32); kelas III-IV rawat di rumah sakit",
+      "Induksi hanya atas indikasi obstetri; berikan diuretika bila perlu untuk mencegah edem paru",
+      "Kala I: pemantauan ketat, profilaksis digitalis dan antibiotik atas konsultasi kardiologi",
+      "Kala II tergantung klasifikasi: kelas I spontan; kelas II-IV cegah mengedan dan selesaikan dengan ekstraksi forsep didampingi kardiologi",
+      "Kala III: oksitosin 10 UI i.m setelah bayi lahir, hindari ergometrin, PRC bila perlu transfusi, furosemid 40 mg i.v profilaksis pada kasus tertentu, bantal pasir di perut bawah setelah plasenta lahir"
+    ],
+    "obat": [
+      {
+        "n": "Oksitosin",
+        "d": "10 UI setelah bayi lahir",
+        "c": "intramuskular"
+      },
+      {
+        "n": "Furosemid",
+        "d": "40 mg (profilaksis pada kasus tertentu)",
+        "c": "intravena"
+      },
+      {
+        "n": "Digitalis dan antibiotik",
+        "d": "profilaksis bila diperlukan atas konsultasi kardiologi",
+        "c": "-"
+      },
+      {
+        "n": "PRC",
+        "d": "bila diperlukan transfusi darah",
+        "c": "transfusi"
+      }
+    ],
+    "penyulit": [
+      "Gagal jantung selama persalinan",
+      "Edem paru",
+      "Gagal jantung masa nifas (dipicu perdarahan, anemia, infeksi, tromboemboli)"
+    ],
+    "rujukan": [
+      "Rawat bersama bagian kardiologi"
+    ]
+  },
+  {
+    "id": "diabetes-melitus-dalam-kehamilan",
+    "kategori": "penyakit",
+    "nama": "Diabetes Melitus dalam Kehamilan",
+    "ringkas": "DM gestasional dan pregestasional",
+    "hal": 53,
+    "definisi": "Diabetes melitus gestasional adalah diabetes yang timbul saat hamil dan menghilang setelah melahirkan; diabetes pregestasional dimulai sebelum hamil dan berlanjut, dengan hiperglikemia saat puasa.",
+    "diagnosis": [
+      "Kriteria diagnosis glukosa (Carpenter-Coustan): puasa 95, 1 jam 180, 2 jam 155, 3 jam 140 mg/dL; didiagnosis bila dua nilai terpenuhi/terlampaui",
+      "Kriteria National Diabetes Data Group: puasa 105, 1 jam 190, 2 jam 165, 3 jam 145 mg/dL",
+      "Klasifikasi kelas A1 (diet), A2 (insulin), B, C, D, F, R, H (insulin)",
+      "Indikasi GTT: riwayat keluarga DM, pernah lahir bayi besar/cacat bawaan, pernah abortus/lahir mati, obesitas, hipertensi, DM"
+    ],
+    "penunjang": [
+      "Tes toleransi glukosa oral (GTT)",
+      "Uji reduksi tiap bulan",
+      "USG untuk kelainan kongenital dan evaluasi pertumbuhan janin",
+      "Profil biofisik/kesejahteraan janin dimulai minggu ke-32; NST setiap hari (IDDM) atau 1 minggu sekali (NIDDM)"
+    ],
+    "langkah": [
+      "Skrining ibu hamil pada kunjungan pertama, ulangi pada kehamilan 28 minggu bila negatif",
+      "Bila positif pengawasan bersama bagian terkait (penyakit dalam, gizi, anak)",
+      "Kendalikan kadar glukosa darah 2 jam pp < 120 mg%",
+      "Pada IDDM berikan insulin RI dimulai dosis rendah, umumnya 0,7-1 unit/kg/hari",
+      "Rawat pada kehamilan 34 minggu bila ada komplikasi",
+      "Persalinan elektif pada IDDM direncanakan usia 38-39 minggu; pada NIDDM terminasi bila ada indikasi",
+      "Diusahakan persalinan pervaginam dengan mempertahankan diet dan dosis insulin, pantau glukosa darah dan janin dengan KTG",
+      "Pascasalin: pantau keadaan umum dan glukosa darah, anjurkan menyusui, beri nasihat kontrasepsi"
+    ],
+    "obat": [
+      {
+        "n": "Insulin Reguler (RI)",
+        "d": "dosis rendah sampai optimal, umumnya 0,7-1 unit/kg/hari",
+        "c": "subkutan"
+      }
+    ],
+    "penyulit": [
+      "Komplikasi ibu: preeklamsi/eklamsi, hidramnion, distosia, perdarahan pascasalin, infeksi saluran kemih, kadar glukosa tidak terkendali",
+      "Komplikasi janin: bayi besar, kematian janin dalam rahim, hipoglikemia, sindroma distres pernafasan, kelainan kongenital, hipokalsemi, hipomagnesemia, hiperbilirubinemia"
+    ],
+    "rujukan": [
+      "Perawatan bersama bagian penyakit dalam, gizi, dan anak"
+    ]
+  },
+  {
+    "id": "tbc-paru-dalam-kehamilan",
+    "kategori": "penyakit",
+    "nama": "TBC Paru dalam Kehamilan",
+    "ringkas": "Tuberkulosis paru pada ibu hamil",
+    "hal": 57,
+    "definisi": "TBC paru adalah penyakit pada parenkhim paru yang disebabkan oleh M. tuberculosis.",
+    "diagnosis": [
+      "Anamnesis: pernah kontak dengan pasien TBC, batuk kronis, batuk darah, nyeri dada, keringat malam, berat badan menurun, demam",
+      "PPD (Purified Protein Derivative): positif bila indurasi 5 mm pada risiko sangat tinggi (HIV positif, thorax abnormal, kontak erat TBC aktif); positif bila > 10 mm pada risiko tinggi"
+    ],
+    "penunjang": [
+      "Laboratorium: pemeriksaan BTA & kultur, LED sangat tinggi",
+      "Foto thorax: tidak rutin, bila usia kehamilan < 7 bulan harus menggunakan pelindung perut"
+    ],
+    "langkah": [
+      "Pengobatan TBC aktif pada kehamilan sedikit berbeda dengan penderita tidak hamil",
+      "Berikan kombinasi IRE (Isoniazid, Rifampisin, Etambutol) setiap hari selama 2 bulan",
+      "Selanjutnya berikan kombinasi INH dan Rifampisin 2 kali seminggu",
+      "Terapi diberikan minimum 9 bulan",
+      "Berikan piridoksin untuk mencegah neuritis perifer akibat isoniazid",
+      "Pada trimester pertama pasien tidak sakit berat cukup INH dan Etambutol sampai selesai trimester I, kemudian mulai terapi 6 bulan penuh dengan pirazinamid, rifampisin dan INH"
+    ],
+    "obat": [
+      {
+        "n": "Isoniazid (INH)",
+        "d": "5 mg/kg/hari, maksimal 300 mg/hari",
+        "c": "per oral"
+      },
+      {
+        "n": "Piridoksin",
+        "d": "50 mg/hari bersama isoniazid",
+        "c": "per oral"
+      },
+      {
+        "n": "Rifampisin",
+        "d": "10 mg/kg/hari, maksimal 600 mg/hari",
+        "c": "per oral"
+      },
+      {
+        "n": "Etambutol",
+        "d": "5-25 mg/kg/hari, maksimal 2,5 gram/hari (25 mg/kg/hari selama 6 minggu lalu turun 15 mg/kg/hari)",
+        "c": "per oral"
+      },
+      {
+        "n": "Pirazinamide",
+        "d": "dipertimbangkan bila resisten",
+        "c": "per oral"
+      }
+    ],
+    "penyulit": [
+      "Neuritis perifer akibat isoniazid",
+      "Resistensi obat"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "asma-bronkiale-dalam-kehamilan",
+    "kategori": "penyakit",
+    "nama": "Asma Bronkiale dalam Kehamilan",
+    "ringkas": "Inflamasi saluran nafas kronik pada kehamilan",
+    "hal": 59,
+    "definisi": "Kelainan saluran pernafasan yang ditandai dengan inflamasi saluran nafas kronik dengan episode obstruksi saluran nafas akut akibat stimulus oleh berbagai macam allergen.",
+    "diagnosis": [
+      "Anamnesis: sesak nafas tiba-tiba, riwayat serangan asma sebelumnya, riwayat atopi pada keluarga",
+      "Gejala utama: ekspirasi memanjang, wheezing (+)",
+      "Gejala lain: takikardi, retraksi suprasternal, sianosis",
+      "Klasifikasi (NAEP): asma ringan (PEFR/FEV1 >= 80%), sedang (60-80%), berat (< 60%)"
+    ],
+    "penunjang": [
+      "Laboratorium: IgE meningkat, eosinofil meningkat",
+      "Penilaian fungsi paru dengan FEV1 (spirometer) atau PEFR"
+    ],
+    "langkah": [
+      "Perawatan bersama bagian penyakit dalam",
+      "Hindari/kontrol pencetus asma dan terapi sinusitis, hindari merokok, aspirin, aktivitas fisik berlebih",
+      "Berikan edukasi obat dan faktor pencetus",
+      "Terapi bertahap: Tahap I inhalasi beta simpatomimetik (salbutamol 1-2 semprotan 100-200 ug); Tahap II tambah inhalasi glukokortikoid (beclomethasone 100-400 ug 2x sehari)",
+      "Tahap III inhaler dosis tinggi atau beta simpatomimetik long acting (salmeterol); Tahap IV inhalasi steroid dosis tinggi + bronkodilator reguler; Tahap V tambah tablet prednisolon",
+      "Status asmatikus (rawat inap): oksigen 6-7 L/menit, koreksi dehidrasi dan elektrolit, analisis gas darah, aminofilin dan hidrokortison",
+      "Dalam persalinan: diusahakan pervaginam, bila perlu kala II diperpendek; seksio sesarea hanya atas indikasi obstetri"
+    ],
+    "obat": [
+      {
+        "n": "Salbutamol (inhalasi)",
+        "d": "1-2 semprotan (100-200 ug)",
+        "c": "inhalasi"
+      },
+      {
+        "n": "Beclomethasone (inhalasi)",
+        "d": "100-400 ug 2 kali sehari (hingga 800-2000 ug/hari dosis tinggi)",
+        "c": "inhalasi"
+      },
+      {
+        "n": "Salmeterol",
+        "d": "50 ug 2 kali sehari",
+        "c": "inhalasi"
+      },
+      {
+        "n": "Prednisolon",
+        "d": "tablet (tahap V)",
+        "c": "per oral"
+      },
+      {
+        "n": "Aminofilin",
+        "d": "0,25-0,5 g dalam 30 ml NaCl 0,9% bolus i.v perlahan, lanjut tetesan 0,9 mg/kg/jam",
+        "c": "intravena"
+      },
+      {
+        "n": "Hidrokortison suksinat",
+        "d": "100-200 mg setiap 2-4 jam",
+        "c": "intravena"
+      },
+      {
+        "n": "Oksigen",
+        "d": "6-7 L/menit (status asmatikus)",
+        "c": "inhalasi"
+      }
+    ],
+    "penyulit": [
+      "Status asmatikus",
+      "Episode hipoksia untuk ibu dan janin"
+    ],
+    "rujukan": [
+      "Perawatan bersama bagian penyakit dalam"
+    ]
+  },
+  {
+    "id": "panggul-sempit",
+    "kategori": "malpresentasi",
+    "nama": "Panggul Sempit",
+    "ringkas": "Kelainan diameter panggul menyebabkan distosia",
+    "hal": 68,
+    "definisi": "Setiap kelainan pada diameter yang mengurangi kapasitas panggul sehingga dapat menimbulkan distosia pada persalinan; diklasifikasikan sebagai kesempitan pintu atas panggul, panggul tengah, dan pintu bawah panggul.",
+    "diagnosis": [
+      "Kesempitan pintu atas panggul relatif: konjugata vera > 8,5-10 cm; absolut: konjugata vera <= 8,5 cm",
+      "Kesempitan panggul tengah: jumlah diameter interspinarum + sagitalis posterior < 13,5 cm, atau interspinarum < 10 cm, dinding konvergen, sakrum lurus/konveks",
+      "Kesempitan pintu bawah panggul: arkus pubis < 90 derajat atau sudut lancip"
+    ],
+    "penunjang": [
+      "Perasat Muller",
+      "Perasat Osborne",
+      "Pemeriksaan radiologis (panggul tengah)"
+    ],
+    "langkah": [
+      "Pada kesempitan panggul tengah dan pintu bawah lakukan seksio sesarea",
+      "Pada panggul sempit relatif lakukan partus percobaan untuk janin letak belakang kepala",
+      "Pada panggul sempit absolut lakukan seksio sesarea"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Distosia pada persalinan"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "kelainan-his",
+    "kategori": "persalinan",
+    "nama": "Kelainan His",
+    "ringkas": "Inersia uteri hipotonik dan hipertonik",
+    "hal": 95,
+    "definisi": "Kelainan kontraksi uterus: inersia hipotonik (kontraksi terkoordinasi tapi tidak adekuat) dan inersia hipertonik (kontraksi tidak terkoordinasi, kuat tapi tidak adekuat). His adekuat menyebabkan kemajuan persalinan.",
+    "diagnosis": [
+      "His adekuat klinis: dalam 10 menit terdapat 3 kali kontraksi, lama 40-60 detik, sifat kuat",
+      "KTG: 3 kontraksi dalam 10 menit, lama 40-60 detik, tekanan intrauterin 40-60 mmHg",
+      "Etiologi inersia hipotonik: analgesi terlalu cepat, kesempitan panggul, letak defleksi, kelainan posisi, regangan dinding rahim (hidramnion, gemeli), perasaan takut",
+      "Etiologi inersia hipertonik: KPD, infeksi intrauterin",
+      "Pemanjangan fase laten: > 20 jam nulipara, > 14 jam multipara"
+    ],
+    "penunjang": [
+      "Kardiotokografi (KTG)"
+    ],
+    "langkah": [
+      "Inersia uteri hipotonik: bila ketuban positif lakukan amniotomi dan pemberian tetes oksitosin; bila ketuban telah pecah lakukan pemberian tetes oksitosin",
+      "Inersia uteri hipertonik: berikan obat tokolitik, tetes oksitosin diberikan setelah gejala hipertonus menghilang",
+      "Pemanjangan fase laten: lakukan istirahat (pemberian sedativa) atau drip oksitosin; istirahat lebih baik untuk mencegah his palsu"
+    ],
+    "obat": [
+      {
+        "n": "Tetes oksitosin",
+        "d": "pada inersia hipotonik atau setelah gejala hipertonus hilang",
+        "c": "infus intravena"
+      },
+      {
+        "n": "Obat tokolitik",
+        "d": "pada inersia uteri hipertonik",
+        "c": "-"
+      },
+      {
+        "n": "Sedativa",
+        "d": "pada pemanjangan fase laten (istirahat)",
+        "c": "-"
+      }
+    ],
+    "penyulit": [
+      "Kemungkinan infeksi bertambah dan kematian anak meningkat",
+      "Kelelahan ibu dan dehidrasi (nadi naik, suhu meningkat, asetonuri, nafas cepat, meteorismus, turgor berkurang)"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "persalinan-riwayat-seksio-sesarea",
+    "kategori": "persalinan",
+    "nama": "Persalinan dengan Riwayat Seksio Sesarea",
+    "ringkas": "Persalinan pervaginam pasca seksio sesarea",
+    "hal": 97,
+    "definisi": "Persalinan pada ibu hamil dengan riwayat seksio sesarea (SS) yang tidak selalu harus dilakukan SS lagi; bila indikasi seksio sebelumnya bukan indikasi menetap, dapat dicoba persalinan pervaginam.",
+    "diagnosis": [
+      "Anamnesis bahwa persalinan lalu dilakukan SS",
+      "Pemeriksaan fisik: bekas luka SS di dinding perut",
+      "Anamnesis jenis SS (SSTP atau klasik)"
+    ],
+    "penunjang": [
+      "Pemeriksaan laboratorium rutin dan persediaan darah",
+      "Pemantauan denyut jantung janin secara kontinyu (KTG)"
+    ],
+    "langkah": [
+      "Rencanakan SS primer pada kehamilan 37 minggu bila indikasi SS sebelumnya penyebab tetap, insisi korporal (SS klasik), atau SS >= 2 kali",
+      "Bila penyebab SS bukan penyebab tetap, coba melahirkan pervaginam dengan informed consent",
+      "Kala I: pemeriksaan laboratorium rutin dan persediaan darah, beritahu dokter anestesi dan anak, pasang infus, pemantauan DJJ kontinyu",
+      "Bila inersia uteri hipotonik lakukan amniotomi, observasi his 1 jam, bila tidak ada perbaikan lakukan SS",
+      "Kala II: bila kepala di atas station 0 pimpin meneran 15 menit; bila tidak ada kemajuan lakukan SS; bila ada kemajuan pimpin 15 menit lagi lalu partus buatan",
+      "Induksi/augmentasi dengan oksitosin dapat dilakukan dengan pengawasan ketat KTG"
+    ],
+    "obat": [
+      {
+        "n": "Oksitosin",
+        "d": "untuk induksi/augmentasi dengan pengawasan ketat KTG",
+        "c": "infus intravena"
+      }
+    ],
+    "penyulit": [
+      "Dehisensi atau uterus ruptur pada persalinan",
+      "Kegagalan persalinan pervaginam sehingga SS kembali"
+    ],
+    "rujukan": [
+      "Dokter anestesi dan dokter anak diberitahu akan kemungkinan tindakan SS sewaktu-waktu"
+    ]
+  }
+]/*__END__*/;
 
         // ==========================================================
         //  STATE
