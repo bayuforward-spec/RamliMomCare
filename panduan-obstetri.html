@@ -1549,6 +1549,12 @@
                     ${k.definisi ? `<p class="text-sm text-slate-600 mt-2 leading-relaxed">${k.definisi}</p>` : ''}
                 </div>
 
+                ${arr(k.diagnosis) ? sectionCard('fa-stethoscope', 'purple', 'Diagnosis / Kriteria',
+                    `<ul class="space-y-1.5">${k.diagnosis.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-purple-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
+
+                ${arr(k.penunjang) ? sectionCard('fa-flask', 'teal', 'Pemeriksaan Penunjang',
+                    `<ul class="space-y-1.5">${k.penunjang.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-teal-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
+
                 ${arr(k.langkah) ? sectionCard('fa-list-ol', 'emerald', 'Tatalaksana / Langkah',
                     `<ol class="space-y-2">${k.langkah.map((s, i) => `<li class="flex gap-3 text-sm text-slate-700"><span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-600 font-bold text-xs flex items-center justify-center shrink-0">${i + 1}</span><span class="leading-snug">${s}</span></li>`).join('')}</ol>`) : ''}
 
@@ -1558,12 +1564,6 @@
                         <div class="text-sm text-slate-700 mt-0.5">${o.d || ''}</div>
                         ${o.c ? `<div class="text-xs text-blue-600 mt-0.5"><i class="fa-solid fa-syringe mr-1"></i>${o.c}</div>` : ''}
                     </div>`).join('')}</div>`) : ''}
-
-                ${arr(k.diagnosis) ? sectionCard('fa-stethoscope', 'purple', 'Diagnosis / Kriteria',
-                    `<ul class="space-y-1.5">${k.diagnosis.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-purple-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
-
-                ${arr(k.penunjang) ? sectionCard('fa-flask', 'teal', 'Pemeriksaan Penunjang',
-                    `<ul class="space-y-1.5">${k.penunjang.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-teal-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     ${arr(k.penyulit) ? sectionCard('fa-triangle-exclamation', 'amber', 'Penyulit',
