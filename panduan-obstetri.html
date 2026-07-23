@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAMLI Panduan · Obstetri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp .3s ease both; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            @page { margin: 1.2cm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="app"></div>
+
+    <script>
+        /* =========================================================
+           RAMLI PANDUAN — Panduan Praktik Klinis Obstetri (non-darurat)
+           Alat bantu edukasi/keputusan klinis untuk tenaga kesehatan.
+           Konten: PPK Obstetri & Ginekologi RSUP Dr. Hasan Sadikin
+           Bandung 2015. Fitur: daftar panduan, detail, pencarian, dan
+           Tanya RAMLI (AI · Claude/Anthropic).
+        ========================================================= */
+
+        const RAMLI_PROXY_URL = "https://withered-fire-1b27.bayuforward.workers.dev";
+
+        const memStore = {};
+        const safeStorage = {
+            get(k) { try { return localStorage.getItem(k); } catch (e) { return k in memStore ? memStore[k] : null; } },
+            set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } },
+            remove(k) { try { localStorage.removeItem(k); } catch (e) { delete memStore[k]; } }
+        };
+        function getStoredKey() {
+            try { const k = safeStorage.get('ramli_anthropic_key'); return k && k.trim() ? k.trim() : ''; }
+            catch (e) { return ''; }
+        }
+
+        // ==========================================================
+        //  KATEGORI & DATA PANDUAN
+        // ==========================================================
+        const KATEGORI = {
+            antenatal:     { label: 'Antenatal', ikon: 'fa-heart-pulse', warna: 'emerald' },
+            pemantauan:    { label: 'Pemantauan Janin', ikon: 'fa-wave-square', warna: 'teal' },
+            persalinan:    { label: 'Persalinan', ikon: 'fa-baby-carriage', warna: 'sky' },
+            malpresentasi: { label: 'Malpresentasi & Panggul', ikon: 'fa-arrows-rotate', warna: 'indigo' },
+            kondisi:       { label: 'Kondisi Kehamilan', ikon: 'fa-notes-medical', warna: 'amber' },
+            penyakit:      { label: 'Penyakit Penyerta', ikon: 'fa-lungs', warna: 'rose' }
+        };
+
+        /* KONDISI diisi dari data protap (lihat build). */
+        const KONDISI = /*__KONDISI__*/[]/*__END__*/;
+
+        // ==========================================================
+        //  STATE
+        // ==========================================================
+        let state = {
+            view: 'home',          // home | kondisi | tanya
+            kondisiId: null,
+            search: '',
+            tanyaInput: '', tanyaKondisi: '', tanyaLoading: false, tanyaResult: null, tanyaError: false,
+            showSettings: false, keyNote: ''
+        };
+
+        // ==========================================================
+        //  RENDER
+        // ==========================================================
+        function renderApp() {
+            const el = document.getElementById('app');
+            let body = '';
+            if (state.view === 'home') body = renderHome();
+            else if (state.view === 'kondisi') body = renderKondisiDetail();
+            else if (state.view === 'tanya') body = renderTanya();
+            el.innerHTML = `${renderNavbar()}${state.showSettings ? renderSettings() : ''}
+                <main class="max-w-3xl mx-auto px-4 pb-28 pt-4">${body}</main>${renderBottomNav()}${renderDisclaimer()}`;
+        }
+        function go(view, kondisiId) {
+            state.view = view; if (kondisiId !== undefined) state.kondisiId = kondisiId;
+            renderApp(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+        }
+        window.go = go;
+        function reRender() { const y = window.scrollY; renderApp(); window.scrollTo(0, y); }
+        function reRenderKeepFocus() {
+            const a = document.activeElement;
+            const id = a && a.id, pos = a && typeof a.selectionStart === 'number' ? a.selectionStart : null;
+            reRender();
+            if (id) { const el = document.getElementById(id); if (el) { el.focus(); if (pos !== null) { try { el.setSelectionRange(pos, pos); } catch (e) {} } } }
+        }
+        window.setSearch = (v) => { state.search = v; reRenderKeepFocus(); };
+
+        // ---------- Navbar ----------
+        function renderNavbar() {
+            return `
+            <header class="sticky top-0 z-30 bg-emerald-600 text-white shadow-lg no-print">
+                <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+                    <button onclick="go('home')" class="flex items-center gap-2.5 flex-1 text-left">
+                        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                            <i class="fa-solid fa-book-medical text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="font-extrabold leading-tight text-[15px]">RAMLI Panduan</div>
+                            <div class="text-[11px] text-emerald-100 leading-tight">Panduan Praktik Klinis Obstetri</div>
+                        </div>
+                    </button>
+                    <a href="gawatdarurat.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Panduan Kegawatdaruratan">
+                        <i class="fa-solid fa-truck-medical"></i>
+                    </a>
+                    <a href="index.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="RSHB Personal Momscare">
+                        <i class="fa-solid fa-heart"></i>
+                    </a>
+                    <button onclick="toggleSettings()" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Pengaturan AI">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+            </header>`;
+        }
+
+        // ---------- Bottom nav ----------
+        function renderBottomNav() {
+            const items = [
+                { v: 'home', i: 'fa-book-medical', t: 'Panduan' },
+                { v: 'tanya', i: 'fa-robot', t: 'Tanya RAMLI' }
+            ];
+            const active = (state.view === 'kondisi') ? 'home' : state.view;
+            return `
+            <nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 no-print">
+                <div class="max-w-3xl mx-auto grid grid-cols-2">
+                    ${items.map(it => `
+                        <button onclick="go('${it.v}')" class="py-2.5 flex flex-col items-center gap-1 ${active === it.v ? 'text-emerald-600' : 'text-slate-400'}">
+                            <i class="fa-solid ${it.i} text-lg"></i>
+                            <span class="text-[11px] font-semibold">${it.t}</span>
+                        </button>`).join('')}
+                </div>
+            </nav>`;
+        }
+
+        // ---------- Home ----------
+        function renderHome() {
+            const cats = Object.keys(KATEGORI);
+            const q = state.search.trim().toLowerCase();
+            const match = (k) => !q || (k.nama + ' ' + (k.ringkas || '') + ' ' + (k.definisi || '')).toLowerCase().includes(q);
+            const totalHit = KONDISI.filter(match).length;
+            return `
+            <div class="fade-up">
+                <div class="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-5 mb-4 shadow-lg">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-book-medical text-2xl mt-0.5"></i>
+                        <div>
+                            <h1 class="font-extrabold text-lg leading-tight">Panduan Praktik Klinis</h1>
+                            <p class="text-emerald-100 text-sm mt-1">Panduan obstetri sesuai protap. Pilih topik untuk melihat definisi, diagnosis, penunjang, dan tatalaksana.</p>
+                        </div>
+                    </div>
+                    <button onclick="go('tanya')" class="w-full mt-4 bg-white/15 hover:bg-white/25 rounded-xl py-2.5 text-center font-semibold text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-robot"></i> Tanya RAMLI (AI)
+                    </button>
+                </div>
+                <div class="relative mb-4 no-print">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input id="searchInput" value="${state.search.replace(/"/g, '&quot;')}" oninput="setSearch(this.value)" placeholder="Cari panduan, mis. antenatal, sungsang, diabetes..." class="w-full pl-10 pr-9 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 outline-none text-sm shadow-sm">
+                    ${state.search ? `<button onclick="setSearch('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-circle-xmark"></i></button>` : ''}
+                </div>
+                ${!KONDISI.length ? `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-book text-2xl mb-2 block"></i>Panduan sedang disiapkan.</div>` : ''}
+                ${q && totalHit === 0 ? `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-magnifying-glass text-2xl mb-2 block"></i>Tidak ada panduan cocok dengan "${state.search}".</div>` : ''}
+                ${cats.map(catKey => {
+                    const cat = KATEGORI[catKey];
+                    const list = KONDISI.filter(k => k.kategori === catKey).filter(match);
+                    if (!list.length) return '';
+                    return `
+                    <div class="mb-5">
+                        <div class="flex items-center gap-2 mb-2 px-1">
+                            <i class="fa-solid ${cat.ikon} text-${cat.warna}-500"></i>
+                            <h2 class="font-bold text-slate-700 text-sm uppercase tracking-wide">${cat.label}</h2>
+                            <span class="text-xs text-slate-400">(${list.length})</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${list.map(k => `
+                            <button onclick="go('kondisi','${k.id}')" class="w-full text-left bg-white rounded-xl p-3.5 border border-slate-100 shadow-sm hover:shadow-md hover:border-${cat.warna}-200 transition-all flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-lg bg-${cat.warna}-50 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${cat.ikon} text-${cat.warna}-500"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-bold text-slate-800 text-[15px]">${k.nama}</div>
+                                    <div class="text-xs text-slate-500 truncate">${k.ringkas || ''}</div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+                            </button>`).join('')}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        }
+
+        // ---------- Detail ----------
+        function renderKondisiDetail() {
+            const k = KONDISI.find(x => x.id === state.kondisiId);
+            if (!k) return renderHome();
+            const cat = KATEGORI[k.kategori] || { label: '', warna: 'emerald' };
+            return `
+            <div class="fade-up">
+                <button onclick="go('home')" class="text-slate-500 text-sm mb-3 flex items-center gap-1.5 no-print"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 mb-4">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-${cat.warna}-100 text-${cat.warna}-700">${cat.label}</span>
+                        <span class="text-[10px] text-slate-400 ml-auto">PPK Obgyn RSHS 2015${k.hal ? ' · hal. ' + k.hal : ''}</span>
+                    </div>
+                    <h1 class="font-extrabold text-xl text-slate-800">${k.nama}</h1>
+                    ${k.definisi ? `<p class="text-sm text-slate-600 mt-2 leading-relaxed">${k.definisi}</p>` : ''}
+                </div>
+
+                ${arr(k.langkah) ? sectionCard('fa-list-ol', 'emerald', 'Tatalaksana / Langkah',
+                    `<ol class="space-y-2">${k.langkah.map((s, i) => `<li class="flex gap-3 text-sm text-slate-700"><span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-600 font-bold text-xs flex items-center justify-center shrink-0">${i + 1}</span><span class="leading-snug">${s}</span></li>`).join('')}</ol>`) : ''}
+
+                ${k.obat && k.obat.length ? sectionCard('fa-pills', 'blue', 'Obat & Dosis',
+                    `<div class="space-y-2">${k.obat.map(o => `<div class="bg-blue-50 rounded-lg p-3">
+                        <div class="font-bold text-blue-800 text-sm">${o.n}</div>
+                        <div class="text-sm text-slate-700 mt-0.5">${o.d || ''}</div>
+                        ${o.c ? `<div class="text-xs text-blue-600 mt-0.5"><i class="fa-solid fa-syringe mr-1"></i>${o.c}</div>` : ''}
+                    </div>`).join('')}</div>`) : ''}
+
+                ${arr(k.diagnosis) ? sectionCard('fa-stethoscope', 'purple', 'Diagnosis / Kriteria',
+                    `<ul class="space-y-1.5">${k.diagnosis.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-purple-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
+
+                ${arr(k.penunjang) ? sectionCard('fa-flask', 'teal', 'Pemeriksaan Penunjang',
+                    `<ul class="space-y-1.5">${k.penunjang.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-teal-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    ${arr(k.penyulit) ? sectionCard('fa-triangle-exclamation', 'amber', 'Penyulit',
+                        `<div class="flex flex-wrap gap-1.5">${k.penyulit.map(p => `<span class="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium">${p}</span>`).join('')}</div>`) : ''}
+                    ${arr(k.rujukan) ? sectionCard('fa-hospital-user', 'rose', 'Konsultasi / Rujukan',
+                        `<div class="flex flex-wrap gap-1.5">${k.rujukan.map(p => `<span class="px-2 py-1 rounded-md bg-rose-50 text-rose-700 text-xs font-medium">${p}</span>`).join('')}</div>`) : ''}
+                </div>
+
+                <div class="flex gap-2 mt-4 no-print">
+                    <button onclick="startTanyaFrom('${k.id}')" class="flex-1 bg-slate-800 text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-robot"></i> Tanya RAMLI</button>
+                    <button onclick="window.print()" class="px-4 bg-white border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold text-sm"><i class="fa-solid fa-print"></i></button>
+                </div>
+            </div>`;
+        }
+        function arr(x) { return Array.isArray(x) && x.length; }
+        function sectionCard(icon, color, title, inner) {
+            return `<div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-3">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 rounded-lg bg-${color}-50 flex items-center justify-center"><i class="fa-solid ${icon} text-${color}-500 text-sm"></i></div>
+                    <h3 class="font-bold text-slate-700 text-sm">${title}</h3>
+                </div>${inner}</div>`;
+        }
+        window.startTanyaFrom = (id) => {
+            const k = KONDISI.find(x => x.id === id);
+            state.tanyaKondisi = k ? k.nama : '';
+            go('tanya');
+        };
+
+        // ---------- Tanya RAMLI (AI) ----------
+        function renderTanya() {
+            const opts = KONDISI.map(k => `<option value="${k.nama}" ${state.tanyaKondisi === k.nama ? 'selected' : ''}>${k.nama}</option>`).join('');
+            return `
+            <div class="fade-up">
+                <div class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 mb-4">
+                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-robot"></i><h1 class="font-extrabold text-lg">Tanya RAMLI</h1></div>
+                    <p class="text-slate-300 text-sm">Tanyakan hal seputar panduan obstetri. RAMLI menjawab berbasis protap PPK RSHS 2015. <b>Bukan pengganti penilaian klinis.</b></p>
+                </div>
+                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-4">
+                    <label class="text-sm font-semibold text-slate-600">Topik terkait (opsional)</label>
+                    <select onchange="setTanyaKondisi(this.value)" class="w-full mt-1 mb-3 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-emerald-400 bg-white">
+                        <option value="">— Umum / biarkan RAMLI menilai —</option>${opts}
+                    </select>
+                    <label class="text-sm font-semibold text-slate-600">Pertanyaan Anda</label>
+                    <textarea id="tanyaInput" oninput="setTanyaInput(this.value)" rows="4" placeholder="Contoh: Kapan jadwal kunjungan antenatal? Bagaimana tatalaksana letak sungsang aterm? Target gula darah DM dalam kehamilan?" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-emerald-400 text-sm">${state.tanyaInput}</textarea>
+                    <button onclick="runTanya()" ${state.tanyaLoading ? 'disabled' : ''} class="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
+                        ${state.tanyaLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> RAMLI menjawab...' : '<i class="fa-solid fa-paper-plane"></i> Tanyakan'}
+                    </button>
+                </div>
+                ${state.tanyaError ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> AI RAMLI belum aktif atau gagal terhubung. Panduan & pencarian tetap bisa dipakai offline. Untuk mengaktifkan AI, isi API key via ⚙ atau pastikan proxy terhubung.</div>` : ''}
+                ${state.tanyaResult ? renderTanyaResult(state.tanyaResult) : ''}
+            </div>`;
+        }
+        window.setTanyaInput = (v) => { state.tanyaInput = v; };
+        window.setTanyaKondisi = (v) => { state.tanyaKondisi = v; };
+        function renderTanyaResult(r) {
+            return `
+            <div class="fade-up space-y-3">
+                ${r.ringkasan ? `<div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-4"><div class="text-xs font-bold text-emerald-600 uppercase tracking-wide">Jawaban</div><p class="text-sm text-slate-700 mt-1 leading-relaxed">${r.ringkasan}</p></div>` : ''}
+                ${Array.isArray(r.poin) && r.poin.length ? sectionCard('fa-list-check', 'purple', 'Poin Penting',
+                    `<ul class="space-y-1.5">${r.poin.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-purple-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
+                ${Array.isArray(r.langkah) && r.langkah.length ? sectionCard('fa-list-ol', 'emerald', 'Langkah',
+                    `<ol class="space-y-2">${r.langkah.map((s, i) => `<li class="flex gap-3 text-sm text-slate-700"><span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-600 font-bold text-xs flex items-center justify-center shrink-0">${i + 1}</span><span>${s}</span></li>`).join('')}</ol>`) : ''}
+                ${r.catatan ? sectionCard('fa-circle-info', 'amber', 'Catatan / Rujukan', `<p class="text-sm text-slate-700">${r.catatan}</p>`) : ''}
+                <div class="text-[11px] text-slate-400 px-1">Jawaban AI berbasis PPK Obgyn RSHS 2015. Selalu konfirmasi dengan DPJP / penilaian klinis langsung.</div>
+            </div>`;
+        }
+        function extractJSON(text) {
+            if (!text) return null;
+            let s = text.indexOf('{'), e = text.lastIndexOf('}');
+            if (s === -1 || e === -1 || e < s) return null;
+            try { return JSON.parse(text.slice(s, e + 1)); } catch (err) { return null; }
+        }
+        window.runTanya = async () => {
+            if (!state.tanyaInput.trim()) return;
+            state.tanyaLoading = true; state.tanyaError = false; state.tanyaResult = null; reRender();
+            const ref = state.tanyaKondisi ? KONDISI.find(k => k.nama === state.tanyaKondisi) : null;
+            const konteks = ref ? `\n\nProtap acuan (${ref.nama}):\nDefinisi: ${ref.definisi || '-'}\nDiagnosis: ${(ref.diagnosis || []).join(' | ')}\nTatalaksana: ${(ref.langkah || []).join(' | ')}\nObat: ${(ref.obat || []).map(o => o.n + ' ' + (o.d || '')).join(' | ')}` : '';
+            const systemPrompt = `Anda RAMLI, asisten panduan obstetri untuk TENAGA KESEHATAN. Konten berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. Jawab HANYA dengan satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, akurat, dan aman. Jangan mengarang dosis di luar protap; bila di luar cakupan protap, sebutkan dan sarankan konsultasi.
+Struktur:
+{
+  "ringkasan": "jawaban utama 1-3 kalimat",
+  "poin": ["poin penting", "..."],
+  "langkah": ["langkah bila relevan (boleh kosong)"],
+  "catatan": "catatan / kapan konsultasi atau rujuk"
+}`;
+            const userQuery = `Pertanyaan: ${state.tanyaInput}${state.tanyaKondisi ? `\nTopik: ${state.tanyaKondisi}` : ''}${konteks}`;
+            try {
+                const _proxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim()) ? RAMLI_PROXY_URL.trim() : '';
+                const _endpoint = _proxy || "https://api.anthropic.com/v1/messages";
+                const _headers = { "Content-Type": "application/json" };
+                if (!_proxy) {
+                    const _key = getStoredKey();
+                    if (_key) { _headers["x-api-key"] = _key; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; }
+                }
+                const res = await fetch(_endpoint, {
+                    method: "POST", headers: _headers,
+                    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1100, system: systemPrompt, messages: [{ role: "user", content: userQuery }] })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+                const parsed = extractJSON(text);
+                if (parsed) state.tanyaResult = parsed; else state.tanyaError = true;
+            } catch (e) {
+                console.error('Tanya gagal:', e); state.tanyaError = true;
+            } finally {
+                state.tanyaLoading = false; reRender();
+            }
+        };
+
+        // ---------- Settings (API key) ----------
+        function toggleSettings() { state.showSettings = !state.showSettings; renderApp(); }
+        window.toggleSettings = toggleSettings;
+        function renderSettings() {
+            const hasProxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim());
+            const key = getStoredKey();
+            return `
+            <div class="fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-4 no-print" onclick="if(event.target===this)toggleSettings()">
+                <div class="bg-white rounded-2xl w-full max-w-md p-5 fade-up">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-robot text-emerald-500"></i> Pengaturan AI RAMLI</h3>
+                        <button onclick="toggleSettings()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+                    </div>
+                    ${hasProxy ? `<div class="bg-green-50 text-green-800 text-sm rounded-lg p-3 mb-3"><i class="fa-solid fa-circle-check mr-1"></i> AI aktif via proxy — siap dipakai semua pengunjung tanpa API key.</div>` : `
+                    <p class="text-sm text-slate-600 mb-2">Masukkan Anthropic API key (disimpan lokal di perangkat ini saja) untuk mengaktifkan Tanya AI.</p>
+                    <input id="apiKeyInput" type="password" value="${key}" placeholder="sk-ant-..." class="w-full px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-emerald-400 text-sm mb-2">
+                    <div class="flex gap-2">
+                        <button onclick="saveKey()" class="flex-1 bg-emerald-600 text-white rounded-lg py-2.5 font-semibold text-sm">Simpan</button>
+                        <button onclick="clearKey()" class="px-4 bg-slate-100 text-slate-600 rounded-lg py-2.5 font-semibold text-sm">Hapus</button>
+                    </div>`}
+                    ${state.keyNote ? `<div class="text-xs text-green-600 mt-2">${state.keyNote}</div>` : ''}
+                    <div class="text-[11px] text-slate-400 mt-3 border-t border-slate-100 pt-3">Panduan & pencarian tetap berfungsi penuh tanpa AI.</div>
+                </div>
+            </div>`;
+        }
+        window.saveKey = () => { const v = document.getElementById('apiKeyInput').value.trim(); if (v) { safeStorage.set('ramli_anthropic_key', v); state.keyNote = 'API key tersimpan.'; renderApp(); } };
+        window.clearKey = () => { safeStorage.remove('ramli_anthropic_key'); state.keyNote = 'API key dihapus.'; renderApp(); };
+
+        // ---------- Disclaimer ----------
+        function renderDisclaimer() {
+            return `<div class="max-w-3xl mx-auto px-4 pb-24 -mt-2">
+                <div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
+                    <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Alat bantu edukasi/keputusan klinis untuk tenaga kesehatan, berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. BUKAN pengganti penilaian klinis, pemeriksaan langsung, atau kebijakan/protap institusi Anda.
+                </div>
+            </div>`;
+        }
+
+        renderApp();
+    </script>
+</body>
+</html>
