@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAMLI Panduan · Obstetri</title>
+    <title>Asisten AI dr. Bayu · Obstetri</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -27,11 +27,11 @@
 
     <script>
         /* =========================================================
-           RAMLI PANDUAN — Panduan Praktik Klinis Obstetri (non-darurat)
+           Asisten AI dr. Bayu PANDUAN — Panduan Praktik Klinis Obstetri (non-darurat)
            Alat bantu edukasi/keputusan klinis untuk tenaga kesehatan.
            Konten: PPK Obstetri & Ginekologi RSUP Dr. Hasan Sadikin
            Bandung 2015. Fitur: daftar panduan, detail, pencarian, dan
-           Tanya RAMLI (AI · Claude/Anthropic).
+           Tanya Asisten AI dr. Bayu (AI · Claude/Anthropic).
         ========================================================= */
 
         const RAMLI_PROXY_URL = "https://withered-fire-1b27.bayuforward.workers.dev";
@@ -1440,7 +1440,7 @@
                             <i class="fa-solid fa-book-medical text-lg"></i>
                         </div>
                         <div>
-                            <div class="font-extrabold leading-tight text-[15px]">RAMLI Panduan</div>
+                            <div class="font-extrabold leading-tight text-[15px]">Asisten AI dr. Bayu</div>
                             <div class="text-[11px] text-emerald-100 leading-tight">Panduan Praktik Klinis Obstetri</div>
                         </div>
                     </button>
@@ -1461,7 +1461,7 @@
         function renderBottomNav() {
             const items = [
                 { v: 'home', i: 'fa-book-medical', t: 'Panduan' },
-                { v: 'tanya', i: 'fa-robot', t: 'Tanya RAMLI' }
+                { v: 'tanya', i: 'fa-robot', t: 'Tanya Asisten AI dr. Bayu' }
             ];
             const active = (state.view === 'kondisi') ? 'home' : state.view;
             return `
@@ -1493,7 +1493,7 @@
                         </div>
                     </div>
                     <button onclick="go('tanya')" class="w-full mt-4 bg-white/15 hover:bg-white/25 rounded-xl py-2.5 text-center font-semibold text-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-robot"></i> Tanya RAMLI (AI)
+                        <i class="fa-solid fa-robot"></i> Tanya Asisten AI dr. Bayu (AI)
                     </button>
                 </div>
                 <div class="relative mb-4 no-print">
@@ -1573,7 +1573,7 @@
                 </div>
 
                 <div class="flex gap-2 mt-4 no-print">
-                    <button onclick="startTanyaFrom('${k.id}')" class="flex-1 bg-slate-800 text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-robot"></i> Tanya RAMLI</button>
+                    <button onclick="startTanyaFrom('${k.id}')" class="flex-1 bg-slate-800 text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-robot"></i> Tanya Asisten AI dr. Bayu</button>
                     <button onclick="window.print()" class="px-4 bg-white border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold text-sm"><i class="fa-solid fa-print"></i></button>
                 </div>
             </div>`;
@@ -1592,27 +1592,27 @@
             go('tanya');
         };
 
-        // ---------- Tanya RAMLI (AI) ----------
+        // ---------- Tanya Asisten AI dr. Bayu (AI) ----------
         function renderTanya() {
             const opts = KONDISI.map(k => `<option value="${k.nama}" ${state.tanyaKondisi === k.nama ? 'selected' : ''}>${k.nama}</option>`).join('');
             return `
             <div class="fade-up">
                 <div class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 mb-4">
-                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-robot"></i><h1 class="font-extrabold text-lg">Tanya RAMLI</h1></div>
-                    <p class="text-slate-300 text-sm">Tanyakan hal seputar panduan obstetri. RAMLI menjawab berbasis protap PPK RSHS 2015. <b>Bukan pengganti penilaian klinis.</b></p>
+                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-robot"></i><h1 class="font-extrabold text-lg">Tanya Asisten AI dr. Bayu</h1></div>
+                    <p class="text-slate-300 text-sm">Tanyakan hal seputar panduan obstetri. Asisten AI dr. Bayu menjawab berbasis protap PPK RSHS 2015. <b>Bukan pengganti penilaian klinis.</b></p>
                 </div>
                 <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-4">
                     <label class="text-sm font-semibold text-slate-600">Topik terkait (opsional)</label>
                     <select onchange="setTanyaKondisi(this.value)" class="w-full mt-1 mb-3 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-emerald-400 bg-white">
-                        <option value="">— Umum / biarkan RAMLI menilai —</option>${opts}
+                        <option value="">— Umum / biarkan Asisten AI dr. Bayu menilai —</option>${opts}
                     </select>
                     <label class="text-sm font-semibold text-slate-600">Pertanyaan Anda</label>
                     <textarea id="tanyaInput" oninput="setTanyaInput(this.value)" rows="4" placeholder="Contoh: Kapan jadwal kunjungan antenatal? Bagaimana tatalaksana letak sungsang aterm? Target gula darah DM dalam kehamilan?" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-emerald-400 text-sm">${state.tanyaInput}</textarea>
                     <button onclick="runTanya()" ${state.tanyaLoading ? 'disabled' : ''} class="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
-                        ${state.tanyaLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> RAMLI menjawab...' : '<i class="fa-solid fa-paper-plane"></i> Tanyakan'}
+                        ${state.tanyaLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> Asisten AI dr. Bayu menjawab...' : '<i class="fa-solid fa-paper-plane"></i> Tanyakan'}
                     </button>
                 </div>
-                ${state.tanyaError ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> AI RAMLI belum aktif atau gagal terhubung. Panduan & pencarian tetap bisa dipakai offline. Untuk mengaktifkan AI, isi API key via ⚙ atau pastikan proxy terhubung.</div>` : ''}
+                ${state.tanyaError ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Asisten AI dr. Bayu belum aktif atau gagal terhubung. Panduan & pencarian tetap bisa dipakai offline. Untuk mengaktifkan AI, isi API key via ⚙ atau pastikan proxy terhubung.</div>` : ''}
                 ${state.tanyaResult ? renderTanyaResult(state.tanyaResult) : ''}
             </div>`;
         }
@@ -1641,7 +1641,7 @@
             state.tanyaLoading = true; state.tanyaError = false; state.tanyaResult = null; reRender();
             const ref = state.tanyaKondisi ? KONDISI.find(k => k.nama === state.tanyaKondisi) : null;
             const konteks = ref ? `\n\nProtap acuan (${ref.nama}):\nDefinisi: ${ref.definisi || '-'}\nDiagnosis: ${(ref.diagnosis || []).join(' | ')}\nTatalaksana: ${(ref.langkah || []).join(' | ')}\nObat: ${(ref.obat || []).map(o => o.n + ' ' + (o.d || '')).join(' | ')}` : '';
-            const systemPrompt = `Anda RAMLI, asisten panduan obstetri untuk TENAGA KESEHATAN. Konten berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. Jawab HANYA dengan satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, akurat, dan aman. Jangan mengarang dosis di luar protap; bila di luar cakupan protap, sebutkan dan sarankan konsultasi.
+            const systemPrompt = `Anda Asisten AI dr. Bayu, asisten panduan obstetri untuk TENAGA KESEHATAN. Konten berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. Jawab HANYA dengan satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, akurat, dan aman. Jangan mengarang dosis di luar protap; bila di luar cakupan protap, sebutkan dan sarankan konsultasi.
 Struktur:
 {
   "ringkasan": "jawaban utama 1-3 kalimat",
@@ -1684,7 +1684,7 @@ Struktur:
             <div class="fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-4 no-print" onclick="if(event.target===this)toggleSettings()">
                 <div class="bg-white rounded-2xl w-full max-w-md p-5 fade-up">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-robot text-emerald-500"></i> Pengaturan AI RAMLI</h3>
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-robot text-emerald-500"></i> Pengaturan Asisten AI dr. Bayu</h3>
                         <button onclick="toggleSettings()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
                     </div>
                     ${hasProxy ? `<div class="bg-green-50 text-green-800 text-sm rounded-lg p-3 mb-3"><i class="fa-solid fa-circle-check mr-1"></i> AI aktif via proxy — siap dipakai semua pengunjung tanpa API key.</div>` : `
