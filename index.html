@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSHB Personal Momscare · Claude Edition</title>
+    <title>dr. Bayu SpOG Personal Momscare · Claude Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -34,7 +34,7 @@
 
     <script>
         /* =========================================================
-           RSHB Personal Momscare — Claude Edition (Single Page)
+           dr. Bayu SpOG Personal Momscare — Claude Edition (Single Page)
            - Semua input dalam satu halaman, tanpa langkah/klik next
            - AI "Asisten AI dr. Bayu" ditenagai Claude (Anthropic API)
            - Suara via mesin suara bawaan browser
@@ -104,7 +104,7 @@
                         ${state.results ? `<div id="hasil">${renderResults()}</div>` : ''}
                     `}
                     <footer class="text-center text-[11px] text-gray-400 mt-8 no-print">
-                        RSHB Personal Momscare · Claude Edition · Alat bantu edukasi, bukan pengganti pemeriksaan dokter.
+                        dr. Bayu SpOG Personal Momscare · Claude Edition · Alat bantu edukasi, bukan pengganti pemeriksaan dokter.
                     </footer>
                 </main>
             `;
@@ -326,7 +326,7 @@
             state.aiError = false;
             reRenderKeepScroll();
 
-            const systemPrompt = `Anda adalah Asisten AI dr. Bayu, asisten medis cerdas di RSHB Personal Momscare yang ramah, empatik, dan paham obstetri.
+            const systemPrompt = `Anda adalah Asisten AI dr. Bayu, asisten medis cerdas di dr. Bayu SpOG Personal Momscare yang ramah, empatik, dan paham obstetri.
 Tugas Anda menganalisis data ibu hamil (BMI, skor risiko KSPR, hasil USG, kondisi klinis) dan memberi panduan yang menenangkan namun akurat.
 Jawab HANYA dengan satu objek JSON valid, tanpa teks lain dan tanpa pembungkus markdown. Gunakan Bahasa Indonesia yang hangat dan ringkas.
 Struktur:
@@ -404,10 +404,10 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
             const r = state.results;
             const a = state.aiAnalysis;
             if (a) {
-                return `Halo Bunda ${formData.nama}. Saya Asisten AI dr. Bayu dari RSHB Personal Momscare. ${a.summary || ''} ${a.mentalHealth ? 'Untuk menjaga kesehatan Bunda dan si kecil, ' + a.mentalHealth : ''} Tetap sehat dan semangat ya Bunda!`;
+                return `Halo Bunda ${formData.nama}. Saya Asisten AI dr. Bayu dari dr. Bayu SpOG Personal Momscare. ${a.summary || ''} ${a.mentalHealth ? 'Untuk menjaga kesehatan Bunda dan si kecil, ' + a.mentalHealth : ''} Tetap sehat dan semangat ya Bunda!`;
             }
             if (!r) return '';
-            let p = `Halo Bunda ${formData.nama}. Saya Asisten AI dr. Bayu dari RSHB Personal Momscare. `;
+            let p = `Halo Bunda ${formData.nama}. Saya Asisten AI dr. Bayu dari dr. Bayu SpOG Personal Momscare. `;
             p += `Berdasarkan data Bunda, indeks risiko kehamilan saat ini ${r.kspr}, termasuk kategori ${r.ksprCategory}. `;
             p += `Status gizi pra-hamil Bunda dengan nilai BMI ${r.bmi}, dengan target kenaikan berat badan ${r.weightRec}. `;
             if (r.plan.isUsgAbnormal) {
@@ -632,7 +632,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             <i class="fa-solid fa-heart text-white text-xl"></i>
                         </div>
                         <div class="min-w-0">
-                            <h1 class="text-base md:text-xl font-black text-gray-800 tracking-tight truncate">RSHB <span class="text-rose-500">Personal Momscare</span></h1>
+                            <h1 class="text-base md:text-xl font-black text-gray-800 tracking-tight truncate">dr. Bayu SpOG <span class="text-rose-500">Personal Momscare</span></h1>
                             <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Asisten AI dr. Bayu · Claude Edition</p>
                         </div>
                     </div>
@@ -999,10 +999,10 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     </div>
 
                     <div class="space-y-4">
-                        <h3 class="font-black text-xl flex items-center gap-3"><div class="w-2 h-8 bg-rose-500 rounded-full"></div> Resep Vitamin & Catatan Medis RSHB</h3>
+                        <h3 class="font-black text-xl flex items-center gap-3"><div class="w-2 h-8 bg-rose-500 rounded-full"></div> Resep Vitamin & Catatan Medis dr. Bayu SpOG</h3>
                         ${res.plan.warnings.length > 0 ? `
                             <div class="bg-red-50 border-2 border-red-200 p-4 rounded-2xl mb-4">
-                                <div class="flex items-center gap-2 text-red-700 font-bold mb-2"><i class="fa-solid fa-circle-exclamation"></i> <span>Peringatan Klinis RSHB</span></div>
+                                <div class="flex items-center gap-2 text-red-700 font-bold mb-2"><i class="fa-solid fa-circle-exclamation"></i> <span>Peringatan Klinis dr. Bayu SpOG</span></div>
                                 <ul class="list-disc list-inside text-sm text-red-800 space-y-1 font-medium">
                                     ${res.plan.warnings.map(w => `<li>${w}</li>`).join('')}
                                 </ul>
@@ -1047,7 +1047,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     </div>
 
                     <div class="bg-gray-900 text-white p-6 rounded-3xl mt-8 print-area">
-                        <p class="text-xs text-gray-400 italic leading-relaxed">*Disclaimer RSHB: Sistem Asisten AI dr. Bayu dirancang menggunakan protokol Kartu Skor Poedji Rochjati (KSPR) dan parameter medis obstetri dasar sebagai alat bantu edukasi interaktif. Skor dan rekomendasi tidak menggantikan diagnosis resmi. Selalu konsultasikan cetak biru ini dengan Dokter Spesialis Kandungan Bunda.</p>
+                        <p class="text-xs text-gray-400 italic leading-relaxed">*Disclaimer dr. Bayu SpOG: Sistem Asisten AI dr. Bayu dirancang menggunakan protokol Kartu Skor Poedji Rochjati (KSPR) dan parameter medis obstetri dasar sebagai alat bantu edukasi interaktif. Skor dan rekomendasi tidak menggantikan diagnosis resmi. Selalu konsultasikan cetak biru ini dengan Dokter Spesialis Kandungan Bunda.</p>
                     </div>
 
                     ${!state.isSharedView ? `
