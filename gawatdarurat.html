@@ -76,6 +76,17 @@
                 ringkas: 'Hipertensi + proteinuria ≥20 mgg dengan tanda berat',
                 gawat: 'Tinggi', hal: 70,
                 definisi: 'Timbulnya hipertensi disertai proteinuria akibat kehamilan, setelah umur kehamilan 20 minggu atau segera setelah persalinan. Digolongkan BERAT bila terdapat satu atau lebih tanda berat di bawah.',
+                pembaruan: [
+                    'Pencegahan (risiko tinggi): Aspirin dosis rendah 75 mg/hari dimulai SEBELUM 20 minggu + suplementasi kalsium ≥1 g/hari.',
+                    'Tidak direkomendasikan untuk pencegahan: tirah baring, restriksi garam, serta vitamin C & E.',
+                    'Diagnosis diperbarui: preeklampsia = hipertensi (≥20 mgg) + disfungsi organ — DAPAT tanpa proteinuria bila ada gangguan multisistem. Edema tidak lagi jadi kriteria.',
+                    'Ambang: hipertensi ≥140/90 (2× jarak 15 mnt), berat ≥160/110. Proteinuria ≥300 mg/24 jam atau dipstik ≥+1 (dipstik kurang akurat).',
+                    'Antihipertensi: target <160/<110. Lini pertama Nifedipin oral short-acting 10 mg, ulang tiap 15–30 mnt (maks 30 mg); atau hidralazin/labetalol parenteral. Waspada kombinasi Nifedipin + MgSO₄ (risiko blokade neuromuskular/hipotensi).',
+                    'MgSO₄: lini pertama antikejang (> diazepam/fenitoin); profilaksis pada preeklampsia BERAT — TIDAK rutin bila tanpa gejala berat. Kadar Mg serum rutin tidak perlu → pantau klinis (refleks patella, RR, urin). Antidotum: Ca glukonas 1 g (10 mL) IV pelan.',
+                    'Ekspektatif: tanpa gejala berat → hingga 37 minggu (boleh poliklinis ketat). Berat <34 mgg → hanya bila ibu & janin stabil, di fasilitas dgn perawatan intensif maternal-neonatal + rawat inap + kortikosteroid pematangan paru.',
+                    'Sindrom HELLP: kortikosteroid BELUM direkomendasikan rutin (bukti belum cukup).'
+                ],
+                pembaruanSumber: 'PNPK Preeklampsia POGI 2016',
                 diagnosis: [
                     'TD sistolik ≥160 mmHg atau diastolik ≥110 mmHg',
                     'Proteinuria >2 g/24 jam atau ≥+2 (dipstick)',
@@ -882,6 +893,16 @@
                     <p class="text-sm text-slate-600 mt-2 leading-relaxed">${k.definisi}</p>
                     ${k.catatan ? `<div class="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-[12px] text-amber-800 flex gap-2"><i class="fa-solid fa-circle-info mt-0.5"></i><span>${k.catatan}</span></div>` : ''}
                 </div>
+
+                ${Array.isArray(k.pembaruan) && k.pembaruan.length ? `
+                <div class="rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm p-4 mb-3">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center"><i class="fa-solid fa-arrows-rotate text-emerald-600 text-sm"></i></div>
+                        <h3 class="font-bold text-emerald-800 text-sm">Pembaruan · ${k.pembaruanSumber || 'PNPK POGI'}</h3>
+                    </div>
+                    <ul class="space-y-2">${k.pembaruan.map(p => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle-plus text-emerald-500 text-xs mt-0.5"></i><span class="leading-snug">${p}</span></li>`).join('')}</ul>
+                    <div class="text-[10px] text-emerald-700/70 mt-2">Tambahan/pemutakhiran dari ${k.pembaruanSumber || 'PNPK POGI'} — melengkapi konten PPK RSHS 2015 di atas.</div>
+                </div>` : ''}
 
                 ${sectionCard('fa-list-check', 'red', 'Langkah Tindakan',
                     `<div class="mb-3">
