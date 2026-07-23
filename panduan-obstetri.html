@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAMLI Panduan · Obstetri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp .3s ease both; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            @page { margin: 1.2cm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="app"></div>
+
+    <script>
+        /* =========================================================
+           RAMLI PANDUAN — Panduan Praktik Klinis Obstetri (non-darurat)
+           Alat bantu edukasi/keputusan klinis untuk tenaga kesehatan.
+           Konten: PPK Obstetri & Ginekologi RSUP Dr. Hasan Sadikin
+           Bandung 2015. Fitur: daftar panduan, detail, pencarian, dan
+           Tanya RAMLI (AI · Claude/Anthropic).
+        ========================================================= */
+
+        const RAMLI_PROXY_URL = "https://withered-fire-1b27.bayuforward.workers.dev";
+
+        const memStore = {};
+        const safeStorage = {
+            get(k) { try { return localStorage.getItem(k); } catch (e) { return k in memStore ? memStore[k] : null; } },
+            set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } },
+            remove(k) { try { localStorage.removeItem(k); } catch (e) { delete memStore[k]; } }
+        };
+        function getStoredKey() {
+            try { const k = safeStorage.get('ramli_anthropic_key'); return k && k.trim() ? k.trim() : ''; }
+            catch (e) { return ''; }
+        }
+
+        // ==========================================================
+        //  KATEGORI & DATA PANDUAN
+        // ==========================================================
+        const KATEGORI = {
+            antenatal:     { label: 'Antenatal', ikon: 'fa-heart-pulse', warna: 'emerald' },
+            pemantauan:    { label: 'Pemantauan Janin', ikon: 'fa-wave-square', warna: 'teal' },
+            persalinan:    { label: 'Persalinan', ikon: 'fa-baby-carriage', warna: 'sky' },
+            malpresentasi: { label: 'Malpresentasi & Panggul', ikon: 'fa-arrows-rotate', warna: 'indigo' },
+            kondisi:       { label: 'Kondisi Kehamilan', ikon: 'fa-notes-medical', warna: 'amber' },
+            penyakit:      { label: 'Penyakit Penyerta', ikon: 'fa-lungs', warna: 'rose' }
+        };
+
+        /* KONDISI diisi dari data protap (lihat build). */
+        const KONDISI = /*__KONDISI__*/[
+  {
+    "id": "asuhan-antenatal",
+    "kategori": "antenatal",
+    "nama": "Asuhan Antenatal",
+    "ringkas": "Pemantauan rutin kesehatan selama kehamilan",
+    "hal": 1,
+    "definisi": "Upaya preventif program pelayanan kesehatan obstetrik untuk optimalisasi luaran maternal dan neonatal melalui serangkaian kegiatan pemantauan rutin selama kehamilan.",
+    "diagnosis": [
+      "Anamnesis keluhan yang dirasakan ibu hamil setiap kunjungan",
+      "Pemeriksaan umum (generalis) dan pemeriksaan khusus (lokalis)",
+      "Pemeriksaan abdomen: inspeksi, palpasi, auskultasi (deteksi DJJ, gerakan janin, ballotement)",
+      "Deteksi pembesaran disertai penipisan dinding uterus",
+      "Menilai kesejahteraan janin",
+      "Pemantauan tinggi fundus terhadap usia kehamilan (uterus lebih besar/kecil dari usia sesungguhnya)"
+    ],
+    "penunjang": [
+      "Uji hormonal kehamilan",
+      "Pemeriksaan laboratorium",
+      "Ultrasonografi, Rontgen, pemeriksaan genetika"
+    ],
+    "langkah": [
+      "Anjurkan ibu melakukan kunjungan antenatal secara berkala dan teratur",
+      "Lakukan pemeriksaan dan pencatatan kesehatan ibu hamil dari satu kunjungan ke kunjungan berikutnya",
+      "Identifikasi dan tatalaksana kehamilan risiko tinggi",
+      "Pantau gejala dan tanda bahaya: perdarahan, hipertensi/kejang, nyeri perut menjelang persalinan",
+      "Berikan edukasi kesehatan esensial: nutrisi adekuat (kalori, protein, kalsium, zat besi, asam folat), perawatan payudara, perawatan gigi, kebersihan tubuh dan pakaian",
+      "Lakukan rujukan optimal dan tepat waktu bila ditemukan kondisi patologis"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Muntah berlebihan yang berlangsung selama kehamilan",
+      "Disuria",
+      "Menggigil atau demam",
+      "Ketuban pecah dini atau sebelum waktunya",
+      "Perdarahan pada kehamilan muda dan lanjut",
+      "Hipertensi atau kejang"
+    ],
+    "rujukan": [
+      "Rujukan untuk gangguan kesehatan penyerta: Tuberkulosis Paru, Malaria, Hepatitis B, IMS, Dekompensatio Kordis, HIV/AIDS (PMTCT)"
+    ]
+  },
+  {
+    "id": "hiperemesis-gravidarum",
+    "kategori": "antenatal",
+    "nama": "Hiperemesis Gravidarum",
+    "ringkas": "Mual muntah hebat disertai dehidrasi",
+    "hal": 3,
+    "definisi": "Mual dan muntah hebat yang mungkin diikuti terjadinya dehidrasi. Muntah persisten menyebabkan hipotensi postural, takikardi, gangguan elektrolit, ketosis, dan kehilangan berat badan; bentuk berat merupakan keadaan darurat.",
+    "diagnosis": [
+      "Kehamilan muda (4-16 minggu)",
+      "Mual disertai muntah hebat dan berulang",
+      "Semua yang diminum atau dimakan kembali dimuntahkan",
+      "Dapat disertai tanda dehidrasi ringan sampai berat",
+      "Turgor kulit menurun",
+      "Diagnosis banding: dispepsia, migrain-vertigo, iritasi peritoneal (mis. Kehamilan Ektopik Terganggu)"
+    ],
+    "penunjang": [
+      "Laboratorium: keton (+)",
+      "USG: menentukan letak kantung kehamilan intra/ekstrauterin, jumlah janin, usia kehamilan, dan menyingkirkan mola hidatidosa"
+    ],
+    "langkah": [
+      "Lini pertama: pemberian antiemetik secara oral",
+      "Bila terapi oral gagal, berikan cairan intravena NaCl atau RL untuk koreksi dehidrasi, ketonemia, defisit elektrolit, dan ketidakseimbangan asam-basa",
+      "Cairan intravena dapat disertai pemberian obat (drip)",
+      "Berikan Dekstrose 5-10% setelah dehidrasi teratasi",
+      "Jika mual muntah hebat tetap terjadi setelah rehidrasi, rawat pasien",
+      "Pulangkan pasien setelah dapat makan dan minum tanpa dimuntahkan kembali"
+    ],
+    "obat": [
+      {
+        "n": "Cairan NaCl atau Ringer Laktat",
+        "d": "untuk koreksi dehidrasi",
+        "c": "intravena"
+      },
+      {
+        "n": "Dekstrose",
+        "d": "5-10% setelah dehidrasi teratasi",
+        "c": "intravena"
+      },
+      {
+        "n": "Antiemetik (promethazin, proklorperazin, klorpromazin, metoklopramid, ondansetron)",
+        "d": "sesuai dosis lazim",
+        "c": "peroral, drip atau i.v bolus"
+      }
+    ],
+    "penyulit": [
+      "Acute kidney injury yang membutuhkan hemodialisa",
+      "Depresi",
+      "Ruptur diafragmatika",
+      "Ruptur esofagus (sindroma Boerhaave)",
+      "Hipoprotrombinemia (defisiensi vitamin)",
+      "Mallory-Weiss tears - perdarahan, pneumothoraks, pneumomediastinum, pneumopericardium",
+      "Ensefalopati Wernicke - defisiensi vitamin B1",
+      "Kejang-kejang",
+      "Penurunan berat badan janin kronis dan gangguan pertumbuhan janin dalam rahim"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "gravidogram",
+    "kategori": "antenatal",
+    "nama": "Gravidogram",
+    "ringkas": "Rekam grafik pemantauan pertumbuhan janin",
+    "hal": 5,
+    "definisi": "Suatu rekam grafik/nomogram untuk memantau pertumbuhan janin dan keadaan ibu dalam kehamilan; formulir status pemeriksaan kehamilan yang memuat data karakteristik pasien, tanda vital, tinggi fundus uteri, dan pemeriksaan penunjang.",
+    "diagnosis": [
+      "Penilaian ada tidaknya gangguan pertumbuhan janin secara klinis dengan melihat tinggi S-F yang sesuai usia kehamilan pada grafik",
+      "Bila tinggi fundus uteri > 2 SD (< 90 persentil) maupun < 2 SD (< 10 persentil) harus dilakukan pemeriksaan lebih lanjut",
+      "Data yang dicatat: karakteristik pasien (umur, paritas, tinggi badan, berat badan), tanda vital, tinggi fundus uteri (cm), lingkaran perut (cm), letak janin, bunyi jantung janin (TBBJ, BJJ)"
+    ],
+    "penunjang": [
+      "Laboratorium",
+      "USG",
+      "Kardiotokografi"
+    ],
+    "langkah": [
+      "Isi formulir untuk setiap pasien yang datang pemeriksaan kehamilan",
+      "Pastikan hari pertama haid terakhir (HPHT) jelas",
+      "Kosongkan kandung kencing sebelum pengukuran tinggi fundus uteri",
+      "Ukur tinggi fundus uteri dari puncak pubis ke puncak fundus (S-F)",
+      "Nilai kesesuaian tinggi S-F terhadap usia kehamilan pada grafik",
+      "Bila tidak sesuai: tanya ulang HPHT untuk penemuan ulang umur kehamilan dan lakukan USG"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Gangguan pertumbuhan janin (tinggi fundus tidak sesuai usia kehamilan)"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "asuhan-kala-i-persalinan",
+    "kategori": "persalinan",
+    "nama": "Asuhan Kala I Persalinan",
+    "ringkas": "Asuhan persalinan normal tahap pembukaan",
+    "hal": 7,
+    "definisi": "Asuhan persalinan normal untuk menjaga kelangsungan hidup dan derajat kesehatan tinggi bagi ibu dan bayi melalui upaya terintegrasi dengan intervensi seminimal mungkin; kala I dimulai dari awal persalinan hingga pembukaan serviks lengkap.",
+    "diagnosis": [
+      "Anamnesis riwayat kesehatan, kehamilan dan persalinan",
+      "Pemeriksaan fisik: keadaan umum, pemeriksaan abdomen, pemeriksaan dalam",
+      "Pengenalan dini masalah dan penyulit"
+    ],
+    "penunjang": [
+      "Partograf sebagai alat bantu memantau kemajuan kala satu persalinan",
+      "Pemeriksaan laboratorium sesuai indikasi"
+    ],
+    "langkah": [
+      "Lakukan pencegahan infeksi (cuci tangan, peralatan steril/DTT, barier protektif)",
+      "Pantau kemajuan persalinan dan buat keputusan klinik",
+      "Terapkan asuhan sayang ibu: dukungan emosional, kehadiran pendamping",
+      "Anjurkan ibu memilih posisi nyaman (jangan telentang lebih dari 10 menit)",
+      "Berikan asupan cairan dan nutrisi selama persalinan",
+      "Gunakan partograf untuk mencatat observasi dan menilai persalinan normal/abnormal",
+      "Siapkan dan rujuk secara tepat waktu bila ditemukan penyulit",
+      "Hindari tindakan yang tidak perlu atau berbahaya"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Riwayat persalinan per abdominam/Seksio Sesarea",
+      "Perdarahan",
+      "Usia gestasi kurang dari 37 minggu",
+      "Ketuban pecah disertai mekonium kental atau gawat janin",
+      "Ketuban pecah lebih dari 24 jam dengan tanda amnionitis",
+      "Tekanan darah lebih dari 140/90 atau pre-eklampsia",
+      "Tinggi fundus 40cm atau lebih (makrosomia, polihidramnion, kehamilan ganda)",
+      "Gawat janin, malpresentasi atau presentasi majemuk",
+      "Tali pusat menumbung, syok",
+      "Fase laten memanjang, partus lama",
+      "Penyakit sistemik berat (ikterus, anemia, vitium cordis, TBC, DM)"
+    ],
+    "rujukan": [
+      "Persiapan rujukan ke fasilitas rujukan dengan dokumentasi tertulis dan partograf"
+    ]
+  },
+  {
+    "id": "partograf",
+    "kategori": "pemantauan",
+    "nama": "Partograf",
+    "ringkas": "Alat pemantau kemajuan persalinan",
+    "hal": 12,
+    "definisi": "Alat yang dipakai untuk memantau kemajuan persalinan, keadaan ibu dan kesejahteraan janin, guna membantu petugas kesehatan mengambil keputusan cepat dalam pelaksanaan persalinan.",
+    "diagnosis": [
+      "Air ketuban: U=selaput utuh, J=pecah jernih, M=bercampur mekoneum, D=bernoda darah, T=tidak ada cairan",
+      "Molase kepala: 0=sutura teraba jelas, 1=sutura tidak teraba, 2=tulang tumpang tindih masih bisa dipisahkan, 3=tumpang tindih tidak bisa dipisahkan",
+      "Kontraksi per 10 menit: kurang dari 20 detik; antara 20-40 detik; lebih dari 40 detik",
+      "Bila temuan melintas ke kanan garis waspada, lakukan penilaian kondisi ibu dan janin dan tindakan tepat"
+    ],
+    "penunjang": [
+      "Pencatatan protein, aseton, dan volume urin setiap ibu berkemih"
+    ],
+    "langkah": [
+      "Mulai partograf pada pembukaan 4 cm (fase aktif)",
+      "Buat partograf untuk setiap ibu bersalin, kecuali yang harus langsung seksio sesarea (perdarahan antepartum, gawat janin, malpresentasi)",
+      "Catat denyut jantung janin setiap 1 jam",
+      "Catat warna air ketuban setiap pemeriksaan vagina",
+      "Nilai pembukaan serviks setiap 4 jam dengan tanda silang (x)",
+      "Catat penurunan kepala (per 5-an) dengan tanda lingkaran (O) setiap pemeriksaan dalam",
+      "Palpasi kontraksi: jumlah dalam 10 menit dan lama tiap kontraksi",
+      "Catat oksitosin (jumlah per volume cairan infus dan tetesan per menit) serta obat lain",
+      "Catat nadi setiap 30-60 menit, tekanan darah setiap 2 jam"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Temuan melintas ke kanan garis waspada menandakan persalinan abnormal"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "nst-uji-tanpa-beban",
+    "kategori": "pemantauan",
+    "nama": "Uji Tanpa Beban / Non Stress Test (NST)",
+    "ringkas": "Penilaian kesehatan janin dengan KTG",
+    "hal": 15,
+    "definisi": "Pemeriksaan kesehatan janin menggunakan kardiotokografi pada kehamilan >= 32 minggu untuk menilai kesehatan janin melalui hubungan perubahan denyut jantung janin dengan gerakan janin.",
+    "diagnosis": [
+      "Reaktif: DJJ basal 110-160 kali per menit, variabilitas 6-25 per menit, ada gerakan janin (>= 5 gerakan dalam 20 menit) dengan kenaikan minimal 15 dpm selama minimal 15 detik",
+      "Tidak reaktif: DJJ basal 110-160 kali per menit, variabilitas < 6 denyut/menit, gerak janin tidak ada atau < 5 gerakan dalam 20 menit, tidak ada akselerasi meski diberi rangsangan",
+      "Non reassuring (bentuk antara): interpretasi sukar, dapat disebabkan obat (barbiturat, demoral, fenotiasid, metildopa)",
+      "Deselerasi lambat berlangsung lebih dari 1 menit berhubungan dengan keadaan janin buruk"
+    ],
+    "penunjang": [
+      "Kardiotokografi"
+    ],
+    "langkah": [
+      "Pastikan ibu telah makan 1-2 jam sebelum prosedur, tidak memakai sedativa, kandung kemih dikosongkan, informed consent",
+      "Tidurkan pasien semi Fowler 45 derajat miring ke kiri",
+      "Ukur tekanan darah setiap 10 menit",
+      "Pasang kardiotokografi dan berikan tombol penanda gerak janin",
+      "Catat frekuensi DJJ selama 10 menit pertama untuk data dasar",
+      "Pantau minimal 20 menit; bila non reaktif lanjutkan 20 menit lagi",
+      "Bila tetap non reassuring tanpa obat, ulangi NST keesokan hari; bila tidak membaik lakukan uji beban kontraksi (OCT)"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Supine hypotension"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "cst-oct-uji-beban-kontraksi",
+    "kategori": "pemantauan",
+    "nama": "Uji Beban Kontraksi (CST) / Oxytocin Challenge Test (OCT)",
+    "ringkas": "Menilai DJJ saat kontraksi rahim",
+    "hal": 18,
+    "definisi": "Cara pemeriksaan janin menggunakan kardiotokografi yang menilai denyut jantung janin pada saat kontraksi rahim, untuk memantau kondisi janin, menilai toleransi terhadap beban persalinan dan fungsi plasenta.",
+    "diagnosis": [
+      "Negatif: tidak ada deselerasi lambat/variabel yang nyata, DJJ normal (120-160 dpm), variabilitas 6-25 dpm; kehamilan dapat diteruskan sampai 7 hari (kecuali DM)",
+      "Positif: deselerasi lambat pada sebagian besar kontraksi; menandakan insufisiensi uteroplasenta, kehamilan harus segera diakhiri kecuali paru belum matang",
+      "Mencurigakan: deselerasi lambat tidak menetap atau deselerasi variabel terus menerus, adanya takikardia; ulangi 1-2 hari kemudian",
+      "Tidak memuaskan: kontraksi < 3 kali dalam 10 menit atau pencatatan kurang baik; ulangi hari berikutnya",
+      "Hiperstimulasi: >= 5 kontraksi dalam 10 menit, lama kontraksi >= 90 detik, tonus basal > 20 mmHg"
+    ],
+    "penunjang": [
+      "Kardiotokografi"
+    ],
+    "langkah": [
+      "Pastikan ibu tidak makan/minum/merokok 4-8 jam sebelumnya, tidak memakai sedativa, informed consent",
+      "Tidurkan pasien semi Fowler dan miring ke kiri",
+      "Ukur tekanan darah setiap 10-15 menit",
+      "Pasang kardiotokografi, catat data dasar selama 10 menit pertama",
+      "Berikan tetes oksitosin untuk mencapai 3 kontraksi dalam 10 menit",
+      "Bila belum ada kontraksi mulai 1 mU/menit (20 tetes/menit); bila sudah ada tapi < 3 kali/10 menit mulai 0,5 mU/menit (10 tetes/menit)",
+      "Naikkan 5 tetes/menit setiap 15 menit sampai maksimal 60 tetes/menit",
+      "Hentikan oksitosin bila terjadi >= 5 kontraksi/10 menit, deselerasi memanjang atau lambat menetap, atau hipertonus",
+      "Awasi 30 menit setelah oksitosin dihentikan bila hasil negatif/mencurigakan/tidak memuaskan"
+    ],
+    "obat": [
+      {
+        "n": "Oksitosin (tetesan)",
+        "d": "mulai 0,5-1 mU/menit, naik 5 tetes/menit tiap 15 menit, maksimal 60 tetes/menit",
+        "c": "infus intravena"
+      }
+    ],
+    "penyulit": [
+      "Persalinan kurang bulan"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "skor-bishop",
+    "kategori": "pemantauan",
+    "nama": "Skor Bishop (Skor Pelvik)",
+    "ringkas": "Skor kelayakan persalinan pervaginam/induksi",
+    "hal": 26,
+    "definisi": "Suatu klasifikasi objektif untuk memilih pasien yang memenuhi syarat untuk persalinan pervaginam pada janin presentasi belakang kepala.",
+    "diagnosis": [
+      "Pembukaan serviks (cm): skor 0=0, 1=1-2, 2=3-4, 3=5-6",
+      "Pendataran serviks (%): skor 0=0-30, 1=40-50, 2=60-70, 3=80",
+      "Station: skor 0=-3, 1=-2, 2=-1 atau 0, 3=+1 atau +2",
+      "Konsistensi serviks: skor 0=kaku, 1=medium, 2=lunak",
+      "Posisi serviks: skor 0=posterior, 1=di tengah, 2=anterior",
+      "Skor total >= 6: keberhasilan induksi persalinan tinggi; < 6: keberhasilan rendah"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Nilai kelima faktor serviks dan station lalu jumlahkan skor",
+      "Gunakan skor total untuk pertimbangan memilih jenis persalinan pervaginam atau per abdominam"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "skor-zatuchni-andros",
+    "kategori": "pemantauan",
+    "nama": "Skor Zatuchni-Andros",
+    "ringkas": "Prediksi keberhasilan persalinan sungsang pervaginam",
+    "hal": 27,
+    "definisi": "Skor dari 6 variabel klinis yang dibuat saat pasien masuk rumah sakit untuk prediksi keberhasilan persalinan letak sungsang pervaginam.",
+    "diagnosis": [
+      "Paritas: skor 0=0, 1=>= 1",
+      "Umur kehamilan (minggu): skor 0=39, 1=38, 2=37",
+      "Taksiran berat janin: skor 0=> 3600, 1=3000-3600, 2=< 3000",
+      "Persalinan sungsang terdahulu: skor 0=tidak pernah, 1=1, 2=2 atau lebih",
+      "Dilatasi (cm): skor 0=2, 1=3, 2=>= 4",
+      "Station: skor 0=>= -3, 1=-2, 2=<= -1",
+      "Skor <= 4: lakukan seksio sesarea; skor >= 5: persalinan pervaginam"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Nilai keenam variabel klinis dan jumlahkan skor",
+      "Bila skor <= 4 lakukan seksio sesarea; bila >= 5 persalinan pervaginam",
+      "Bila TBBJ >= 3500 gram lakukan seksio sesarea",
+      "Pada preterm dapat pervaginam bila TBBJ > 1800 gram"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "pengakhiran-kehamilan",
+    "kategori": "persalinan",
+    "nama": "Pengakhiran Kehamilan",
+    "ringkas": "Terminasi kehamilan janin hidup atau mati",
+    "hal": 28,
+    "definisi": "Pengakhiran kehamilan untuk mengeluarkan buah kehamilan, baik janin dalam keadaan hidup atau mati.",
+    "diagnosis": [
+      "Indikasi: abortus tertunda (missed abortion), telur kosong (blighted ovum), mola hidatidosa",
+      "Abortus insipiens, abortus inkomplit, ketuban pecah dini",
+      "Kehamilan lewat waktu, pertumbuhan janin terhambat (PJT), kematian janin dalam rahim",
+      "Indikasi ibu: penyakit yang membahayakan ibu bila kehamilan diteruskan"
+    ],
+    "penunjang": [
+      "Pada missed abortion: pemeriksaan trombosit, fibrinogen, waktu pembekuan, waktu perdarahan, waktu protrombin"
+    ],
+    "langkah": [
+      "Pastikan keadaan umum memungkinkan (Hb > 10%, tekanan darah baik)",
+      "Pada abortus febrilis berikan antibiotika parenteral sebelum kuretase",
+      "Kehamilan sampai 12 minggu: kuretase vakum, kuretase tajam, atau dilatasi dan kuretase tajam",
+      "Kehamilan > 12-20 minggu: misoprostol 200 mg intravaginal (dapat diulang 1 kali 6 jam), pemasangan batang laminaria 12 jam, atau kombinasi dengan tetes oksitosin",
+      "Kehamilan > 20-28 minggu: misoprostol 100 ug intravaginal (diulang 1 kali 6 jam), laminaria 12 jam, atau tetes oksitosin 5 IU dalam Dekstrose 5%",
+      "Kehamilan > 28 minggu: misoprostol 50 ug intravaginal (diulang 1 kali 6 jam), metrolisa, atau tetes oksitosin 5 IU dalam Dekstrose 5%",
+      "Lakukan kuretase bila masih terdapat sisa jaringan; lakukan SS/histerotomi bila upaya pervaginam gagal atau atas indikasi ibu/janin"
+    ],
+    "obat": [
+      {
+        "n": "Misoprostol (> 12-20 minggu)",
+        "d": "200 mg intravaginal, diulang 1 kali 6 jam",
+        "c": "intravaginal"
+      },
+      {
+        "n": "Misoprostol (> 20-28 minggu)",
+        "d": "100 ug intravaginal, diulang 1 kali 6 jam",
+        "c": "intravaginal"
+      },
+      {
+        "n": "Misoprostol (> 28 minggu)",
+        "d": "50 ug intravaginal, diulang 1 kali 6 jam",
+        "c": "intravaginal"
+      },
+      {
+        "n": "Tetes oksitosin (> 12-20 minggu)",
+        "d": "10 IU dalam 500 cc dekstrose 5%, mulai 20 sampai maksimal 60 tetes/menit",
+        "c": "infus intravena"
+      },
+      {
+        "n": "Tetes oksitosin (> 20 minggu)",
+        "d": "5 IU dalam dekstrose 5%, mulai 20 sampai maksimal 60 tetes/menit (40 tetes untuk grande multigravida)",
+        "c": "infus intravena"
+      },
+      {
+        "n": "Batang laminaria",
+        "d": "dipasang selama 12 jam",
+        "c": "intraservikal"
+      }
+    ],
+    "penyulit": [],
+    "rujukan": [
+      "Histerotomi dengan sepengetahuan konsulen"
+    ]
+  },
+  {
+    "id": "partus-percobaan",
+    "kategori": "persalinan",
+    "nama": "Partus Percobaan",
+    "ringkas": "Percobaan persalinan pervaginam panggul sempit relatif",
+    "hal": 31,
+    "definisi": "Percobaan persalinan pervaginam pada panggul sempit relatif dengan janin presentasi belakang kepala pada kehamilan cukup bulan atau perkiraan berat badan janin >= 2500 gram, dimulai dari awal persalinan hingga bayi lahir atau diyakini persalinan tidak dapat berlangsung pervaginam.",
+    "diagnosis": [
+      "Berhasil: bayi lahir pervaginam dengan keadaan ibu dan bayi baik",
+      "Tidak lengkap: persalinan diakhiri seksio sesarea atas indikasi ibu atau anak",
+      "Gagal: anak lahir mati, pada kala II kepala tidak engaged setelah dipimpin meneran 1 jam, atau partus buatan pervaginam gagal"
+    ],
+    "penunjang": [
+      "Pemantauan janin dan kontraksi rahim dengan kardiotokografi"
+    ],
+    "langkah": [
+      "Bila his belum ada, lakukan induksi persalinan",
+      "Bila didapatkan inersia uteri hipotonik, berikan tetes oksitosin",
+      "Lakukan pemantauan janin dan kontraksi rahim dengan kardiotokografi",
+      "Bila ada indikasi partus buatan pervaginam dan syarat terpenuhi, pilih ekstraksi vakum",
+      "Jangan lakukan partus percobaan pada riwayat partus percobaan gagal, persangkaan bayi besar, atau anak mahal"
+    ],
+    "obat": [
+      {
+        "n": "Tetes oksitosin",
+        "d": "pada inersia uteri hipotonik",
+        "c": "infus intravena"
+      }
+    ],
+    "penyulit": [
+      "Partus percobaan gagal",
+      "Anak lahir mati"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "episiotomi",
+    "kategori": "persalinan",
+    "nama": "Episiotomi",
+    "ringkas": "Insisi perineum pada kala II persalinan",
+    "hal": 35,
+    "definisi": "Insisi perineum pada kala II persalinan untuk mencegah robekan perineum secara total dan memperlebar jalan lahir sehingga memudahkan kelahiran janin, dilakukan atas indikasi saat kepala atau bokong membuka vulva 3-4 cm.",
+    "diagnosis": [
+      "Dilakukan atas indikasi janin atau adanya ancaman robekan perineum total",
+      "Saat pelaksanaan: kepala atau bokong membuka vulva 3-4 cm"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Episiotomi mediana: insisi perineum dari komisura posterior sepanjang garis tengah ke bawah menuju muskulus sfingter ani (untuk persalinan kurang bulan)",
+      "Episiotomi mediolateral: insisi dimulai pada komisura posterior lalu diteruskan ke lateral (untuk persalinan cukup bulan)",
+      "Berikan terapi antibiotik dan kompres betadin pasca tindakan"
+    ],
+    "obat": [
+      {
+        "n": "Antibiotik",
+        "d": "-",
+        "c": "-"
+      },
+      {
+        "n": "Kompres betadin",
+        "d": "-",
+        "c": "topikal"
+      }
+    ],
+    "penyulit": [
+      "Perdarahan (terutama pada episiotomi mediolateral karena pleksus bulbokavernosus terluka)",
+      "Robekan perineum tingkat III"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "versi-luar",
+    "kategori": "malpresentasi",
+    "nama": "Versi Luar",
+    "ringkas": "Mengubah letak janin dari luar",
+    "hal": 39,
+    "definisi": "Suatu tindakan untuk mengubah letak janin dalam rahim yang dikerjakan dari luar, untuk mengubah letak sungsang menjadi letak kepala atau letak lintang menjadi memanjang.",
+    "diagnosis": [
+      "Indikasi: letak lintang pada kehamilan >= 34 minggu, letak sungsang pada kehamilan >= 34 minggu"
+    ],
+    "penunjang": [
+      "Pemeriksaan USG"
+    ],
+    "langkah": [
+      "Kosongkan kandung kemih dan periksa bunyi jantung janin",
+      "Posisikan ibu berbaring dengan kaki fleksi",
+      "Mobilisasi bagian terendah janin",
+      "Sentralisasi: dekatkan kepala dan bokong",
+      "Versi: putar ke arah paling rendah tahanannya (ke arah perut janin) agar tidak terjadi defleksi kepala/tali pusat terkemuka",
+      "Pantau DJJ selama 5-10 menit pasca versi; bila gawat janin putar kembali ke posisi semula",
+      "Fiksasi dinding perut dengan gurita atau stagen setelah ibu berbaring 15 menit",
+      "Versi luar ulangan dapat dilakukan setiap kunjungan antenatal, maksimal 3 kali selama tidak ada kontra indikasi"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Solusio plasenta",
+      "Lilitan tali pusat",
+      "Ruptura uteri",
+      "Gawat janin",
+      "Ketuban pecah"
+    ],
+    "rujukan": [
+      "Dilakukan residen kepala/konsulen"
+    ]
+  },
+  {
+    "id": "letak-sungsang",
+    "kategori": "malpresentasi",
+    "nama": "Letak Sungsang",
+    "ringkas": "Kehamilan bokong/kaki bagian terendah",
+    "hal": 41,
+    "definisi": "Kehamilan dengan anak letak memanjang dengan bokong/kaki sebagai bagian terendah; diklasifikasikan menjadi letak bokong murni, letak bokong kaki, dan letak kaki.",
+    "diagnosis": [
+      "Diagnosis dengan pemeriksaan luar",
+      "Faktor predisposisi: multiparitas, bayi kembar, hidramnion, oligohidramnion, hidrosefal, anensefal, letak sungsang kehamilan sebelumnya, tumor dalam panggul"
+    ],
+    "penunjang": [
+      "USG pada usia kehamilan 32-34 minggu untuk mengetahui kelainan janin/di luar janin penyebab letak sungsang"
+    ],
+    "langkah": [
+      "Dalam kehamilan: lakukan versi luar pada usia kehamilan >= 34 minggu",
+      "Dalam persalinan: bila VL tidak berhasil, perhatikan panggul sempit, anak mahal, primi tua, TBBJ >= 3500 gram, atau usia < 37 minggu dengan TBBJ >= 1800 gram",
+      "Bila didapatkan salah satu keadaan tersebut, lakukan persalinan per abdominam",
+      "Bila tidak ada, rencanakan persalinan pervaginam: persalinan harus lancar, awasi tali pusat menumbung, tetes oksitosin dibatasi 1 labu, nilai skor Zatuchni",
+      "Pada kala II: persalinan spontan (Bracht) atau manual aid dalam keadaan tertentu"
+    ],
+    "obat": [
+      {
+        "n": "Tetes oksitosin",
+        "d": "dibatasi hanya 1 labu",
+        "c": "infus intravena"
+      }
+    ],
+    "penyulit": [
+      "Tali pusat menumbung pada ketuban yang sudah pecah"
+    ],
+    "rujukan": [
+      "Menghubungi bagian perinatologi untuk persalinan preterm"
+    ]
+  },
+  {
+    "id": "letak-muka",
+    "kategori": "malpresentasi",
+    "nama": "Letak Muka",
+    "ringkas": "Letak kepala dengan defleksi maksimal",
+    "hal": 43,
+    "definisi": "Letak muka adalah letak kepala dengan defleksi maksimal.",
+    "diagnosis": [
+      "Biasanya ditegakkan dalam persalinan",
+      "Pemeriksaan luar: tonjolan kepala sepihak dengan bokong, ditemukan sudut Fabre, BJJ sepihak dengan bagian kecil",
+      "Pemeriksaan dalam: teraba pinggir orbita, hidung, tulang pipi, mulut dan dagu",
+      "Etiologi: panggul sempit, bayi besar, multiparitas, lilitan tali pusat di leher, anensefal"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Kala I: observasi sampai pembukaan lengkap",
+      "Kala II: setelah dipimpin meneran, bila dagu di depan lakukan persalinan pervaginam (spontan atau ekstraksi forsep)",
+      "Bila dagu tetap di belakang: lakukan seksio sesarea"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "kehamilan-lewat-waktu",
+    "kategori": "kondisi",
+    "nama": "Kehamilan Lewat Waktu",
+    "ringkas": "Kehamilan 42 minggu atau lebih",
+    "hal": 44,
+    "definisi": "Kehamilan yang berlangsung selama 294 hari (42 minggu) atau lebih dihitung dari hari pertama haid terakhir pada siklus 28 hari, atau 280 hari (40 minggu) dari konsepsi; hasil persalinan buruk sudah meningkat pada usia 41 minggu.",
+    "diagnosis": [
+      "Penentuan usia kehamilan yang akurat (anamnesis ulang, evaluasi status, USG 16-20 minggu)",
+      "Penilaian janin dan pemeriksaan biometri USG",
+      "Diagnosis PJT",
+      "Pemeriksaan KTG dimulai dari umur kehamilan 41 minggu",
+      "Menilai kematangan serviks dengan skor Bishop (belum matang bila skor < 6)"
+    ],
+    "penunjang": [
+      "USG (biometri, profil biofisik, volume cairan amnion)",
+      "NST; bila non-reaktif lanjut CST/OCT atau profil biofisik"
+    ],
+    "langkah": [
+      "Mulai pengelolaan dari umur 41 minggu tergantung derajat kematangan serviks",
+      "Serviks matang (Bishop >= 6): lakukan induksi persalinan bila tidak ada kontra indikasi; seksio sesarea bila taksiran berat janin >= 4000 gram",
+      "Serviks belum matang (Bishop < 6): nilai keadaan janin dengan profil biofisik",
+      "Bila profil biofisik 0-2/oligohidramnion/deselerasi variabel: lakukan induksi dengan pemantauan KTG kontinyu",
+      "Bila cairan amnion normal dan NST tidak reaktif: lakukan CST; bila positif lahirkan janin, bila negatif nilai ulang 3 hari kemudian",
+      "Akhiri kehamilan bila serviks matang atau bila telah mencapai 308 hari (44 minggu) tanpa melihat serviks",
+      "Intrapartum: ibu tidur miring kiri, pemantauan KTG kontinyu, resusitasi intrauterin bila perlu, cegah aspirasi mekonium"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Aspirasi mekonium",
+      "Hipoglikemi, hipovolemi, hipotermi dan polisitemi pada bayi",
+      "Makrosomia"
+    ],
+    "rujukan": [
+      "Kehadiran dokter spesialis anak mutlak diperlukan saat persalinan"
+    ]
+  },
+  {
+    "id": "pertumbuhan-janin-terhambat",
+    "kategori": "kondisi",
+    "nama": "Pertumbuhan Janin Terhambat (PJT)",
+    "ringkas": "Parameter janin di bawah 10 persentil",
+    "hal": 47,
+    "definisi": "Terhambatnya pertumbuhan dan perkembangan janin dalam rahim sehingga beberapa parameter janin berada di bawah 10 persentil (< 2 SD) dari umur kehamilan yang seharusnya.",
+    "diagnosis": [
+      "Anamnesis faktor risiko: hipertensi, penyakit paru kronis, penyakit jantung sianotik, pemakaian obat, merokok, infeksi, riwayat PJT sebelumnya",
+      "Pengukuran TFU dan lingkaran perut: kecurigaan PJT bila TFU menetap pada 2 kali pemeriksaan selang 1-2 minggu atau menurun di bawah 10 persentil",
+      "Pembagian klinik: Tipe I (simetris), Tipe II (asimetris), tipe kombinasi"
+    ],
+    "penunjang": [
+      "USG: diameter biparietal, panjang femur, lingkaran kepala, lingkaran perut, TBBJ, Doppler, cairan amnion",
+      "Pemantauan gerakan janin (fetal kick count) setiap hari",
+      "USG Doppler dan NST setiap minggu; OCT bila NST non reaktif",
+      "BPP (profil biofisik) setiap minggu"
+    ],
+    "langkah": [
+      "Terapi kausal terhadap penyebab/penyakit yang mendasari",
+      "Konservatif: tirah baring (tidur miring)",
+      "Pemberian kalori >= 2600 kal per oral atau parenteral",
+      "Pemberian kortikosteroid (lihat bab prematuritas)",
+      "Pertimbangkan pemberian aspirin bila tidak ada kontra indikasi",
+      "Terminasi kehamilan bila: hamil aterm (>= 37 minggu), atau sudah mendapat kortikosteroid (24-34 minggu) dengan skor biofisik < 2, deselerasi lambat/variabel berulang, atau Doppler a. umbilikalis REDF/AEDF"
+    ],
+    "obat": [
+      {
+        "n": "Kalori",
+        "d": ">= 2600 kal/hari",
+        "c": "per oral atau parenteral"
+      },
+      {
+        "n": "Kortikosteroid",
+        "d": "kehamilan 24-34 minggu (lihat bab prematuritas)",
+        "c": "-"
+      },
+      {
+        "n": "Aspirin",
+        "d": "dipertimbangkan bila tidak ada kontra indikasi",
+        "c": "per oral"
+      }
+    ],
+    "penyulit": [
+      "Hipoksia janin",
+      "Oligohidramnion",
+      "Kematian janin"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "penyakit-jantung-dalam-kehamilan",
+    "kategori": "penyakit",
+    "nama": "Penyakit Jantung dalam Kehamilan",
+    "ringkas": "Kelainan jantung menyertai kehamilan",
+    "hal": 50,
+    "definisi": "Penyakit jantung yang menyertai kehamilan dengan klasifikasi berdasarkan pembatasan kegiatan fisik (kelas I-IV), memerlukan pengelolaan bersama bagian kardiologi.",
+    "diagnosis": [
+      "Anamnesis: riwayat demam rematik, dispneu saat aktivitas/istirahat, paroksismal nokturnal dispneu, angina atau syncope saat aktivitas, hemoptisis",
+      "Pemeriksaan fisik: murmur sistolik dan diastolik, kelainan irama jantung, precordial thrill, kardiomegali, sianosis/clubbing",
+      "Klasifikasi kelas I (tanpa pembatasan) sampai kelas IV (gejala dekompensasi saat istirahat)"
+    ],
+    "penunjang": [
+      "Foto toraks",
+      "Elektrokardiografi",
+      "Ekhokardiografi",
+      "NST dan USG serial setelah umur kehamilan 32 minggu"
+    ],
+    "langkah": [
+      "Konsultasi dan rawat bersama bagian kardiologi",
+      "Bila rawat jalan kontrol setiap minggu ke bagian kebidanan dan kardiologi",
+      "Tirah baring 2 jam siang dan 10 jam malam hari",
+      "Pengobatan tergantung klasifikasi; kelas I-II tanpa pengobatan (hindari kegiatan fisik terutama minggu 28-32); kelas III-IV rawat di rumah sakit",
+      "Induksi hanya atas indikasi obstetri; berikan diuretika bila perlu untuk mencegah edem paru",
+      "Kala I: pemantauan ketat, profilaksis digitalis dan antibiotik atas konsultasi kardiologi",
+      "Kala II tergantung klasifikasi: kelas I spontan; kelas II-IV cegah mengedan dan selesaikan dengan ekstraksi forsep didampingi kardiologi",
+      "Kala III: oksitosin 10 UI i.m setelah bayi lahir, hindari ergometrin, PRC bila perlu transfusi, furosemid 40 mg i.v profilaksis pada kasus tertentu, bantal pasir di perut bawah setelah plasenta lahir"
+    ],
+    "obat": [
+      {
+        "n": "Oksitosin",
+        "d": "10 UI setelah bayi lahir",
+        "c": "intramuskular"
+      },
+      {
+        "n": "Furosemid",
+        "d": "40 mg (profilaksis pada kasus tertentu)",
+        "c": "intravena"
+      },
+      {
+        "n": "Digitalis dan antibiotik",
+        "d": "profilaksis bila diperlukan atas konsultasi kardiologi",
+        "c": "-"
+      },
+      {
+        "n": "PRC",
+        "d": "bila diperlukan transfusi darah",
+        "c": "transfusi"
+      }
+    ],
+    "penyulit": [
+      "Gagal jantung selama persalinan",
+      "Edem paru",
+      "Gagal jantung masa nifas (dipicu perdarahan, anemia, infeksi, tromboemboli)"
+    ],
+    "rujukan": [
+      "Rawat bersama bagian kardiologi"
+    ]
+  },
+  {
+    "id": "diabetes-melitus-dalam-kehamilan",
+    "kategori": "penyakit",
+    "nama": "Diabetes Melitus dalam Kehamilan",
+    "ringkas": "DM gestasional dan pregestasional",
+    "hal": 53,
+    "definisi": "Diabetes melitus gestasional adalah diabetes yang timbul saat hamil dan menghilang setelah melahirkan; diabetes pregestasional dimulai sebelum hamil dan berlanjut, dengan hiperglikemia saat puasa.",
+    "diagnosis": [
+      "Kriteria diagnosis glukosa (Carpenter-Coustan): puasa 95, 1 jam 180, 2 jam 155, 3 jam 140 mg/dL; didiagnosis bila dua nilai terpenuhi/terlampaui",
+      "Kriteria National Diabetes Data Group: puasa 105, 1 jam 190, 2 jam 165, 3 jam 145 mg/dL",
+      "Klasifikasi kelas A1 (diet), A2 (insulin), B, C, D, F, R, H (insulin)",
+      "Indikasi GTT: riwayat keluarga DM, pernah lahir bayi besar/cacat bawaan, pernah abortus/lahir mati, obesitas, hipertensi, DM"
+    ],
+    "penunjang": [
+      "Tes toleransi glukosa oral (GTT)",
+      "Uji reduksi tiap bulan",
+      "USG untuk kelainan kongenital dan evaluasi pertumbuhan janin",
+      "Profil biofisik/kesejahteraan janin dimulai minggu ke-32; NST setiap hari (IDDM) atau 1 minggu sekali (NIDDM)"
+    ],
+    "langkah": [
+      "Skrining ibu hamil pada kunjungan pertama, ulangi pada kehamilan 28 minggu bila negatif",
+      "Bila positif pengawasan bersama bagian terkait (penyakit dalam, gizi, anak)",
+      "Kendalikan kadar glukosa darah 2 jam pp < 120 mg%",
+      "Pada IDDM berikan insulin RI dimulai dosis rendah, umumnya 0,7-1 unit/kg/hari",
+      "Rawat pada kehamilan 34 minggu bila ada komplikasi",
+      "Persalinan elektif pada IDDM direncanakan usia 38-39 minggu; pada NIDDM terminasi bila ada indikasi",
+      "Diusahakan persalinan pervaginam dengan mempertahankan diet dan dosis insulin, pantau glukosa darah dan janin dengan KTG",
+      "Pascasalin: pantau keadaan umum dan glukosa darah, anjurkan menyusui, beri nasihat kontrasepsi"
+    ],
+    "obat": [
+      {
+        "n": "Insulin Reguler (RI)",
+        "d": "dosis rendah sampai optimal, umumnya 0,7-1 unit/kg/hari",
+        "c": "subkutan"
+      }
+    ],
+    "penyulit": [
+      "Komplikasi ibu: preeklamsi/eklamsi, hidramnion, distosia, perdarahan pascasalin, infeksi saluran kemih, kadar glukosa tidak terkendali",
+      "Komplikasi janin: bayi besar, kematian janin dalam rahim, hipoglikemia, sindroma distres pernafasan, kelainan kongenital, hipokalsemi, hipomagnesemia, hiperbilirubinemia"
+    ],
+    "rujukan": [
+      "Perawatan bersama bagian penyakit dalam, gizi, dan anak"
+    ]
+  },
+  {
+    "id": "tbc-paru-dalam-kehamilan",
+    "kategori": "penyakit",
+    "nama": "TBC Paru dalam Kehamilan",
+    "ringkas": "Tuberkulosis paru pada ibu hamil",
+    "hal": 57,
+    "definisi": "TBC paru adalah penyakit pada parenkhim paru yang disebabkan oleh M. tuberculosis.",
+    "diagnosis": [
+      "Anamnesis: pernah kontak dengan pasien TBC, batuk kronis, batuk darah, nyeri dada, keringat malam, berat badan menurun, demam",
+      "PPD (Purified Protein Derivative): positif bila indurasi 5 mm pada risiko sangat tinggi (HIV positif, thorax abnormal, kontak erat TBC aktif); positif bila > 10 mm pada risiko tinggi"
+    ],
+    "penunjang": [
+      "Laboratorium: pemeriksaan BTA & kultur, LED sangat tinggi",
+      "Foto thorax: tidak rutin, bila usia kehamilan < 7 bulan harus menggunakan pelindung perut"
+    ],
+    "langkah": [
+      "Pengobatan TBC aktif pada kehamilan sedikit berbeda dengan penderita tidak hamil",
+      "Berikan kombinasi IRE (Isoniazid, Rifampisin, Etambutol) setiap hari selama 2 bulan",
+      "Selanjutnya berikan kombinasi INH dan Rifampisin 2 kali seminggu",
+      "Terapi diberikan minimum 9 bulan",
+      "Berikan piridoksin untuk mencegah neuritis perifer akibat isoniazid",
+      "Pada trimester pertama pasien tidak sakit berat cukup INH dan Etambutol sampai selesai trimester I, kemudian mulai terapi 6 bulan penuh dengan pirazinamid, rifampisin dan INH"
+    ],
+    "obat": [
+      {
+        "n": "Isoniazid (INH)",
+        "d": "5 mg/kg/hari, maksimal 300 mg/hari",
+        "c": "per oral"
+      },
+      {
+        "n": "Piridoksin",
+        "d": "50 mg/hari bersama isoniazid",
+        "c": "per oral"
+      },
+      {
+        "n": "Rifampisin",
+        "d": "10 mg/kg/hari, maksimal 600 mg/hari",
+        "c": "per oral"
+      },
+      {
+        "n": "Etambutol",
+        "d": "5-25 mg/kg/hari, maksimal 2,5 gram/hari (25 mg/kg/hari selama 6 minggu lalu turun 15 mg/kg/hari)",
+        "c": "per oral"
+      },
+      {
+        "n": "Pirazinamide",
+        "d": "dipertimbangkan bila resisten",
+        "c": "per oral"
+      }
+    ],
+    "penyulit": [
+      "Neuritis perifer akibat isoniazid",
+      "Resistensi obat"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "asma-bronkiale-dalam-kehamilan",
+    "kategori": "penyakit",
+    "nama": "Asma Bronkiale dalam Kehamilan",
+    "ringkas": "Inflamasi saluran nafas kronik pada kehamilan",
+    "hal": 59,
+    "definisi": "Kelainan saluran pernafasan yang ditandai dengan inflamasi saluran nafas kronik dengan episode obstruksi saluran nafas akut akibat stimulus oleh berbagai macam allergen.",
+    "diagnosis": [
+      "Anamnesis: sesak nafas tiba-tiba, riwayat serangan asma sebelumnya, riwayat atopi pada keluarga",
+      "Gejala utama: ekspirasi memanjang, wheezing (+)",
+      "Gejala lain: takikardi, retraksi suprasternal, sianosis",
+      "Klasifikasi (NAEP): asma ringan (PEFR/FEV1 >= 80%), sedang (60-80%), berat (< 60%)"
+    ],
+    "penunjang": [
+      "Laboratorium: IgE meningkat, eosinofil meningkat",
+      "Penilaian fungsi paru dengan FEV1 (spirometer) atau PEFR"
+    ],
+    "langkah": [
+      "Perawatan bersama bagian penyakit dalam",
+      "Hindari/kontrol pencetus asma dan terapi sinusitis, hindari merokok, aspirin, aktivitas fisik berlebih",
+      "Berikan edukasi obat dan faktor pencetus",
+      "Terapi bertahap: Tahap I inhalasi beta simpatomimetik (salbutamol 1-2 semprotan 100-200 ug); Tahap II tambah inhalasi glukokortikoid (beclomethasone 100-400 ug 2x sehari)",
+      "Tahap III inhaler dosis tinggi atau beta simpatomimetik long acting (salmeterol); Tahap IV inhalasi steroid dosis tinggi + bronkodilator reguler; Tahap V tambah tablet prednisolon",
+      "Status asmatikus (rawat inap): oksigen 6-7 L/menit, koreksi dehidrasi dan elektrolit, analisis gas darah, aminofilin dan hidrokortison",
+      "Dalam persalinan: diusahakan pervaginam, bila perlu kala II diperpendek; seksio sesarea hanya atas indikasi obstetri"
+    ],
+    "obat": [
+      {
+        "n": "Salbutamol (inhalasi)",
+        "d": "1-2 semprotan (100-200 ug)",
+        "c": "inhalasi"
+      },
+      {
+        "n": "Beclomethasone (inhalasi)",
+        "d": "100-400 ug 2 kali sehari (hingga 800-2000 ug/hari dosis tinggi)",
+        "c": "inhalasi"
+      },
+      {
+        "n": "Salmeterol",
+        "d": "50 ug 2 kali sehari",
+        "c": "inhalasi"
+      },
+      {
+        "n": "Prednisolon",
+        "d": "tablet (tahap V)",
+        "c": "per oral"
+      },
+      {
+        "n": "Aminofilin",
+        "d": "0,25-0,5 g dalam 30 ml NaCl 0,9% bolus i.v perlahan, lanjut tetesan 0,9 mg/kg/jam",
+        "c": "intravena"
+      },
+      {
+        "n": "Hidrokortison suksinat",
+        "d": "100-200 mg setiap 2-4 jam",
+        "c": "intravena"
+      },
+      {
+        "n": "Oksigen",
+        "d": "6-7 L/menit (status asmatikus)",
+        "c": "inhalasi"
+      }
+    ],
+    "penyulit": [
+      "Status asmatikus",
+      "Episode hipoksia untuk ibu dan janin"
+    ],
+    "rujukan": [
+      "Perawatan bersama bagian penyakit dalam"
+    ]
+  },
+  {
+    "id": "panggul-sempit",
+    "kategori": "malpresentasi",
+    "nama": "Panggul Sempit",
+    "ringkas": "Kelainan diameter panggul menyebabkan distosia",
+    "hal": 68,
+    "definisi": "Setiap kelainan pada diameter yang mengurangi kapasitas panggul sehingga dapat menimbulkan distosia pada persalinan; diklasifikasikan sebagai kesempitan pintu atas panggul, panggul tengah, dan pintu bawah panggul.",
+    "diagnosis": [
+      "Kesempitan pintu atas panggul relatif: konjugata vera > 8,5-10 cm; absolut: konjugata vera <= 8,5 cm",
+      "Kesempitan panggul tengah: jumlah diameter interspinarum + sagitalis posterior < 13,5 cm, atau interspinarum < 10 cm, dinding konvergen, sakrum lurus/konveks",
+      "Kesempitan pintu bawah panggul: arkus pubis < 90 derajat atau sudut lancip"
+    ],
+    "penunjang": [
+      "Perasat Muller",
+      "Perasat Osborne",
+      "Pemeriksaan radiologis (panggul tengah)"
+    ],
+    "langkah": [
+      "Pada kesempitan panggul tengah dan pintu bawah lakukan seksio sesarea",
+      "Pada panggul sempit relatif lakukan partus percobaan untuk janin letak belakang kepala",
+      "Pada panggul sempit absolut lakukan seksio sesarea"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Distosia pada persalinan"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "kelainan-his",
+    "kategori": "persalinan",
+    "nama": "Kelainan His",
+    "ringkas": "Inersia uteri hipotonik dan hipertonik",
+    "hal": 95,
+    "definisi": "Kelainan kontraksi uterus: inersia hipotonik (kontraksi terkoordinasi tapi tidak adekuat) dan inersia hipertonik (kontraksi tidak terkoordinasi, kuat tapi tidak adekuat). His adekuat menyebabkan kemajuan persalinan.",
+    "diagnosis": [
+      "His adekuat klinis: dalam 10 menit terdapat 3 kali kontraksi, lama 40-60 detik, sifat kuat",
+      "KTG: 3 kontraksi dalam 10 menit, lama 40-60 detik, tekanan intrauterin 40-60 mmHg",
+      "Etiologi inersia hipotonik: analgesi terlalu cepat, kesempitan panggul, letak defleksi, kelainan posisi, regangan dinding rahim (hidramnion, gemeli), perasaan takut",
+      "Etiologi inersia hipertonik: KPD, infeksi intrauterin",
+      "Pemanjangan fase laten: > 20 jam nulipara, > 14 jam multipara"
+    ],
+    "penunjang": [
+      "Kardiotokografi (KTG)"
+    ],
+    "langkah": [
+      "Inersia uteri hipotonik: bila ketuban positif lakukan amniotomi dan pemberian tetes oksitosin; bila ketuban telah pecah lakukan pemberian tetes oksitosin",
+      "Inersia uteri hipertonik: berikan obat tokolitik, tetes oksitosin diberikan setelah gejala hipertonus menghilang",
+      "Pemanjangan fase laten: lakukan istirahat (pemberian sedativa) atau drip oksitosin; istirahat lebih baik untuk mencegah his palsu"
+    ],
+    "obat": [
+      {
+        "n": "Tetes oksitosin",
+        "d": "pada inersia hipotonik atau setelah gejala hipertonus hilang",
+        "c": "infus intravena"
+      },
+      {
+        "n": "Obat tokolitik",
+        "d": "pada inersia uteri hipertonik",
+        "c": "-"
+      },
+      {
+        "n": "Sedativa",
+        "d": "pada pemanjangan fase laten (istirahat)",
+        "c": "-"
+      }
+    ],
+    "penyulit": [
+      "Kemungkinan infeksi bertambah dan kematian anak meningkat",
+      "Kelelahan ibu dan dehidrasi (nadi naik, suhu meningkat, asetonuri, nafas cepat, meteorismus, turgor berkurang)"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "persalinan-riwayat-seksio-sesarea",
+    "kategori": "persalinan",
+    "nama": "Persalinan dengan Riwayat Seksio Sesarea",
+    "ringkas": "Persalinan pervaginam pasca seksio sesarea",
+    "hal": 97,
+    "definisi": "Persalinan pada ibu hamil dengan riwayat seksio sesarea (SS) yang tidak selalu harus dilakukan SS lagi; bila indikasi seksio sebelumnya bukan indikasi menetap, dapat dicoba persalinan pervaginam.",
+    "diagnosis": [
+      "Anamnesis bahwa persalinan lalu dilakukan SS",
+      "Pemeriksaan fisik: bekas luka SS di dinding perut",
+      "Anamnesis jenis SS (SSTP atau klasik)"
+    ],
+    "penunjang": [
+      "Pemeriksaan laboratorium rutin dan persediaan darah",
+      "Pemantauan denyut jantung janin secara kontinyu (KTG)"
+    ],
+    "langkah": [
+      "Rencanakan SS primer pada kehamilan 37 minggu bila indikasi SS sebelumnya penyebab tetap, insisi korporal (SS klasik), atau SS >= 2 kali",
+      "Bila penyebab SS bukan penyebab tetap, coba melahirkan pervaginam dengan informed consent",
+      "Kala I: pemeriksaan laboratorium rutin dan persediaan darah, beritahu dokter anestesi dan anak, pasang infus, pemantauan DJJ kontinyu",
+      "Bila inersia uteri hipotonik lakukan amniotomi, observasi his 1 jam, bila tidak ada perbaikan lakukan SS",
+      "Kala II: bila kepala di atas station 0 pimpin meneran 15 menit; bila tidak ada kemajuan lakukan SS; bila ada kemajuan pimpin 15 menit lagi lalu partus buatan",
+      "Induksi/augmentasi dengan oksitosin dapat dilakukan dengan pengawasan ketat KTG"
+    ],
+    "obat": [
+      {
+        "n": "Oksitosin",
+        "d": "untuk induksi/augmentasi dengan pengawasan ketat KTG",
+        "c": "infus intravena"
+      }
+    ],
+    "penyulit": [
+      "Dehisensi atau uterus ruptur pada persalinan",
+      "Kegagalan persalinan pervaginam sehingga SS kembali"
+    ],
+    "rujukan": [
+      "Dokter anestesi dan dokter anak diberitahu akan kemungkinan tindakan SS sewaktu-waktu"
+    ]
+  }
+]/*__END__*/;
+
+        // ==========================================================
+        //  STATE
+        // ==========================================================
+        let state = {
+            view: 'home',          // home | kondisi | tanya
+            kondisiId: null,
+            search: '',
+            tanyaInput: '', tanyaKondisi: '', tanyaLoading: false, tanyaResult: null, tanyaError: false,
+            showSettings: false, keyNote: ''
+        };
+
+        // ==========================================================
+        //  RENDER
+        // ==========================================================
+        function renderApp() {
+            const el = document.getElementById('app');
+            let body = '';
+            if (state.view === 'home') body = renderHome();
+            else if (state.view === 'kondisi') body = renderKondisiDetail();
+            else if (state.view === 'tanya') body = renderTanya();
+            el.innerHTML = `${renderNavbar()}${state.showSettings ? renderSettings() : ''}
+                <main class="max-w-3xl mx-auto px-4 pb-28 pt-4">${body}</main>${renderBottomNav()}${renderDisclaimer()}`;
+        }
+        function go(view, kondisiId) {
+            state.view = view; if (kondisiId !== undefined) state.kondisiId = kondisiId;
+            renderApp(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+        }
+        window.go = go;
+        function reRender() { const y = window.scrollY; renderApp(); window.scrollTo(0, y); }
+        function reRenderKeepFocus() {
+            const a = document.activeElement;
+            const id = a && a.id, pos = a && typeof a.selectionStart === 'number' ? a.selectionStart : null;
+            reRender();
+            if (id) { const el = document.getElementById(id); if (el) { el.focus(); if (pos !== null) { try { el.setSelectionRange(pos, pos); } catch (e) {} } } }
+        }
+        window.setSearch = (v) => { state.search = v; reRenderKeepFocus(); };
+
+        // ---------- Navbar ----------
+        function renderNavbar() {
+            return `
+            <header class="sticky top-0 z-30 bg-emerald-600 text-white shadow-lg no-print">
+                <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+                    <button onclick="go('home')" class="flex items-center gap-2.5 flex-1 text-left">
+                        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                            <i class="fa-solid fa-book-medical text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="font-extrabold leading-tight text-[15px]">RAMLI Panduan</div>
+                            <div class="text-[11px] text-emerald-100 leading-tight">Panduan Praktik Klinis Obstetri</div>
+                        </div>
+                    </button>
+                    <a href="gawatdarurat.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Panduan Kegawatdaruratan">
+                        <i class="fa-solid fa-truck-medical"></i>
+                    </a>
+                    <a href="index.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="RSHB Personal Momscare">
+                        <i class="fa-solid fa-heart"></i>
+                    </a>
+                    <button onclick="toggleSettings()" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Pengaturan AI">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+            </header>`;
+        }
+
+        // ---------- Bottom nav ----------
+        function renderBottomNav() {
+            const items = [
+                { v: 'home', i: 'fa-book-medical', t: 'Panduan' },
+                { v: 'tanya', i: 'fa-robot', t: 'Tanya RAMLI' }
+            ];
+            const active = (state.view === 'kondisi') ? 'home' : state.view;
+            return `
+            <nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 no-print">
+                <div class="max-w-3xl mx-auto grid grid-cols-2">
+                    ${items.map(it => `
+                        <button onclick="go('${it.v}')" class="py-2.5 flex flex-col items-center gap-1 ${active === it.v ? 'text-emerald-600' : 'text-slate-400'}">
+                            <i class="fa-solid ${it.i} text-lg"></i>
+                            <span class="text-[11px] font-semibold">${it.t}</span>
+                        </button>`).join('')}
+                </div>
+            </nav>`;
+        }
+
+        // ---------- Home ----------
+        function renderHome() {
+            const cats = Object.keys(KATEGORI);
+            const q = state.search.trim().toLowerCase();
+            const match = (k) => !q || (k.nama + ' ' + (k.ringkas || '') + ' ' + (k.definisi || '')).toLowerCase().includes(q);
+            const totalHit = KONDISI.filter(match).length;
+            return `
+            <div class="fade-up">
+                <div class="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-5 mb-4 shadow-lg">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-book-medical text-2xl mt-0.5"></i>
+                        <div>
+                            <h1 class="font-extrabold text-lg leading-tight">Panduan Praktik Klinis</h1>
+                            <p class="text-emerald-100 text-sm mt-1">Panduan obstetri sesuai protap. Pilih topik untuk melihat definisi, diagnosis, penunjang, dan tatalaksana.</p>
+                        </div>
+                    </div>
+                    <button onclick="go('tanya')" class="w-full mt-4 bg-white/15 hover:bg-white/25 rounded-xl py-2.5 text-center font-semibold text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-robot"></i> Tanya RAMLI (AI)
+                    </button>
+                </div>
+                <div class="relative mb-4 no-print">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input id="searchInput" value="${state.search.replace(/"/g, '&quot;')}" oninput="setSearch(this.value)" placeholder="Cari panduan, mis. antenatal, sungsang, diabetes..." class="w-full pl-10 pr-9 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 outline-none text-sm shadow-sm">
+                    ${state.search ? `<button onclick="setSearch('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-circle-xmark"></i></button>` : ''}
+                </div>
+                ${!KONDISI.length ? `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-book text-2xl mb-2 block"></i>Panduan sedang disiapkan.</div>` : ''}
+                ${q && totalHit === 0 ? `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-magnifying-glass text-2xl mb-2 block"></i>Tidak ada panduan cocok dengan "${state.search}".</div>` : ''}
+                ${cats.map(catKey => {
+                    const cat = KATEGORI[catKey];
+                    const list = KONDISI.filter(k => k.kategori === catKey).filter(match);
+                    if (!list.length) return '';
+                    return `
+                    <div class="mb-5">
+                        <div class="flex items-center gap-2 mb-2 px-1">
+                            <i class="fa-solid ${cat.ikon} text-${cat.warna}-500"></i>
+                            <h2 class="font-bold text-slate-700 text-sm uppercase tracking-wide">${cat.label}</h2>
+                            <span class="text-xs text-slate-400">(${list.length})</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${list.map(k => `
+                            <button onclick="go('kondisi','${k.id}')" class="w-full text-left bg-white rounded-xl p-3.5 border border-slate-100 shadow-sm hover:shadow-md hover:border-${cat.warna}-200 transition-all flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-lg bg-${cat.warna}-50 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${cat.ikon} text-${cat.warna}-500"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-bold text-slate-800 text-[15px]">${k.nama}</div>
+                                    <div class="text-xs text-slate-500 truncate">${k.ringkas || ''}</div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+                            </button>`).join('')}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        }
+
+        // ---------- Detail ----------
+        function renderKondisiDetail() {
+            const k = KONDISI.find(x => x.id === state.kondisiId);
+            if (!k) return renderHome();
+            const cat = KATEGORI[k.kategori] || { label: '', warna: 'emerald' };
+            return `
+            <div class="fade-up">
+                <button onclick="go('home')" class="text-slate-500 text-sm mb-3 flex items-center gap-1.5 no-print"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 mb-4">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-${cat.warna}-100 text-${cat.warna}-700">${cat.label}</span>
+                        <span class="text-[10px] text-slate-400 ml-auto">PPK Obgyn RSHS 2015${k.hal ? ' · hal. ' + k.hal : ''}</span>
+                    </div>
+                    <h1 class="font-extrabold text-xl text-slate-800">${k.nama}</h1>
+                    ${k.definisi ? `<p class="text-sm text-slate-600 mt-2 leading-relaxed">${k.definisi}</p>` : ''}
+                </div>
+
+                ${arr(k.langkah) ? sectionCard('fa-list-ol', 'emerald', 'Tatalaksana / Langkah',
+                    `<ol class="space-y-2">${k.langkah.map((s, i) => `<li class="flex gap-3 text-sm text-slate-700"><span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-600 font-bold text-xs flex items-center justify-center shrink-0">${i + 1}</span><span class="leading-snug">${s}</span></li>`).join('')}</ol>`) : ''}
+
+                ${k.obat && k.obat.length ? sectionCard('fa-pills', 'blue', 'Obat & Dosis',
+                    `<div class="space-y-2">${k.obat.map(o => `<div class="bg-blue-50 rounded-lg p-3">
+                        <div class="font-bold text-blue-800 text-sm">${o.n}</div>
+                        <div class="text-sm text-slate-700 mt-0.5">${o.d || ''}</div>
+                        ${o.c ? `<div class="text-xs text-blue-600 mt-0.5"><i class="fa-solid fa-syringe mr-1"></i>${o.c}</div>` : ''}
+                    </div>`).join('')}</div>`) : ''}
+
+                ${arr(k.diagnosis) ? sectionCard('fa-stethoscope', 'purple', 'Diagnosis / Kriteria',
+                    `<ul class="space-y-1.5">${k.diagnosis.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-purple-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
+
+                ${arr(k.penunjang) ? sectionCard('fa-flask', 'teal', 'Pemeriksaan Penunjang',
+                    `<ul class="space-y-1.5">${k.penunjang.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-teal-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    ${arr(k.penyulit) ? sectionCard('fa-triangle-exclamation', 'amber', 'Penyulit',
+                        `<div class="flex flex-wrap gap-1.5">${k.penyulit.map(p => `<span class="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium">${p}</span>`).join('')}</div>`) : ''}
+                    ${arr(k.rujukan) ? sectionCard('fa-hospital-user', 'rose', 'Konsultasi / Rujukan',
+                        `<div class="flex flex-wrap gap-1.5">${k.rujukan.map(p => `<span class="px-2 py-1 rounded-md bg-rose-50 text-rose-700 text-xs font-medium">${p}</span>`).join('')}</div>`) : ''}
+                </div>
+
+                <div class="flex gap-2 mt-4 no-print">
+                    <button onclick="startTanyaFrom('${k.id}')" class="flex-1 bg-slate-800 text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-robot"></i> Tanya RAMLI</button>
+                    <button onclick="window.print()" class="px-4 bg-white border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold text-sm"><i class="fa-solid fa-print"></i></button>
+                </div>
+            </div>`;
+        }
+        function arr(x) { return Array.isArray(x) && x.length; }
+        function sectionCard(icon, color, title, inner) {
+            return `<div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-3">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 rounded-lg bg-${color}-50 flex items-center justify-center"><i class="fa-solid ${icon} text-${color}-500 text-sm"></i></div>
+                    <h3 class="font-bold text-slate-700 text-sm">${title}</h3>
+                </div>${inner}</div>`;
+        }
+        window.startTanyaFrom = (id) => {
+            const k = KONDISI.find(x => x.id === id);
+            state.tanyaKondisi = k ? k.nama : '';
+            go('tanya');
+        };
+
+        // ---------- Tanya RAMLI (AI) ----------
+        function renderTanya() {
+            const opts = KONDISI.map(k => `<option value="${k.nama}" ${state.tanyaKondisi === k.nama ? 'selected' : ''}>${k.nama}</option>`).join('');
+            return `
+            <div class="fade-up">
+                <div class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 mb-4">
+                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-robot"></i><h1 class="font-extrabold text-lg">Tanya RAMLI</h1></div>
+                    <p class="text-slate-300 text-sm">Tanyakan hal seputar panduan obstetri. RAMLI menjawab berbasis protap PPK RSHS 2015. <b>Bukan pengganti penilaian klinis.</b></p>
+                </div>
+                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-4">
+                    <label class="text-sm font-semibold text-slate-600">Topik terkait (opsional)</label>
+                    <select onchange="setTanyaKondisi(this.value)" class="w-full mt-1 mb-3 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-emerald-400 bg-white">
+                        <option value="">— Umum / biarkan RAMLI menilai —</option>${opts}
+                    </select>
+                    <label class="text-sm font-semibold text-slate-600">Pertanyaan Anda</label>
+                    <textarea id="tanyaInput" oninput="setTanyaInput(this.value)" rows="4" placeholder="Contoh: Kapan jadwal kunjungan antenatal? Bagaimana tatalaksana letak sungsang aterm? Target gula darah DM dalam kehamilan?" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-emerald-400 text-sm">${state.tanyaInput}</textarea>
+                    <button onclick="runTanya()" ${state.tanyaLoading ? 'disabled' : ''} class="w-full mt-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
+                        ${state.tanyaLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> RAMLI menjawab...' : '<i class="fa-solid fa-paper-plane"></i> Tanyakan'}
+                    </button>
+                </div>
+                ${state.tanyaError ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> AI RAMLI belum aktif atau gagal terhubung. Panduan & pencarian tetap bisa dipakai offline. Untuk mengaktifkan AI, isi API key via ⚙ atau pastikan proxy terhubung.</div>` : ''}
+                ${state.tanyaResult ? renderTanyaResult(state.tanyaResult) : ''}
+            </div>`;
+        }
+        window.setTanyaInput = (v) => { state.tanyaInput = v; };
+        window.setTanyaKondisi = (v) => { state.tanyaKondisi = v; };
+        function renderTanyaResult(r) {
+            return `
+            <div class="fade-up space-y-3">
+                ${r.ringkasan ? `<div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-4"><div class="text-xs font-bold text-emerald-600 uppercase tracking-wide">Jawaban</div><p class="text-sm text-slate-700 mt-1 leading-relaxed">${r.ringkasan}</p></div>` : ''}
+                ${Array.isArray(r.poin) && r.poin.length ? sectionCard('fa-list-check', 'purple', 'Poin Penting',
+                    `<ul class="space-y-1.5">${r.poin.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-purple-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
+                ${Array.isArray(r.langkah) && r.langkah.length ? sectionCard('fa-list-ol', 'emerald', 'Langkah',
+                    `<ol class="space-y-2">${r.langkah.map((s, i) => `<li class="flex gap-3 text-sm text-slate-700"><span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-600 font-bold text-xs flex items-center justify-center shrink-0">${i + 1}</span><span>${s}</span></li>`).join('')}</ol>`) : ''}
+                ${r.catatan ? sectionCard('fa-circle-info', 'amber', 'Catatan / Rujukan', `<p class="text-sm text-slate-700">${r.catatan}</p>`) : ''}
+                <div class="text-[11px] text-slate-400 px-1">Jawaban AI berbasis PPK Obgyn RSHS 2015. Selalu konfirmasi dengan DPJP / penilaian klinis langsung.</div>
+            </div>`;
+        }
+        function extractJSON(text) {
+            if (!text) return null;
+            let s = text.indexOf('{'), e = text.lastIndexOf('}');
+            if (s === -1 || e === -1 || e < s) return null;
+            try { return JSON.parse(text.slice(s, e + 1)); } catch (err) { return null; }
+        }
+        window.runTanya = async () => {
+            if (!state.tanyaInput.trim()) return;
+            state.tanyaLoading = true; state.tanyaError = false; state.tanyaResult = null; reRender();
+            const ref = state.tanyaKondisi ? KONDISI.find(k => k.nama === state.tanyaKondisi) : null;
+            const konteks = ref ? `\n\nProtap acuan (${ref.nama}):\nDefinisi: ${ref.definisi || '-'}\nDiagnosis: ${(ref.diagnosis || []).join(' | ')}\nTatalaksana: ${(ref.langkah || []).join(' | ')}\nObat: ${(ref.obat || []).map(o => o.n + ' ' + (o.d || '')).join(' | ')}` : '';
+            const systemPrompt = `Anda RAMLI, asisten panduan obstetri untuk TENAGA KESEHATAN. Konten berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. Jawab HANYA dengan satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, akurat, dan aman. Jangan mengarang dosis di luar protap; bila di luar cakupan protap, sebutkan dan sarankan konsultasi.
+Struktur:
+{
+  "ringkasan": "jawaban utama 1-3 kalimat",
+  "poin": ["poin penting", "..."],
+  "langkah": ["langkah bila relevan (boleh kosong)"],
+  "catatan": "catatan / kapan konsultasi atau rujuk"
+}`;
+            const userQuery = `Pertanyaan: ${state.tanyaInput}${state.tanyaKondisi ? `\nTopik: ${state.tanyaKondisi}` : ''}${konteks}`;
+            try {
+                const _proxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim()) ? RAMLI_PROXY_URL.trim() : '';
+                const _endpoint = _proxy || "https://api.anthropic.com/v1/messages";
+                const _headers = { "Content-Type": "application/json" };
+                if (!_proxy) {
+                    const _key = getStoredKey();
+                    if (_key) { _headers["x-api-key"] = _key; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; }
+                }
+                const res = await fetch(_endpoint, {
+                    method: "POST", headers: _headers,
+                    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1100, system: systemPrompt, messages: [{ role: "user", content: userQuery }] })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+                const parsed = extractJSON(text);
+                if (parsed) state.tanyaResult = parsed; else state.tanyaError = true;
+            } catch (e) {
+                console.error('Tanya gagal:', e); state.tanyaError = true;
+            } finally {
+                state.tanyaLoading = false; reRender();
+            }
+        };
+
+        // ---------- Settings (API key) ----------
+        function toggleSettings() { state.showSettings = !state.showSettings; renderApp(); }
+        window.toggleSettings = toggleSettings;
+        function renderSettings() {
+            const hasProxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim());
+            const key = getStoredKey();
+            return `
+            <div class="fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-4 no-print" onclick="if(event.target===this)toggleSettings()">
+                <div class="bg-white rounded-2xl w-full max-w-md p-5 fade-up">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-robot text-emerald-500"></i> Pengaturan AI RAMLI</h3>
+                        <button onclick="toggleSettings()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+                    </div>
+                    ${hasProxy ? `<div class="bg-green-50 text-green-800 text-sm rounded-lg p-3 mb-3"><i class="fa-solid fa-circle-check mr-1"></i> AI aktif via proxy — siap dipakai semua pengunjung tanpa API key.</div>` : `
+                    <p class="text-sm text-slate-600 mb-2">Masukkan Anthropic API key (disimpan lokal di perangkat ini saja) untuk mengaktifkan Tanya AI.</p>
+                    <input id="apiKeyInput" type="password" value="${key}" placeholder="sk-ant-..." class="w-full px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-emerald-400 text-sm mb-2">
+                    <div class="flex gap-2">
+                        <button onclick="saveKey()" class="flex-1 bg-emerald-600 text-white rounded-lg py-2.5 font-semibold text-sm">Simpan</button>
+                        <button onclick="clearKey()" class="px-4 bg-slate-100 text-slate-600 rounded-lg py-2.5 font-semibold text-sm">Hapus</button>
+                    </div>`}
+                    ${state.keyNote ? `<div class="text-xs text-green-600 mt-2">${state.keyNote}</div>` : ''}
+                    <div class="text-[11px] text-slate-400 mt-3 border-t border-slate-100 pt-3">Panduan & pencarian tetap berfungsi penuh tanpa AI.</div>
+                </div>
+            </div>`;
+        }
+        window.saveKey = () => { const v = document.getElementById('apiKeyInput').value.trim(); if (v) { safeStorage.set('ramli_anthropic_key', v); state.keyNote = 'API key tersimpan.'; renderApp(); } };
+        window.clearKey = () => { safeStorage.remove('ramli_anthropic_key'); state.keyNote = 'API key dihapus.'; renderApp(); };
+
+        // ---------- Disclaimer ----------
+        function renderDisclaimer() {
+            return `<div class="max-w-3xl mx-auto px-4 pb-24 -mt-2">
+                <div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
+                    <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Alat bantu edukasi/keputusan klinis untuk tenaga kesehatan, berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. BUKAN pengganti penilaian klinis, pemeriksaan langsung, atau kebijakan/protap institusi Anda.
+                </div>
+            </div>`;
+        }
+
+        renderApp();
+    </script>
+</body>
+</html>
