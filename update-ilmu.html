@@ -139,6 +139,7 @@
                         ${Object.keys(SOURCES).map(k => `<button onclick="setSource('${k}')" class="px-2.5 py-1 rounded-full text-xs font-semibold ${state.source === k ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${SOURCES[k].l}</button>`).join('')}
                         <a href="${POGI_URL}" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200" title="POGI tidak terindeks PubMed — buka situs POGI">POGI <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
                     </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5">${state.source === 'all' ? 'Semua sumber ditarik lewat indeks PubMed (satu-satunya database dengan API terbuka).' : 'Menyaring hasil PubMed ke sumber <b>' + SOURCES[state.source].l + '</b>. POGI tidak terindeks PubMed — pakai tombol tautan.'}</p>
                     <div class="flex flex-wrap items-center gap-3 mt-3 text-xs">
                         <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${state.recent5 ? 'checked' : ''} onchange="toggleOpt('recent5')" class="accent-indigo-600"> 5 tahun terakhir</label>
                         <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${state.freeFull ? 'checked' : ''} onchange="toggleOpt('freeFull')" class="accent-indigo-600"> Free full text</label>
@@ -149,7 +150,7 @@
                         </div>
                     </div>
                     <button onclick="runSearch()" ${state.loading ? 'disabled' : ''} class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
-                        ${state.loading ? '<i class="fa-solid fa-spinner fa-spin"></i> Mencari di PubMed...' : '<i class="fa-solid fa-magnifying-glass"></i> Cari di PubMed'}
+                        ${state.loading ? '<i class="fa-solid fa-spinner fa-spin"></i> Mencari...' : `<i class="fa-solid fa-magnifying-glass"></i> ${searchBtnLabel()}`}
                     </button>
                 </div>
 
@@ -222,6 +223,10 @@
         window.quickSearch = (q, label) => { state.query = q; runSearch(); };
         window.toggleSettings = () => { state.showSettings = !state.showSettings; renderApp(); };
 
+        function searchBtnLabel() {
+            const m = { all: 'Cari di PubMed', cochrane: 'Cari Cochrane', acog: 'Cari dokumen ACOG', rcog: 'Cari dokumen RCOG', guideline: 'Cari Pedoman/Review' };
+            return m[state.source] || 'Cari di PubMed';
+        }
         function buildTerm() {
             let base = state.query.trim();
             const src = SOURCES[state.source] || SOURCES.all;
