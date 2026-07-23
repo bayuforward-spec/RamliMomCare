@@ -57,13 +57,26 @@
             { l: 'Distosia Bahu', q: 'shoulder dystocia' }
         ];
 
+        // Sumber pedoman (filter PubMed). POGI tidak terindeks PubMed -> tautan situs.
+        const SOURCES = {
+            all:       { l: 'Semua', term: '' },
+            cochrane:  { l: 'Cochrane', term: ' AND "Cochrane Database Syst Rev"[ta]' },
+            acog:      { l: 'ACOG', term: ' AND (ACOG[tiab] OR "American College of Obstetricians and Gynecologists"[tiab] OR "Practice Bulletin"[tiab] OR "Committee Opinion"[tiab])' },
+            rcog:      { l: 'RCOG', term: ' AND (RCOG[tiab] OR "Green-top"[tiab] OR "Royal College of Obstetricians and Gynaecologists"[tiab])' },
+            guideline: { l: 'Pedoman/Review', term: ' AND (guideline[pt] OR practice guideline[pt] OR meta-analysis[pt] OR systematic review[pt])' }
+        };
+        const OBGYN_BASE = '(obstetrics[tiab] OR obstetric[tiab] OR gynecology[tiab] OR gynaecology[tiab] OR pregnancy[tiab] OR maternal[tiab])';
+        const POGI_URL = 'https://pogi.or.id/';
+
         let state = {
             query: '', results: [], count: 0, loading: false, error: '',
             sort: 'date',       // date | relevance
+            source: 'all',      // all | cochrane | acog | rcog | guideline
             recent5: true,      // batasi 5 tahun terakhir
             freeFull: false,    // hanya free full text
             searched: false,
             summaries: {},      // pmid -> {loading,result,error}
+            synthLoading: false, synthResult: null, synthError: '',
             showSettings: false, keyNote: ''
         };
 
@@ -121,6 +134,11 @@
                     <div class="flex flex-wrap gap-1.5 mt-3">
                         ${PRESET.map(pt => `<button onclick="quickSearch('${pt.q.replace(/'/g, "\\'")}','${pt.l.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">${pt.l}</button>`).join('')}
                     </div>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-3">
+                        <span class="text-xs text-slate-500 mr-0.5"><i class="fa-solid fa-filter mr-1"></i>Sumber:</span>
+                        ${Object.keys(SOURCES).map(k => `<button onclick="setSource('${k}')" class="px-2.5 py-1 rounded-full text-xs font-semibold ${state.source === k ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${SOURCES[k].l}</button>`).join('')}
+                        <a href="${POGI_URL}" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200" title="POGI tidak terindeks PubMed — buka situs POGI">POGI <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
+                    </div>
                     <div class="flex flex-wrap items-center gap-3 mt-3 text-xs">
                         <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${state.recent5 ? 'checked' : ''} onchange="toggleOpt('recent5')" class="accent-indigo-600"> 5 tahun terakhir</label>
                         <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${state.freeFull ? 'checked' : ''} onchange="toggleOpt('freeFull')" class="accent-indigo-600"> Free full text</label>
@@ -136,7 +154,8 @@
                 </div>
 
                 ${state.error ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${state.error}</div>` : ''}
-                ${state.searched && !state.loading && !state.error ? `<div class="text-xs text-slate-500 mb-2 px-1">Menampilkan ${state.results.length} dari ${state.count.toLocaleString('id-ID')} hasil untuk "<b>${state.query}</b>".</div>` : ''}
+                ${state.searched && !state.loading && !state.error ? `<div class="text-xs text-slate-500 mb-2 px-1">Menampilkan ${state.results.length} dari ${state.count.toLocaleString('id-ID')} hasil${state.query ? ` untuk "<b>${state.query}</b>"` : ''}${state.source !== 'all' ? ` · sumber <b>${SOURCES[state.source].l}</b>` : ''}.</div>` : ''}
+                ${state.searched && !state.loading && state.results.length ? renderSynth() : ''}
                 ${state.results.map(renderArticle).join('')}
                 ${state.searched && !state.loading && state.results.length && state.results.length < state.count ? `<button onclick="loadMore()" class="w-full mt-2 bg-white border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold text-sm">Muat lebih banyak</button>` : ''}
             </div>`;
@@ -171,25 +190,58 @@
             </div>`;
         }
 
+        function renderSynth() {
+            const s = state;
+            return `
+            <div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 text-white p-4 mb-4 shadow">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-lightbulb"></i> Kesimpulan Update Ilmu (AI)</div>
+                    <button onclick="synthesize()" ${s.synthLoading ? 'disabled' : ''} class="text-xs font-semibold bg-white/20 hover:bg-white/30 disabled:opacity-60 px-3 py-1.5 rounded-lg shrink-0">
+                        ${s.synthLoading ? '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Menyusun...' : (s.synthResult ? '<i class="fa-solid fa-rotate mr-1"></i>Perbarui' : '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Buat Kesimpulan')}
+                    </button>
+                </div>
+                <p class="text-[11px] text-indigo-100 mt-1">Sintesis ${Math.min(s.results.length, 8)} artikel teratas${s.source !== 'all' ? ' dari ' + SOURCES[s.source].l : ''} untuk topik ini.</p>
+                ${s.synthError ? `<div class="mt-2 text-xs bg-white/15 rounded-lg p-2.5"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${s.synthError}</div>` : ''}
+                ${s.synthResult ? renderSynthResult(s.synthResult) : ''}
+            </div>`;
+        }
+        function renderSynthResult(r) {
+            return `<div class="mt-3 bg-white text-slate-800 rounded-xl p-3 fade-up">
+                ${r.kesimpulan ? `<p class="text-sm leading-relaxed">${r.kesimpulan}</p>` : ''}
+                ${Array.isArray(r.perubahan) && r.perubahan.length ? `<div class="mt-2"><div class="text-[10px] font-bold text-indigo-600 uppercase tracking-wide mb-1">Poin / Perubahan Praktik</div><ul class="space-y-1">${r.perubahan.map(x => `<li class="flex gap-2 text-sm"><i class="fa-solid fa-circle text-[5px] mt-2 text-indigo-400"></i><span>${x}</span></li>`).join('')}</ul></div>` : ''}
+                ${r.catatan ? `<div class="mt-2 text-xs text-slate-500"><b>Catatan:</b> ${r.catatan}</div>` : ''}
+                <div class="text-[10px] text-slate-400 mt-2">Sintesis AI dari abstrak; bukan pedoman resmi. Verifikasi ke dokumen POGI/RCOG/ACOG/Cochrane asli.</div>
+            </div>`;
+        }
+
         // ================= ACTIONS =================
         window.setQuery = (v) => { state.query = v; };
         window.setSort = (v) => { state.sort = v; reRender(); if (state.searched) runSearch(); };
+        window.setSource = (v) => { state.source = v; reRender(); if (state.searched) runSearch(); };
         window.toggleOpt = (k) => { state[k] = !state[k]; if (state.searched) runSearch(); };
         window.quickSearch = (q, label) => { state.query = q; runSearch(); };
         window.toggleSettings = () => { state.showSettings = !state.showSettings; renderApp(); };
 
         function buildTerm() {
-            let term = state.query.trim();
-            if (!term) return '';
-            let t = term;
+            let base = state.query.trim();
+            const src = SOURCES[state.source] || SOURCES.all;
+            if (!base) {
+                if (state.source === 'all') return '';   // butuh kata kunci
+                base = OBGYN_BASE;                         // sumber dipilih tanpa kata kunci -> lingkup obgyn
+            } else {
+                base = '(' + base + ')';
+            }
+            let t = base + src.term;
             if (state.freeFull) t += ' AND free full text[sb]';
             return t;
         }
 
         window.runSearch = async () => {
             const term = buildTerm();
-            if (!term) { state.error = 'Masukkan kata kunci dulu.'; reRender(); return; }
-            state.loading = true; state.error = ''; state.results = []; state.count = 0; state.searched = true; state.summaries = {}; state._retstart = 0; reRenderKeepFocus();
+            if (!term) { state.error = 'Masukkan kata kunci, atau pilih sumber pedoman (Cochrane/ACOG/RCOG/Pedoman).'; reRender(); return; }
+            state.loading = true; state.error = ''; state.results = []; state.count = 0; state.searched = true; state.summaries = {};
+            state.synthResult = null; state.synthError = ''; state.synthLoading = false;
+            reRenderKeepFocus();
             await doFetch(0);
         };
         window.loadMore = async () => { state.loading = true; reRender(); await doFetch(state.results.length); };
@@ -271,6 +323,47 @@ Struktur:
                 state.summaries[pmid] = { error: msg };
             }
             reRender();
+        };
+
+        // -------- Kesimpulan Update (sintesis banyak abstrak) --------
+        window.synthesize = async () => {
+            const ids = state.results.slice(0, 8).map(a => a.pmid);
+            if (!ids.length) return;
+            state.synthLoading = true; state.synthError = ''; reRender();
+            try {
+                // 1) ambil abstrak beberapa artikel sekaligus
+                const fp = new URLSearchParams({ db: 'pubmed', id: ids.join(','), rettype: 'abstract', retmode: 'text', tool: ETOOL });
+                const fr = await fetch(`${EUTILS}/efetch.fcgi?${fp.toString()}`);
+                if (!fr.ok) throw new Error('HTTP ' + fr.status);
+                let corpus = (await fr.text() || '').trim();
+                if (!corpus) throw new Error('Abstrak tidak tersedia.');
+                if (corpus.length > 16000) corpus = corpus.slice(0, 16000);
+                const topik = state.query || (state.source !== 'all' ? SOURCES[state.source].l : 'obstetri-ginekologi');
+                const sumberLbl = state.source !== 'all' ? SOURCES[state.source].l : 'PubMed';
+                // 2) minta Claude menyintesis
+                const systemPrompt = `Anda Asisten AI dr. Bayu, membantu klinisi Indonesia menyarikan perkembangan ilmu. Anda diberi kumpulan ABSTRAK artikel terbaru (sumber: ${sumberLbl}) tentang "${topik}". Buat SATU kesimpulan gabungan. Jawab HANYA satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, akurat, tidak melebih-lebihkan. Bila bukti terbatas/tidak konsisten antar-abstrak, katakan. Jangan mengarang isi yang tidak ada di abstrak.
+Struktur:
+{
+  "kesimpulan": "3-5 kalimat rangkuman arah temuan/rekomendasi terkini secara keseluruhan",
+  "perubahan": ["poin praktis / apa yang baru atau berubah untuk praktik klinis", "..."],
+  "catatan": "keterbatasan bukti & anjuran verifikasi ke pedoman resmi (1-2 kalimat)"
+}`;
+                const _proxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim()) ? RAMLI_PROXY_URL.trim() : '';
+                const _endpoint = _proxy || "https://api.anthropic.com/v1/messages";
+                const _headers = { "Content-Type": "application/json" };
+                if (!_proxy) { const k = getStoredKey(); if (k) { _headers["x-api-key"] = k; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; } }
+                const res = await fetch(_endpoint, { method: "POST", headers: _headers, body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1200, system: systemPrompt, messages: [{ role: "user", content: `Kumpulan abstrak (${ids.length} artikel):\n\n` + corpus }] }) });
+                if (!res.ok) throw new Error('AI HTTP ' + res.status);
+                const data = await res.json();
+                const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+                const parsed = extractJSON(text);
+                if (parsed) state.synthResult = parsed;
+                else state.synthError = 'Kesimpulan AI gagal diproses. Coba lagi.';
+            } catch (e) {
+                console.error('Synthesize error:', e);
+                state.synthError = ('' + e).includes('AI') ? 'AI belum aktif / gagal terhubung. Cek pengaturan ⚙ atau proxy.' : 'Gagal mengambil abstrak dari PubMed.';
+            }
+            state.synthLoading = false; reRender();
         };
 
         // -------- Settings --------
