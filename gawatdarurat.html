@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAMLI Emergency · Kegawatdaruratan Obstetri</title>
+    <title>Asisten AI dr. Bayu · Kegawatdaruratan Obstetri</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -31,13 +31,13 @@
 
     <script>
         /* =========================================================
-           RAMLI EMERGENCY — Kegawatdaruratan Obstetri
+           Asisten AI dr. Bayu EMERGENCY — Kegawatdaruratan Obstetri
            Alat bantu keputusan klinis untuk tenaga kesehatan.
            Konten berbasis: Panduan Praktik Klinis (PPK) Obstetri &
            Ginekologi RSUP Dr. Hasan Sadikin Bandung, 2015.
            - Alur tindakan (protokol) per kondisi darurat
            - Kalkulator dosis & skor
-           - Triase AI "RAMLI" (Claude / Anthropic API)
+           - Triase AI "Asisten AI dr. Bayu" (Claude / Anthropic API)
            - Kontak & checklist rujukan (BAKSOKUDA)
         ========================================================= */
 
@@ -736,7 +736,7 @@
                             <i class="fa-solid fa-truck-medical text-lg"></i>
                         </div>
                         <div>
-                            <div class="font-extrabold leading-tight text-[15px]">RAMLI Emergency</div>
+                            <div class="font-extrabold leading-tight text-[15px]">Asisten AI dr. Bayu</div>
                             <div class="text-[11px] text-red-100 leading-tight">Kegawatdaruratan Obstetri</div>
                         </div>
                     </button>
@@ -925,7 +925,7 @@
                 </div>
 
                 <div class="flex gap-2 mt-4 no-print">
-                    <button onclick="startTriaseFrom('${k.id}')" class="flex-1 bg-slate-800 text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-robot"></i> Tanya RAMLI</button>
+                    <button onclick="startTriaseFrom('${k.id}')" class="flex-1 bg-slate-800 text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-robot"></i> Tanya Asisten AI dr. Bayu</button>
                     <button onclick="window.print()" class="px-4 bg-white border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold text-sm"><i class="fa-solid fa-print"></i></button>
                 </div>
             </div>`;
@@ -1119,21 +1119,21 @@
             return `
             <div class="fade-up">
                 <div class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 mb-4">
-                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-robot"></i><h1 class="font-extrabold text-lg">Triase RAMLI</h1></div>
-                    <p class="text-slate-300 text-sm">Masukkan temuan klinis singkat. RAMLI memberi kemungkinan diagnosis, tingkat kegawatan, dan langkah segera berbasis protap. <b>Bukan pengganti penilaian klinis.</b></p>
+                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-robot"></i><h1 class="font-extrabold text-lg">Triase Asisten AI dr. Bayu</h1></div>
+                    <p class="text-slate-300 text-sm">Masukkan temuan klinis singkat. Asisten AI dr. Bayu memberi kemungkinan diagnosis, tingkat kegawatan, dan langkah segera berbasis protap. <b>Bukan pengganti penilaian klinis.</b></p>
                 </div>
                 <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-4">
                     <label class="text-sm font-semibold text-slate-600">Dugaan kondisi (opsional)</label>
                     <select onchange="setTriaseKondisi(this.value)" class="w-full mt-1 mb-3 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-red-400 bg-white">
-                        <option value="">— Biarkan RAMLI menilai —</option>${opts}
+                        <option value="">— Biarkan Asisten AI dr. Bayu menilai —</option>${opts}
                     </select>
                     <label class="text-sm font-semibold text-slate-600">Temuan klinis / gejala</label>
                     <textarea id="triaseInput" oninput="setTriaseInput(this.value)" rows="5" placeholder="Contoh: G3P2A0 hamil 34 mgg, TD 170/115, nyeri kepala hebat, penglihatan kabur, kaki bengkak, proteinuria +3..." class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-red-400 text-sm">${state.triaseInput}</textarea>
                     <button onclick="runTriase()" ${state.triaseLoading ? 'disabled' : ''} class="w-full mt-3 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
-                        ${state.triaseLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> RAMLI menganalisis...' : '<i class="fa-solid fa-bolt"></i> Analisis Triase'}
+                        ${state.triaseLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> Asisten AI dr. Bayu menganalisis...' : '<i class="fa-solid fa-bolt"></i> Analisis Triase'}
                     </button>
                 </div>
-                ${state.triaseError ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> AI RAMLI belum aktif atau gagal terhubung. Anda tetap dapat memakai panduan kondisi & kalkulator secara offline. Untuk mengaktifkan AI, isi API key via ⚙ atau pastikan proxy terhubung.</div>` : ''}
+                ${state.triaseError ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Asisten AI dr. Bayu belum aktif atau gagal terhubung. Anda tetap dapat memakai panduan kondisi & kalkulator secara offline. Untuk mengaktifkan AI, isi API key via ⚙ atau pastikan proxy terhubung.</div>` : ''}
                 ${state.triaseResult ? renderTriaseResult(state.triaseResult) : ''}
             </div>`;
         }
@@ -1168,7 +1168,7 @@
             state.triaseLoading = true; state.triaseError = false; state.triaseResult = null; reRender();
             const kondisiRef = state.triaseKondisi ? KONDISI.find(k => k.nama === state.triaseKondisi) : null;
             const konteks = kondisiRef ? `\n\nProtap acuan (${kondisiRef.nama}):\nLangkah: ${kondisiRef.langkah.join(' | ')}\nObat: ${kondisiRef.obat.map(o => o.n + ' ' + o.d).join(' | ')}` : '';
-            const systemPrompt = `Anda RAMLI, asisten triase kegawatdaruratan obstetri untuk TENAGA KESEHATAN. Konten berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. Jawab HANYA dengan satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, aksi-oriented, aman. Selalu tekankan stabilisasi (ABC), panggil bantuan, dan rujukan bila perlu. Jangan mengarang dosis di luar protap.
+            const systemPrompt = `Anda Asisten AI dr. Bayu, asisten triase kegawatdaruratan obstetri untuk TENAGA KESEHATAN. Konten berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. Jawab HANYA dengan satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, aksi-oriented, aman. Selalu tekankan stabilisasi (ABC), panggil bantuan, dan rujukan bila perlu. Jangan mengarang dosis di luar protap.
 Struktur:
 {
   "kegawatan": "Sangat Tinggi | Tinggi | Sedang | Rendah",
@@ -1289,7 +1289,7 @@ Struktur:
             <div class="fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-4 no-print" onclick="if(event.target===this)toggleSettings()">
                 <div class="bg-white rounded-2xl w-full max-w-md p-5 fade-up">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-robot text-red-500"></i> Pengaturan AI RAMLI</h3>
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-robot text-red-500"></i> Pengaturan Asisten AI dr. Bayu</h3>
                         <button onclick="toggleSettings()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
                     </div>
                     ${hasProxy ? `<div class="bg-green-50 text-green-800 text-sm rounded-lg p-3 mb-3"><i class="fa-solid fa-circle-check mr-1"></i> AI aktif via proxy — siap dipakai semua pengunjung tanpa API key.</div>` : `

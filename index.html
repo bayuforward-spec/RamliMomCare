@@ -36,7 +36,7 @@
         /* =========================================================
            RSHB Personal Momscare — Claude Edition (Single Page)
            - Semua input dalam satu halaman, tanpa langkah/klik next
-           - AI "RAMLI" ditenagai Claude (Anthropic API)
+           - AI "Asisten AI dr. Bayu" ditenagai Claude (Anthropic API)
            - Suara via mesin suara bawaan browser
            - Riwayat pakai localStorage bila tersedia, fallback memori
         ========================================================= */
@@ -46,7 +46,7 @@
            Tempel URL Worker Anda di antara tanda kutip di bawah ini, contoh:
            const RAMLI_PROXY_URL = "https://ramli-ai.namaanda.workers.dev";
 
-           - Jika DIISI : AI RAMLI otomatis menyala untuk semua orang, tanpa perlu
+           - Jika DIISI : Asisten AI dr. Bayu otomatis menyala untuk semua orang, tanpa perlu
                           memasukkan API key di browser (kunci aman di Cloudflare).
            - Jika KOSONG: AI hanya aktif bila pengguna memasukkan API key sendiri
                           lewat menu ⚙ (untuk perangkat pribadi), atau di lingkungan
@@ -320,18 +320,18 @@
             try { return JSON.parse(t.slice(start, end + 1)); } catch (e) { return null; }
         }
 
-        // ---- RAMLI analysis, powered by Claude ----
+        // ---- Asisten AI dr. Bayu analysis, powered by Claude ----
         async function getAIAnalysis(clinicalData) {
             state.isAnalyzing = true;
             state.aiError = false;
             reRenderKeepScroll();
 
-            const systemPrompt = `Anda adalah RAMLI, asisten medis cerdas di RSHB Personal Momscare yang ramah, empatik, dan paham obstetri.
+            const systemPrompt = `Anda adalah Asisten AI dr. Bayu, asisten medis cerdas di RSHB Personal Momscare yang ramah, empatik, dan paham obstetri.
 Tugas Anda menganalisis data ibu hamil (BMI, skor risiko KSPR, hasil USG, kondisi klinis) dan memberi panduan yang menenangkan namun akurat.
 Jawab HANYA dengan satu objek JSON valid, tanpa teks lain dan tanpa pembungkus markdown. Gunakan Bahasa Indonesia yang hangat dan ringkas.
 Struktur:
 {
-  "summary": "Sapaan hangat 1-2 kalimat, perkenalkan diri sebagai RAMLI",
+  "summary": "Sapaan hangat 1-2 kalimat, perkenalkan diri sebagai Asisten AI dr. Bayu",
   "deepDive": "Analisis singkat (3-4 kalimat) tentang risiko, BMI, penyulit, dan makna hasil USG",
   "usgAnalysis": "Kesimpulan singkat khusus hasil USG (1-2 kalimat)",
   "mealPlan": ["Saran menu 1", "Saran menu 2", "Saran menu 3"],
@@ -377,7 +377,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                 if (parsed) state.aiAnalysis = parsed;
                 else state.aiError = true;
             } catch (error) {
-                console.error("RAMLI analysis failed:", error);
+                console.error("Asisten AI dr. Bayu analysis failed:", error);
                 state.aiError = true;
             } finally {
                 state.isAnalyzing = false;
@@ -397,17 +397,17 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
 
         let voiceWatchdog = null;
 
-        // Build the spoken briefing. Uses RAMLI's AI text when available,
+        // Build the spoken briefing. Uses Asisten AI dr. Bayu's AI text when available,
         // otherwise composes one locally from the scoring results so the voice
         // still works on a plain static host (no AI needed).
         function buildBriefingText() {
             const r = state.results;
             const a = state.aiAnalysis;
             if (a) {
-                return `Halo Bunda ${formData.nama}. Saya RAMLI dari RSHB Personal Momscare. ${a.summary || ''} ${a.mentalHealth ? 'Untuk menjaga kesehatan Bunda dan si kecil, ' + a.mentalHealth : ''} Tetap sehat dan semangat ya Bunda!`;
+                return `Halo Bunda ${formData.nama}. Saya Asisten AI dr. Bayu dari RSHB Personal Momscare. ${a.summary || ''} ${a.mentalHealth ? 'Untuk menjaga kesehatan Bunda dan si kecil, ' + a.mentalHealth : ''} Tetap sehat dan semangat ya Bunda!`;
             }
             if (!r) return '';
-            let p = `Halo Bunda ${formData.nama}. Saya RAMLI dari RSHB Personal Momscare. `;
+            let p = `Halo Bunda ${formData.nama}. Saya Asisten AI dr. Bayu dari RSHB Personal Momscare. `;
             p += `Berdasarkan data Bunda, indeks risiko kehamilan saat ini ${r.kspr}, termasuk kategori ${r.ksprCategory}. `;
             p += `Status gizi pra-hamil Bunda dengan nilai BMI ${r.bmi}, dengan target kenaikan berat badan ${r.weightRec}. `;
             if (r.plan.isUsgAbnormal) {
@@ -443,7 +443,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
 
         window.playVoiceBriefing = () => {
             if (!('speechSynthesis' in window)) {
-                state.voiceNote = 'Perangkat/browser ini tidak mendukung suara otomatis. Silakan baca pesan RAMLI di layar ya, Bunda.';
+                state.voiceNote = 'Perangkat/browser ini tidak mendukung suara otomatis. Silakan baca pesan Asisten AI dr. Bayu di layar ya, Bunda.';
                 reRenderKeepScroll();
                 return;
             }
@@ -479,7 +479,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                 if (!flags.started && !window.speechSynthesis.speaking && state.isSpeaking) {
                     window.speechSynthesis.cancel();
                     state.isSpeaking = false;
-                    state.voiceNote = 'Suara tidak bisa diputar di tampilan ini (umumnya karena pratinjau di dalam chat). Buka atau host file HTML-nya langsung di browser HP/laptop agar suara RAMLI berfungsi.';
+                    state.voiceNote = 'Suara tidak bisa diputar di tampilan ini (umumnya karena pratinjau di dalam chat). Buka atau host file HTML-nya langsung di browser HP/laptop agar suara Asisten AI dr. Bayu berfungsi.';
                     reRenderKeepScroll();
                 }
             }, 900);
@@ -587,7 +587,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         <div class="flex items-center gap-3">
                             <div class="bg-indigo-100 p-3 rounded-2xl"><i class="fa-solid fa-robot text-xl text-indigo-600"></i></div>
                             <div>
-                                <h2 class="text-2xl font-black text-gray-800">RAMLI AI (Opsional)</h2>
+                                <h2 class="text-2xl font-black text-gray-800">Asisten AI dr. Bayu AI (Opsional)</h2>
                                 <p class="text-gray-500 mt-1 text-sm">Aktifkan analisis cerdas saat aplikasi di-host statis (mis. GitHub Pages).</p>
                             </div>
                         </div>
@@ -597,7 +597,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     <div class="space-y-4">
                         ${(typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim()) ? `
                             <div class="p-4 rounded-2xl bg-green-50 border border-green-200 text-sm text-green-800">
-                                <i class="fa-solid fa-circle-check mr-1"></i> <b>Proxy Cloudflare aktif.</b> AI RAMLI sudah menyala untuk semua pengunjung tanpa API key di browser. Bagian di bawah hanya cadangan dan tidak diperlukan.
+                                <i class="fa-solid fa-circle-check mr-1"></i> <b>Proxy Cloudflare aktif.</b> Asisten AI dr. Bayu sudah menyala untuk semua pengunjung tanpa API key di browser. Bagian di bawah hanya cadangan dan tidak diperlukan.
                             </div>` : ''}
                         <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-600">Status kunci saat ini: ${status}</div>
                         <div>
@@ -633,7 +633,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         </div>
                         <div class="min-w-0">
                             <h1 class="text-base md:text-xl font-black text-gray-800 tracking-tight truncate">RSHB <span class="text-rose-500">Personal Momscare</span></h1>
-                            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">RAMLI · Claude Edition</p>
+                            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Asisten AI dr. Bayu · Claude Edition</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 md:gap-3 shrink-0">
@@ -645,7 +645,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             <i class="fa-solid fa-truck-medical"></i>
                             <span class="hidden sm:inline">Darurat</span>
                         </a>
-                        <button onclick="toggleSettings(true)" title="Pengaturan RAMLI AI" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 text-gray-500 bg-gray-50 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                        <button onclick="toggleSettings(true)" title="Pengaturan Asisten AI dr. Bayu AI" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 text-gray-500 bg-gray-50 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
                             <i class="fa-solid fa-gear"></i>
                         </button>
                         <button onclick="toggleHistory(true)" class="flex items-center gap-2 text-sm font-bold text-indigo-600 bg-indigo-50 px-3 md:px-4 py-2 rounded-full border border-indigo-100 hover:bg-indigo-100 transition-colors shadow-sm">
@@ -725,7 +725,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
             return `
                 <div class="text-center mb-8 fade-up no-print">
                     <h2 class="text-2xl md:text-3xl font-black text-gray-800">Asesmen Kehamilan Personal</h2>
-                    <p class="text-gray-500 mt-2 max-w-xl mx-auto">Isi seluruh data di bawah dalam satu halaman, lalu tekan tombol proses di bagian akhir. RAMLI akan menyusun analisis dan rekomendasi untuk Bunda.</p>
+                    <p class="text-gray-500 mt-2 max-w-xl mx-auto">Isi seluruh data di bawah dalam satu halaman, lalu tekan tombol proses di bagian akhir. Asisten AI dr. Bayu akan menyusun analisis dan rekomendasi untuk Bunda.</p>
                 </div>
 
                 <div class="space-y-6 no-print">
@@ -888,7 +888,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
 
                     <!-- Process -->
                     <button onclick="calculatePersonalizedPlan()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white px-8 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-rose-200 hover:scale-[1.01] active:scale-95 transition-all">
-                        ✨ Proses Data dengan RAMLI <i class="fa-solid fa-arrow-right"></i>
+                        ✨ Proses Data dengan Asisten AI dr. Bayu <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     ${state.results ? '<p class="text-center text-xs text-gray-400 -mt-2">Hasil terbaru ada di bawah. Ubah data lalu tekan tombol ini lagi untuk memperbarui.</p>' : ''}
                 </div>
@@ -908,7 +908,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         <div class="flex justify-center flex-wrap gap-3">
                             <div class="inline-flex items-center p-4 bg-rose-100 text-rose-600 rounded-full shadow-sm"><i class="fa-solid fa-wand-magic-sparkles text-2xl"></i></div>
                             <button onclick="playVoiceBriefing()" class="flex items-center gap-2 px-6 py-2 rounded-full border-2 border-rose-500 text-rose-600 font-bold transition-all hover:bg-rose-50 shadow-md ${state.isSpeaking ? 'animate-pulse bg-rose-50' : ''} no-print">
-                                <i class="fa-solid ${state.isSpeaking ? 'fa-stop' : 'fa-volume-high'}"></i> ${state.isSpeaking ? 'Hentikan Suara' : '✨ Dengar Pesan RAMLI'}
+                                <i class="fa-solid ${state.isSpeaking ? 'fa-stop' : 'fa-volume-high'}"></i> ${state.isSpeaking ? 'Hentikan Suara' : '✨ Dengar Pesan Asisten AI dr. Bayu'}
                             </button>
                         </div>
                         <p class="text-[11px] text-gray-400 max-w-xl mx-auto no-print">Suara memakai mesin bawaan perangkat — paling lancar saat file dibuka langsung di browser.</p>
@@ -917,7 +917,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         ${state.isAnalyzing ? `
                             <div class="flex flex-col items-center justify-center gap-3 text-rose-500 mt-4 no-print">
                                 <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
-                                <span class="font-medium">RAMLI sedang menyusun analisis personal Bunda...</span>
+                                <span class="font-medium">Asisten AI dr. Bayu sedang menyusun analisis personal Bunda...</span>
                             </div>
                         ` : a ? `
                             <div class="bg-rose-50 py-4 px-6 rounded-2xl inline-block mt-2 border border-rose-100 shadow-inner max-w-2xl">
@@ -925,8 +925,8 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             </div>
                         ` : state.aiError ? `
                             <div class="bg-amber-50 py-3 px-6 rounded-2xl inline-block mt-2 border border-amber-200 max-w-2xl no-print">
-                                <p class="text-amber-700 font-semibold text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Analisis cerdas RAMLI belum dimuat (lingkungan tanpa kunci AI). Hasil skoring medis & suara di bawah tetap lengkap dan akurat.</p>
-                                <button onclick="toggleSettings(true)" class="mt-2 text-xs font-bold text-amber-800 underline hover:text-amber-900">Aktifkan AI RAMLI dengan API key sendiri →</button>
+                                <p class="text-amber-700 font-semibold text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Analisis cerdas Asisten AI dr. Bayu belum dimuat (lingkungan tanpa kunci AI). Hasil skoring medis & suara di bawah tetap lengkap dan akurat.</p>
+                                <button onclick="toggleSettings(true)" class="mt-2 text-xs font-bold text-amber-800 underline hover:text-amber-900">Aktifkan Asisten AI dr. Bayu dengan API key sendiri →</button>
                             </div>
                         ` : ''}
                     </div>
@@ -960,12 +960,12 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     ${(!state.isAnalyzing && a) ? `
                         <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 md:p-8 rounded-3xl border border-indigo-100 shadow-md">
                             <div class="flex items-center gap-3 text-indigo-700 font-black text-xl mb-4">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Rekomendasi Pakar RAMLI</span>
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Rekomendasi Pakar Asisten AI dr. Bayu</span>
                             </div>
                             <p class="text-sm text-indigo-900 leading-relaxed mb-6 font-medium">${a.deepDive || ''}</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="bg-white/70 p-5 rounded-2xl shadow-sm">
-                                    <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">🍽️ Menu Khusus RAMLI</p>
+                                    <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">🍽️ Menu Khusus Asisten AI dr. Bayu</p>
                                     <ul class="text-sm text-indigo-900 space-y-2 font-medium">
                                         ${meals.map(m => `<li class="flex gap-2 items-start"><span class="text-rose-400 font-bold">•</span> ${m}</li>`).join('') || '<li class="opacity-60">Tidak ada saran menu khusus.</li>'}
                                     </ul>
@@ -974,7 +974,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                                     <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">🧘‍♀️ Strategi Mental</p>
                                     <p class="text-sm text-indigo-900 font-medium">${a.mentalHealth || ''}</p>
                                     ${acts.length ? `
-                                        <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mt-4 mb-2">🤸‍♀️ Aktivitas RAMLI</p>
+                                        <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mt-4 mb-2">🤸‍♀️ Aktivitas Asisten AI dr. Bayu</p>
                                         <ul class="text-sm text-indigo-900 space-y-1 font-medium">
                                             ${acts.map(x => `<li class="flex gap-2 items-start"><span class="text-rose-400 font-bold">•</span> ${x}</li>`).join('')}
                                         </ul>
@@ -992,7 +992,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         <p class="text-sm font-medium leading-relaxed ${res.plan.isUsgAbnormal ? 'text-orange-900' : 'text-blue-900'}">${res.plan.usgConclusion}</p>
                         ${(!state.isAnalyzing && a && a.usgAnalysis) ? `
                             <div class="mt-4 p-4 bg-white/60 rounded-xl">
-                                <p class="text-xs font-bold uppercase mb-1 text-gray-500">Catatan RAMLI:</p>
+                                <p class="text-xs font-bold uppercase mb-1 text-gray-500">Catatan Asisten AI dr. Bayu:</p>
                                 <p class="text-sm font-medium text-gray-800">${a.usgAnalysis}</p>
                             </div>
                         ` : ''}
@@ -1047,7 +1047,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     </div>
 
                     <div class="bg-gray-900 text-white p-6 rounded-3xl mt-8 print-area">
-                        <p class="text-xs text-gray-400 italic leading-relaxed">*Disclaimer RSHB: Sistem RAMLI dirancang menggunakan protokol Kartu Skor Poedji Rochjati (KSPR) dan parameter medis obstetri dasar sebagai alat bantu edukasi interaktif. Skor dan rekomendasi tidak menggantikan diagnosis resmi. Selalu konsultasikan cetak biru ini dengan Dokter Spesialis Kandungan Bunda.</p>
+                        <p class="text-xs text-gray-400 italic leading-relaxed">*Disclaimer RSHB: Sistem Asisten AI dr. Bayu dirancang menggunakan protokol Kartu Skor Poedji Rochjati (KSPR) dan parameter medis obstetri dasar sebagai alat bantu edukasi interaktif. Skor dan rekomendasi tidak menggantikan diagnosis resmi. Selalu konsultasikan cetak biru ini dengan Dokter Spesialis Kandungan Bunda.</p>
                     </div>
 
                     ${!state.isSharedView ? `
