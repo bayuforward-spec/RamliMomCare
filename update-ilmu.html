@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asisten AI dr. Bayu · Update Ilmu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp .3s ease both; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="app"></div>
+
+    <script>
+        /* =========================================================
+           Asisten AI dr. Bayu — UPDATE ILMU
+           Cari literatur kedokteran terbaru dari PubMed (NCBI E-utilities),
+           dengan tombol "Ringkas AI" (Claude) untuk merangkum abstrak
+           dalam Bahasa Indonesia. Pencarian PubMed berjalan tanpa AI;
+           ringkasan AI memakai proxy Claude yang sama.
+        ========================================================= */
+
+        const RAMLI_PROXY_URL = "https://withered-fire-1b27.bayuforward.workers.dev";
+        const EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
+        const ETOOL = "AsistenAIdrBayu";
+
+        const memStore = {};
+        const safeStorage = {
+            get(k) { try { return localStorage.getItem(k); } catch (e) { return k in memStore ? memStore[k] : null; } },
+            set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } },
+            remove(k) { try { localStorage.removeItem(k); } catch (e) { delete memStore[k]; } }
+        };
+        function getStoredKey() {
+            try { const k = safeStorage.get('ramli_anthropic_key'); return k && k.trim() ? k.trim() : ''; }
+            catch (e) { return ''; }
+        }
+
+        // Topik cepat (kata kunci PubMed dalam bahasa Inggris)
+        const PRESET = [
+            { l: 'Preeklampsia', q: 'preeclampsia management' },
+            { l: 'Perdarahan Pascasalin', q: 'postpartum hemorrhage management' },
+            { l: 'Persalinan Preterm', q: 'preterm labor management' },
+            { l: 'Diabetes Kehamilan', q: 'gestational diabetes management' },
+            { l: 'Sepsis Maternal', q: 'maternal sepsis' },
+            { l: 'PCOS', q: 'polycystic ovary syndrome treatment' },
+            { l: 'Infertilitas', q: 'infertility management' },
+            { l: 'Endometriosis', q: 'endometriosis treatment' },
+            { l: 'Ketuban Pecah Dini', q: 'preterm premature rupture of membranes' },
+            { l: 'Distosia Bahu', q: 'shoulder dystocia' }
+        ];
+
+        let state = {
+            query: '', results: [], count: 0, loading: false, error: '',
+            sort: 'date',       // date | relevance
+            recent5: true,      // batasi 5 tahun terakhir
+            freeFull: false,    // hanya free full text
+            searched: false,
+            summaries: {},      // pmid -> {loading,result,error}
+            showSettings: false, keyNote: ''
+        };
+
+        // ================= RENDER =================
+        function renderApp() {
+            document.getElementById('app').innerHTML =
+                `${renderNavbar()}${state.showSettings ? renderSettings() : ''}
+                <main class="max-w-3xl mx-auto px-4 pb-24 pt-4">${renderBody()}</main>${renderDisclaimer()}`;
+        }
+        function reRender() { const y = window.scrollY; renderApp(); window.scrollTo(0, y); }
+        function reRenderKeepFocus() {
+            const a = document.activeElement, id = a && a.id, pos = a && typeof a.selectionStart === 'number' ? a.selectionStart : null;
+            reRender();
+            if (id) { const el = document.getElementById(id); if (el) { el.focus(); if (pos !== null) { try { el.setSelectionRange(pos, pos); } catch (e) {} } } }
+        }
+
+        function renderNavbar() {
+            return `
+            <header class="sticky top-0 z-30 bg-indigo-600 text-white shadow-lg">
+                <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+                    <div class="flex items-center gap-2.5 flex-1">
+                        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center"><i class="fa-solid fa-graduation-cap text-lg"></i></div>
+                        <div>
+                            <div class="font-extrabold leading-tight text-[15px]">Asisten AI dr. Bayu</div>
+                            <div class="text-[11px] text-indigo-100 leading-tight">Update Ilmu · PubMed</div>
+                        </div>
+                    </div>
+                    <a href="panduan-obstetri.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Panduan Obstetri"><i class="fa-solid fa-book-medical"></i></a>
+                    <a href="fertilitas.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Fertilitas"><i class="fa-solid fa-dna"></i></a>
+                    <a href="gawatdarurat.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Kegawatdaruratan"><i class="fa-solid fa-truck-medical"></i></a>
+                    <a href="index.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Momscare"><i class="fa-solid fa-heart"></i></a>
+                    <button onclick="toggleSettings()" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Pengaturan AI"><i class="fa-solid fa-gear"></i></button>
+                </div>
+            </header>`;
+        }
+
+        function renderBody() {
+            return `
+            <div class="fade-up">
+                <div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 text-white p-5 mb-4 shadow-lg">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-book-open-reader text-2xl mt-0.5"></i>
+                        <div>
+                            <h1 class="font-extrabold text-lg leading-tight">Update Ilmu Kedokteran</h1>
+                            <p class="text-indigo-100 text-sm mt-1">Cari literatur terbaru langsung dari PubMed (NCBI). Tekan "Ringkas AI" untuk rangkuman Bahasa Indonesia.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-4">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input id="q" value="${(state.query || '').replace(/"/g, '&quot;')}" oninput="setQuery(this.value)" onkeydown="if(event.key==='Enter')runSearch()" placeholder="Kata kunci (mis. preeclampsia, PCOS, postpartum hemorrhage)..." class="w-full pl-10 pr-3 py-3 rounded-xl border border-slate-200 focus:border-indigo-400 outline-none text-sm">
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 mt-3">
+                        ${PRESET.map(pt => `<button onclick="quickSearch('${pt.q.replace(/'/g, "\\'")}','${pt.l.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">${pt.l}</button>`).join('')}
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 mt-3 text-xs">
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${state.recent5 ? 'checked' : ''} onchange="toggleOpt('recent5')" class="accent-indigo-600"> 5 tahun terakhir</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${state.freeFull ? 'checked' : ''} onchange="toggleOpt('freeFull')" class="accent-indigo-600"> Free full text</label>
+                        <div class="flex items-center gap-1 ml-auto">
+                            <span class="text-slate-500">Urut:</span>
+                            <button onclick="setSort('date')" class="px-2 py-0.5 rounded ${state.sort === 'date' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}">Terbaru</button>
+                            <button onclick="setSort('relevance')" class="px-2 py-0.5 rounded ${state.sort === 'relevance' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}">Relevansi</button>
+                        </div>
+                    </div>
+                    <button onclick="runSearch()" ${state.loading ? 'disabled' : ''} class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
+                        ${state.loading ? '<i class="fa-solid fa-spinner fa-spin"></i> Mencari di PubMed...' : '<i class="fa-solid fa-magnifying-glass"></i> Cari di PubMed'}
+                    </button>
+                </div>
+
+                ${state.error ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${state.error}</div>` : ''}
+                ${state.searched && !state.loading && !state.error ? `<div class="text-xs text-slate-500 mb-2 px-1">Menampilkan ${state.results.length} dari ${state.count.toLocaleString('id-ID')} hasil untuk "<b>${state.query}</b>".</div>` : ''}
+                ${state.results.map(renderArticle).join('')}
+                ${state.searched && !state.loading && state.results.length && state.results.length < state.count ? `<button onclick="loadMore()" class="w-full mt-2 bg-white border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold text-sm">Muat lebih banyak</button>` : ''}
+            </div>`;
+        }
+
+        function renderArticle(a) {
+            const s = state.summaries[a.pmid] || {};
+            return `
+            <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-3 fade-up">
+                <div class="flex items-start gap-2 mb-1 flex-wrap">
+                    ${a.pmc ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Free PMC</span>' : ''}
+                    <span class="text-[11px] text-slate-400 ml-auto">${a.journal || ''}${a.year ? ' · ' + a.year : ''}</span>
+                </div>
+                <div class="font-bold text-slate-800 text-[15px] leading-snug">${a.title}</div>
+                <div class="text-xs text-slate-500 mt-1">${a.authors}</div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <a href="https://pubmed.ncbi.nlm.nih.gov/${a.pmid}/" target="_blank" rel="noopener" class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>PubMed</a>
+                    ${a.doi ? `<a href="https://doi.org/${a.doi}" target="_blank" rel="noopener" class="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-lg"><i class="fa-solid fa-link mr-1"></i>DOI</a>` : ''}
+                    <button onclick="summarize('${a.pmid}')" ${s.loading ? 'disabled' : ''} class="text-xs font-semibold text-white bg-slate-800 px-2.5 py-1.5 rounded-lg disabled:opacity-60">
+                        ${s.loading ? '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Meringkas...' : '<i class="fa-solid fa-robot mr-1"></i>Ringkas AI'}
+                    </button>
+                </div>
+                ${s.error ? `<div class="mt-3 text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${s.error}</div>` : ''}
+                ${s.result ? `
+                <div class="mt-3 rounded-xl bg-indigo-50/60 border border-indigo-100 p-3 fade-up">
+                    <div class="text-[10px] font-bold text-indigo-600 uppercase tracking-wide mb-1"><i class="fa-solid fa-robot mr-1"></i>Ringkasan AI</div>
+                    ${s.result.ringkasan ? `<p class="text-sm text-slate-700 leading-relaxed">${s.result.ringkasan}</p>` : ''}
+                    ${Array.isArray(s.result.poin) && s.result.poin.length ? `<ul class="mt-2 space-y-1">${s.result.poin.map(x => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-indigo-400"></i><span>${x}</span></li>`).join('')}</ul>` : ''}
+                    ${s.result.relevansi ? `<div class="mt-2 text-xs text-slate-600"><b>Relevansi klinis:</b> ${s.result.relevansi}</div>` : ''}
+                    <div class="text-[10px] text-slate-400 mt-2">Ringkasan AI dari abstrak; dapat keliru. Baca sumber asli untuk keputusan klinis.</div>
+                </div>` : ''}
+            </div>`;
+        }
+
+        // ================= ACTIONS =================
+        window.setQuery = (v) => { state.query = v; };
+        window.setSort = (v) => { state.sort = v; reRender(); if (state.searched) runSearch(); };
+        window.toggleOpt = (k) => { state[k] = !state[k]; if (state.searched) runSearch(); };
+        window.quickSearch = (q, label) => { state.query = q; runSearch(); };
+        window.toggleSettings = () => { state.showSettings = !state.showSettings; renderApp(); };
+
+        function buildTerm() {
+            let term = state.query.trim();
+            if (!term) return '';
+            let t = term;
+            if (state.freeFull) t += ' AND free full text[sb]';
+            return t;
+        }
+
+        window.runSearch = async () => {
+            const term = buildTerm();
+            if (!term) { state.error = 'Masukkan kata kunci dulu.'; reRender(); return; }
+            state.loading = true; state.error = ''; state.results = []; state.count = 0; state.searched = true; state.summaries = {}; state._retstart = 0; reRenderKeepFocus();
+            await doFetch(0);
+        };
+        window.loadMore = async () => { state.loading = true; reRender(); await doFetch(state.results.length); };
+
+        async function doFetch(retstart) {
+            try {
+                const term = buildTerm();
+                const params = new URLSearchParams({ db: 'pubmed', term, retmax: '20', retstart: String(retstart), retmode: 'json', sort: state.sort, tool: ETOOL });
+                if (state.recent5) { params.set('datetype', 'pdat'); params.set('reldate', '1825'); }
+                const es = await fetch(`${EUTILS}/esearch.fcgi?${params.toString()}`);
+                if (!es.ok) throw new Error('HTTP ' + es.status);
+                const ej = await es.json();
+                const ids = (ej.esearchresult && ej.esearchresult.idlist) || [];
+                state.count = parseInt(ej.esearchresult && ej.esearchresult.count || '0', 10) || 0;
+                if (!ids.length) { state.loading = false; if (retstart === 0) state.error = 'Tidak ada hasil. Coba kata kunci lain atau matikan filter.'; reRender(); return; }
+                const sp = new URLSearchParams({ db: 'pubmed', id: ids.join(','), retmode: 'json', tool: ETOOL });
+                const ss = await fetch(`${EUTILS}/esummary.fcgi?${sp.toString()}`);
+                if (!ss.ok) throw new Error('HTTP ' + ss.status);
+                const sj = await ss.json();
+                const res = sj.result || {};
+                const list = ids.map(id => {
+                    const r = res[id]; if (!r) return null;
+                    const authors = (r.authors || []).map(x => x.name).filter(Boolean);
+                    const authorStr = authors.length ? (authors.slice(0, 3).join(', ') + (authors.length > 3 ? ', dkk.' : '')) : '—';
+                    const doiObj = (r.articleids || []).find(x => x.idtype === 'doi');
+                    const pmc = (r.articleids || []).find(x => x.idtype === 'pmc');
+                    const year = (r.pubdate || '').split(' ')[0] || (r.sortpubdate || '').slice(0, 4);
+                    return { pmid: id, title: r.title || '(tanpa judul)', authors: authorStr, journal: r.source || r.fulljournalname || '', year, doi: doiObj ? doiObj.value : '', pmc: !!pmc };
+                }).filter(Boolean);
+                state.results = retstart === 0 ? list : state.results.concat(list);
+                state.loading = false; reRender();
+            } catch (e) {
+                console.error('PubMed error:', e);
+                state.loading = false;
+                state.error = 'Gagal menghubungi PubMed. Periksa koneksi internet, atau coba lagi sesaat lagi.';
+                reRender();
+            }
+        }
+
+        // -------- Ringkas AI (abstrak -> Claude) --------
+        function extractJSON(text) {
+            if (!text) return null;
+            let s = text.indexOf('{'), e = text.lastIndexOf('}');
+            if (s === -1 || e === -1 || e < s) return null;
+            try { return JSON.parse(text.slice(s, e + 1)); } catch (err) { return null; }
+        }
+        window.summarize = async (pmid) => {
+            state.summaries[pmid] = { loading: true }; reRender();
+            try {
+                // 1) ambil abstrak dari PubMed
+                const fp = new URLSearchParams({ db: 'pubmed', id: pmid, rettype: 'abstract', retmode: 'text', tool: ETOOL });
+                const fr = await fetch(`${EUTILS}/efetch.fcgi?${fp.toString()}`);
+                if (!fr.ok) throw new Error('HTTP ' + fr.status);
+                let abstract = (await fr.text() || '').trim();
+                if (!abstract) throw new Error('Abstrak tidak tersedia.');
+                if (abstract.length > 8000) abstract = abstract.slice(0, 8000);
+                // 2) minta Claude meringkas
+                const systemPrompt = `Anda Asisten AI dr. Bayu, membantu klinisi Indonesia mengikuti perkembangan ilmu. Ringkas abstrak jurnal berikut. Jawab HANYA satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, akurat, tidak melebih-lebihkan; bila bukti lemah/terbatas, sebutkan.
+Struktur:
+{
+  "ringkasan": "2-4 kalimat inti temuan/kesimpulan studi",
+  "poin": ["temuan/metode/angka penting", "..."],
+  "relevansi": "relevansi/penerapan untuk praktik obstetri-ginekologi (1-2 kalimat)"
+}`;
+                const _proxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim()) ? RAMLI_PROXY_URL.trim() : '';
+                const _endpoint = _proxy || "https://api.anthropic.com/v1/messages";
+                const _headers = { "Content-Type": "application/json" };
+                if (!_proxy) { const k = getStoredKey(); if (k) { _headers["x-api-key"] = k; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; } }
+                const res = await fetch(_endpoint, { method: "POST", headers: _headers, body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 900, system: systemPrompt, messages: [{ role: "user", content: "Abstrak (PMID " + pmid + "):\n\n" + abstract }] }) });
+                if (!res.ok) throw new Error('AI HTTP ' + res.status);
+                const data = await res.json();
+                const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+                const parsed = extractJSON(text);
+                if (parsed) state.summaries[pmid] = { result: parsed };
+                else state.summaries[pmid] = { error: 'Ringkasan AI gagal diproses. Coba lagi.' };
+            } catch (e) {
+                console.error('Summarize error:', e);
+                const msg = ('' + e).includes('AI') ? 'AI belum aktif / gagal terhubung. Cek pengaturan ⚙ atau proxy.' : 'Gagal mengambil abstrak dari PubMed.';
+                state.summaries[pmid] = { error: msg };
+            }
+            reRender();
+        };
+
+        // -------- Settings --------
+        function renderSettings() {
+            const hasProxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim());
+            const key = getStoredKey();
+            return `
+            <div class="fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-4" onclick="if(event.target===this)toggleSettings()">
+                <div class="bg-white rounded-2xl w-full max-w-md p-5 fade-up">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-robot text-indigo-500"></i> Pengaturan AI</h3>
+                        <button onclick="toggleSettings()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+                    </div>
+                    ${hasProxy ? `<div class="bg-green-50 text-green-800 text-sm rounded-lg p-3 mb-3"><i class="fa-solid fa-circle-check mr-1"></i> AI aktif via proxy. Pencarian PubMed selalu jalan tanpa AI.</div>` : `
+                    <p class="text-sm text-slate-600 mb-2">Masukkan Anthropic API key (disimpan lokal) untuk mengaktifkan Ringkas AI. Pencarian PubMed tetap jalan tanpa ini.</p>
+                    <input id="apiKeyInput" type="password" value="${key}" placeholder="sk-ant-..." class="w-full px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-indigo-400 text-sm mb-2">
+                    <div class="flex gap-2">
+                        <button onclick="saveKey()" class="flex-1 bg-indigo-600 text-white rounded-lg py-2.5 font-semibold text-sm">Simpan</button>
+                        <button onclick="clearKey()" class="px-4 bg-slate-100 text-slate-600 rounded-lg py-2.5 font-semibold text-sm">Hapus</button>
+                    </div>`}
+                    ${state.keyNote ? `<div class="text-xs text-green-600 mt-2">${state.keyNote}</div>` : ''}
+                </div>
+            </div>`;
+        }
+        window.saveKey = () => { const v = document.getElementById('apiKeyInput').value.trim(); if (v) { safeStorage.set('ramli_anthropic_key', v); state.keyNote = 'API key tersimpan.'; renderApp(); } };
+        window.clearKey = () => { safeStorage.remove('ramli_anthropic_key'); state.keyNote = 'API key dihapus.'; renderApp(); };
+
+        function renderDisclaimer() {
+            return `<div class="max-w-3xl mx-auto px-4 pb-10">
+                <div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
+                    <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Sumber:</b> Hasil pencarian berasal dari <b>PubMed / NCBI E-utilities</b> (data publik). Ringkasan dibuat AI dari abstrak dan dapat mengandung kesalahan — selalu baca artikel asli sebelum menerapkan ke praktik klinis. Aplikasi ini alat bantu edukasi untuk tenaga kesehatan.
+                </div>
+            </div>`;
+        }
+
+        renderApp();
+    </script>
+</body>
+</html>
