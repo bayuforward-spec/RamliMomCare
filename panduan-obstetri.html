@@ -56,7 +56,8 @@
             persalinan:    { label: 'Persalinan', ikon: 'fa-baby-carriage', warna: 'sky' },
             malpresentasi: { label: 'Malpresentasi & Panggul', ikon: 'fa-arrows-rotate', warna: 'indigo' },
             kondisi:       { label: 'Kondisi Kehamilan', ikon: 'fa-notes-medical', warna: 'amber' },
-            penyakit:      { label: 'Penyakit Penyerta', ikon: 'fa-lungs', warna: 'rose' }
+            penyakit:      { label: 'Penyakit Penyerta', ikon: 'fa-lungs', warna: 'rose' },
+            infeksi:       { label: 'Infeksi', ikon: 'fa-bacterium', warna: 'orange' }
         };
 
         /* KONDISI diisi dari data protap (lihat build). */
@@ -1041,6 +1042,353 @@
     ],
     "rujukan": [
       "Dokter anestesi dan dokter anak diberitahu akan kemungkinan tindakan SS sewaktu-waktu"
+    ]
+  },
+  {
+    "id": "pemantauan-djj-persalinan",
+    "kategori": "pemantauan",
+    "nama": "Pemantauan Denyut Jantung Janin dalam Persalinan",
+    "ringkas": "Pemantauan DJJ dengan KTG selama persalinan",
+    "hal": 9,
+    "definisi": "Pemantauan DJJ dengan KTG selama persalinan yang bertujuan mengurangi hasil persalinan buruk akibat hipoksia atau asidosis yang dapat dialami janin selama persalinan.",
+    "diagnosis": [
+      "Pembacaan KTG berdasarkan 4 kriteria: baseline, variabilitas, deselerasi, akselerasi",
+      "Normal: keempat kriteria masuk kategori reassuring",
+      "Reassuring: DJJ dasar 110-160 dpm, variabilitas >= 5 dpm, tidak ada deselerasi, ada akselerasi",
+      "Non-reassuring: DJJ 100-109 atau 161-180, variabilitas <5 selama <90 menit, deselerasi dini/variabel",
+      "Abnormal: DJJ <100 atau >180, pola sinusoidal, variabilitas <5 dpm selama >=90 menit, deselerasi variabel atipik/lambat/memanjang",
+      "Mencurigakan (suspicious/patologis) bila dua atau lebih kriteria non-reassuring atau satu atau lebih kriteria abnormal"
+    ],
+    "penunjang": [
+      "Kardiotokografi (KTG)",
+      "Auskultasi DJJ dengan Doppler (lebih dianjurkan) atau stetoskop Pinard"
+    ],
+    "langkah": [
+      "Tentukan risiko ibu bersalin saat masuk kamar bersalin dengan admission test",
+      "Pada risiko rendah lakukan pemantauan DJJ intermiten oleh pemeriksa terlatih",
+      "Kala I fase laten: pemantauan DJJ intermiten setiap jam",
+      "Kala I fase aktif: auskultasi DJJ intermiten minimal setiap 30 menit",
+      "Kala II: auskultasi DJJ setiap 5 menit setelah kontraksi/setelah ibu selesai meneran",
+      "Pada risiko tinggi lakukan pemantauan DJJ secara kontinyu dengan KTG",
+      "Interpretasikan hasil pemantauan sesuai panduan yang berlaku"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Hipoksia janin",
+      "Asidosis janin"
+    ],
+    "rujukan": [
+      "Kamar bersalin"
+    ]
+  },
+  {
+    "id": "uji-masuk-rs",
+    "kategori": "pemantauan",
+    "nama": "Uji Masuk Rumah Sakit (Admission Test)",
+    "ringkas": "Pemeriksaan KTG saat pasien masuk kamar bersalin",
+    "hal": 10,
+    "definisi": "Pemeriksaan janin dengan menggunakan kardiotokografi segera setelah pasien masuk kamar bersalin, bertujuan untuk menilai keadaan janin secara cepat.",
+    "diagnosis": [
+      "Reaktif bila denyut jantung basal 110-160 kali per menit, variabilitas <5 per menit, tampak deselerasi abnormal, tidak ada akselerasi meski diberi rangsangan dari luar",
+      "Sangat mencurigakan bila ditemukan lebih dari satu gambaran abnormal DJJ atau terdapat deselerasi abnormal yang menetap"
+    ],
+    "penunjang": [
+      "Kardiotokografi",
+      "Pengukuran tekanan darah setiap 10 menit"
+    ],
+    "langkah": [
+      "Segera setelah pasien masuk kamar bersalin lakukan pemantauan dengan kardiotokografi",
+      "Tidurkan pasien secara semi Fowler 45 derajat miring ke kiri",
+      "Ukur tekanan darah setiap 10 menit",
+      "Pasang kardiotokografi",
+      "Lakukan pemantauan selama 20 menit",
+      "Bila terdapat kecurigaan kelainan DJJ atau kontraksi rahim, lanjutkan pemantauan; akhiri uji bila janin dalam keadaan baik",
+      "Bila hasil mencurigakan atau sangat mencurigakan, lanjutkan pemantauan"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": [
+      "Kamar bersalin"
+    ]
+  },
+  {
+    "id": "pemberian-tetes-oksitosin",
+    "kategori": "persalinan",
+    "nama": "Pemberian Tetes Oksitosin",
+    "ringkas": "Infus tetes oksitosin untuk kontraksi rahim",
+    "hal": 14,
+    "definisi": "Pemberian tetes oksitosin melalui infus dengan tujuan menimbulkan atau memperkuat kontraksi rahim.",
+    "diagnosis": [
+      "Indikasi: mengakhiri kehamilan",
+      "Indikasi: memperkuat kontraksi rahim selama persalinan",
+      "Kontraindikasi: kehamilan dengan luka parut rahim",
+      "Kontraindikasi: disproporsi kepala panggul",
+      "Kontraindikasi: letak lintang"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Berikan 5 unit oksitosin dalam 500 cc Dextrose 5% dengan kecepatan awal 20 tetes per menit",
+      "Naikkan 5 tetes per menit setiap 15 menit sampai didapatkan his yang memadai (3-4 kali per 10 menit) atau sampai batas maksimum 60 tetes/menit",
+      "Untuk grande multipara, kehamilan ganda, dan bayi besar maksimal 40 tetes per menit",
+      "Berikan tetes oksitosin maksimal 2 labu dengan istirahat 2 jam di antaranya, kecuali letak sungsang hanya 1 labu",
+      "Pada kasus tertentu (perdarahan antepartum, infeksi intrauterin, kemajuan persalinan nyata setelah labu pertama) labu kedua langsung diberikan",
+      "Lakukan amniotomi sebelum pemberian oksitosin (segera setelah pembukaan memungkinkan) untuk meningkatkan keberhasilan",
+      "Metrolisa: lakukan antiseptik pada vagina dan sekitarnya, masukkan metrolisa melalui kanalis serviks sehingga balon di kavum uteri, isi dengan 10-150 cc NaCl atau aquades; metrolisa terlepas bila pembukaan lebih besar dari diameter balon"
+    ],
+    "obat": [
+      {
+        "n": "Oksitosin",
+        "d": "5 unit dalam 500 cc Dextrose 5%, awal 20 tetes/menit, dinaikkan 5 tetes/menit tiap 15 menit sampai maksimum 60 tetes/menit (grande multipara/gemeli/bayi besar maks 40 tetes/menit); maks 2 labu, istirahat 2 jam (sungsang 1 labu)",
+        "c": "infus intravena tetes"
+      }
+    ],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "asuhan-pasca-keguguran",
+    "kategori": "kondisi",
+    "nama": "Asuhan Pasca Keguguran",
+    "ringkas": "Pelayanan komprehensif setelah keguguran",
+    "hal": 39,
+    "definisi": "Asuhan pasca keguguran (APK) meliputi pelayanan gawat darurat dan komplikasi abortus inkomplit, konseling dan pelayanan kontrasepsi pasca keguguran, serta jalinan kerjasama dengan sistem kesehatan reproduksi.",
+    "diagnosis": [
+      "Elemen APK: pelayanan gawat darurat dan komplikasi abortus inkomplit",
+      "Elemen APK: konseling dan pelayanan kontrasepsi pasca keguguran",
+      "Elemen APK: jalinan kerjasama dengan sistem kesehatan reproduksi"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Motivasi ibu agar aborsi tidak berulang, dianjurkan memakai alat kontrasepsi segera setelah abortus",
+      "Motivasi ibu memperoleh pelayanan APK agar tidak menimbulkan komplikasi yang berakibat kematian",
+      "Bila aborsi terpaksa dilakukan atas alasan medis, lakukan oleh tenaga terlatih di fasilitas pelayanan kesehatan yang memadai",
+      "Berikan pelayanan kontrasepsi kepada ibu pasca keguguran atau suami",
+      "Lakukan rujukan medis ke tempat pelayanan kesehatan terdekat bila terjadi komplikasi keguguran",
+      "Dianjurkan penggunaan prosedur AVM karena risiko komplikasi lebih sedikit, meningkatkan jangkauan pelayanan, biaya lebih ringan, dan mengurangi penggunaan sumber daya kesehatan"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Komplikasi abortus inkomplit"
+    ],
+    "rujukan": [
+      "Klinik KB",
+      "Pelayanan kesehatan reproduksi",
+      "Pelayanan kegawatdaruratan"
+    ]
+  },
+  {
+    "id": "persalinan-letak-dahi",
+    "kategori": "malpresentasi",
+    "nama": "Persalinan dengan Janin Letak Dahi",
+    "ringkas": "Letak kepala dengan defleksi sedang",
+    "hal": 43,
+    "definisi": "Letak dahi adalah letak kepala dengan defleksi yang sedang. Etiologinya hampir sama dengan letak muka, biasanya keadaan sementara dan sering berubah menjadi letak muka atau letak belakang kepala.",
+    "diagnosis": [
+      "Ditegakkan dalam persalinan",
+      "Pemeriksaan luar: tonjolan kepala sepihak dengan bagian kecil",
+      "Pemeriksaan luar: BJJ sepihak dengan bagian kecil",
+      "Pemeriksaan dalam: teraba sutura frontalis, ubun-ubun besar, pinggir orbita, dan pangkal hidung"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Pada letak dahi janin tidak mungkin lahir pervaginam",
+      "Akhiri persalinan dengan seksio sesarea",
+      "Kecuali bila janin sangat kecil (TBBJ <1800 gram)"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "presentasi-uuk-belakang",
+    "kategori": "malpresentasi",
+    "nama": "Persalinan dengan Presentasi Ubun-Ubun Kecil di Belakang",
+    "ringkas": "Kegagalan rotasi interna ubun-ubun kecil",
+    "hal": 44,
+    "definisi": "Ubun-ubun kecil di belakang adalah suatu keadaan yang disebabkan karena kegagalan rotasi interna. Etiologi meliputi kelainan panggul, kesempitan panggul tengah, KPD, fleksi kepala kurang, serta inersia uteri.",
+    "diagnosis": [
+      "Kala II ubun-ubun kecil berada di belakang"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Partus pervaginam baik spontan maupun buatan",
+      "Seksio sesarea bila ada indikasi"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Kala II lebih panjang",
+      "Sekitar 6-10% pertolongan persalinan dilakukan secara operatif"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "presentasi-majemuk",
+    "kategori": "malpresentasi",
+    "nama": "Persalinan pada Presentasi Majemuk",
+    "ringkas": "Anggota badan teraba di samping bagian terendah",
+    "hal": 45,
+    "definisi": "Presentasi majemuk adalah presentasi dengan terabanya anggota badan (umumnya ekstremitas) di samping kepala/bokong. Terjadi bila pintu atas panggul tidak tertutup dengan baik oleh bagian depan janin.",
+    "diagnosis": [
+      "Terabanya anggota badan (umumnya ekstremitas) di samping kepala/bokong",
+      "Etiologi: multipara (kepala sering tinggi pada permulaan persalinan)",
+      "Etiologi: disproporsi kepala panggul",
+      "Etiologi: kehamilan kurang bulan",
+      "Etiologi: hidramnion"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Pada tangan menumbung dicoba reposisi",
+      "Partus buatan dilakukan atas indikasi"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Gangguan putaran paksi",
+      "Gangguan turunnya bagian terendah",
+      "Tali pusat menumbung"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "persalinan-letak-lintang",
+    "kategori": "malpresentasi",
+    "nama": "Persalinan Janin Letak Lintang",
+    "ringkas": "Sumbu panjang janin tegak lurus sumbu ibu",
+    "hal": 46,
+    "definisi": "Letak lintang adalah keadaan sumbu panjang janin tegak lurus terhadap sumbu panjang ibu. Etiologi lihat letak sungsang.",
+    "diagnosis": [
+      "Sumbu panjang janin tegak lurus terhadap sumbu panjang ibu"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Dalam kehamilan: lakukan versi luar pada kehamilan >= 34 minggu",
+      "Dalam persalinan: bila syarat terpenuhi dan tidak ada kontraindikasi lakukan versi luar",
+      "Bila versi luar berhasil, persalinan dilakukan pervaginam",
+      "Bila tidak berhasil pada janin hidup: partus pervaginam bila usia kehamilan <28 minggu",
+      "Bila tidak berhasil pada janin hidup: seksio sesarea bila usia kehamilan >= 28 minggu",
+      "Pada janin mati TBBJ <1700 gr: persalinan spontan dengan cara konduplikasio korpore dan evolusi spontan, bisa dibantu dengan traksi beban",
+      "Pada janin mati TBBJ >1700 gr: embriotomi bila syarat terpenuhi dan harus dilakukan eksplorasi jalan lahir",
+      "Pada janin mati TBBJ >= 2500 gram dan bagian terendah masih tinggi: seksio sesarea",
+      "Letak lintang kasep: embriotomi dengan atau eviserasi"
+    ],
+    "obat": [],
+    "penyulit": [
+      "Tali pusat menumbung",
+      "Letak lintang kasep"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "letak-lintang-gemeli-anak-2",
+    "kategori": "malpresentasi",
+    "nama": "Persalinan Letak Lintang pada Gemeli Anak II",
+    "ringkas": "Pengelolaan gemeli anak kedua letak lintang",
+    "hal": 47,
+    "definisi": "Pengelolaan letak lintang pada gemeli anak II, baik pada retensi gemeli anak II maupun pada persalinan gemeli dengan anak II letak lintang.",
+    "diagnosis": [
+      "Retensi gemeli anak II",
+      "Persalinan gemeli dengan anak II letak lintang"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Pada retensi gemeli anak II: bila syarat terpenuhi dan tidak ada kontraindikasi lakukan versi luar menjadi letak kepala atau letak sungsang",
+      "Pada persalinan gemeli anak II letak lintang dengan pembukaan lengkap dan ketuban masih utuh: lakukan versi luar, bila tidak berhasil lakukan versi ekstraksi",
+      "Bila ketuban baru pecah/dipecahkan: lakukan versi ekstraksi"
+    ],
+    "obat": [],
+    "penyulit": [],
+    "rujukan": []
+  },
+  {
+    "id": "infeksi-intrauterin",
+    "kategori": "infeksi",
+    "nama": "Infeksi Intrauterin dalam Kehamilan dan Persalinan",
+    "ringkas": "Korioamnionitis dalam kehamilan atau persalinan",
+    "hal": 51,
+    "definisi": "Infeksi rahim (korioamnionitis, amnionitis, infeksi intraamnion) yang terjadi dalam kehamilan atau persalinan, ditandai suhu tubuh meningkat (>38 derajat C), lekositosis dan sisa cairan yang berbau busuk atau keruh.",
+    "diagnosis": [
+      "Suhu tubuh meningkat >38 derajat C",
+      "Lekositosis",
+      "Sisa cairan yang berbau busuk atau keruh",
+      "Faktor predisposisi: ketuban pecah dini",
+      "Faktor predisposisi: distosia/partus lama",
+      "Faktor predisposisi: pemeriksaan dalam terlalu sering",
+      "Faktor predisposisi: anemia",
+      "Faktor predisposisi: kurang gizi",
+      "Faktor predisposisi: servisitis",
+      "Faktor predisposisi: vaginitis"
+    ],
+    "penunjang": [],
+    "langkah": [
+      "Pemasangan infus jaga",
+      "Pemberian antibiotik yang berspektrum luas",
+      "Pengakhiran kehamilan (lihat bab Terminasi Kehamilan)",
+      "Persalinan sedapat mungkin pervaginam",
+      "Seksio sesarea hanya atas indikasi obstetri",
+      "Bayi dapat menyusui dan rawat gabung bila syarat terpenuhi",
+      "Observasi kemungkinan adanya sepsis pascasalin"
+    ],
+    "obat": [
+      {
+        "n": "Antibiotik berspektrum luas",
+        "d": "sesuai indikasi",
+        "c": "intravena"
+      }
+    ],
+    "penyulit": [
+      "Sepsis/syok septik",
+      "Perdarahan pascasalin",
+      "Subinvolusi rahim",
+      "Luka episiotomi/operasi terbuka"
+    ],
+    "rujukan": []
+  },
+  {
+    "id": "infeksi-nifas",
+    "kategori": "infeksi",
+    "nama": "Infeksi Nifas",
+    "ringkas": "Infeksi genital pada masa nifas",
+    "hal": 52,
+    "definisi": "Infeksi alat genital dalam masa nifas yang ditandai meningkatnya suhu >= 38 derajat C selama 2 hari berturut-turut dalam 10 hari pertama pascasalin, kecuali 24 jam pertama pascasalin.",
+    "diagnosis": [
+      "Klinis: febris",
+      "Klinis: nadi cepat",
+      "Klinis: nyeri perut bagian bawah",
+      "Klinis: sub-involusi rahim",
+      "Inspekulo: lokia berbau",
+      "PD: uterus dan parametrium nyeri pada perabaan",
+      "Faktor predisposisi: partus lama, ketuban pecah dini, persalinan traumatis",
+      "Faktor predisposisi: pelepasan plasenta secara manual, infeksi intrauterin",
+      "Faktor predisposisi: infeksi kandung kemih, anemi, pertolongan persalinan yang tidak bersih"
+    ],
+    "penunjang": [
+      "Kultur bakteri aerob dan anaerob dari serviks, uterus dan darah",
+      "Faktor-faktor pembekuan darah",
+      "USG jika dicurigai adanya abses"
+    ],
+    "langkah": [
+      "Berikan antibiotik spektrum luas",
+      "Pemberian selanjutnya tergantung hasil kultur dan resistensi",
+      "Jika tidak ada perbaikan dalam 72 jam, pikirkan kemungkinan tromboflebitis pelvik, abses, dan septik emboli",
+      "Pertimbangkan septik emboli bila tidak ada respon antibiotik dan ada nyeri dada akut/manifestasi paru lainnya",
+      "Bila ada abses lakukan insisi dan drainase; abses Douglas lakukan kolpotomi posterior disertai pemasangan drain",
+      "Bila abses intra abdomen lakukan laparotomi; bila uterus fokus infeksi (terutama pasca seksio sesarea dengan dehisensi luka) lakukan histerektomi",
+      "Pada syok septik (suhu tinggi, kardiovaskuler tidak stabil, penurunan lekosit): rawat di ICU dengan O2, terapi cairan, transfusi darah, antibiotik, kortikosteroid, vasopresor/digitalis, serta antikoagulan jika diperlukan"
+    ],
+    "obat": [
+      {
+        "n": "Antibiotik spektrum luas",
+        "d": "selanjutnya disesuaikan hasil kultur dan resistensi",
+        "c": "intravena"
+      }
+    ],
+    "penyulit": [
+      "Tromboflebitis pelvik",
+      "Abses",
+      "Septik emboli",
+      "Syok septik"
+    ],
+    "rujukan": [
+      "ICU"
     ]
   }
 ]/*__END__*/;
