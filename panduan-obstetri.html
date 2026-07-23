@@ -57,7 +57,8 @@
             malpresentasi: { label: 'Malpresentasi & Panggul', ikon: 'fa-arrows-rotate', warna: 'indigo' },
             kondisi:       { label: 'Kondisi Kehamilan', ikon: 'fa-notes-medical', warna: 'amber' },
             penyakit:      { label: 'Penyakit Penyerta', ikon: 'fa-lungs', warna: 'rose' },
-            infeksi:       { label: 'Infeksi', ikon: 'fa-bacterium', warna: 'orange' }
+            infeksi:       { label: 'Infeksi', ikon: 'fa-bacterium', warna: 'orange' },
+            hipertensi:    { label: 'Hipertensi dalam Kehamilan', ikon: 'fa-gauge-high', warna: 'red' }
         };
 
         /* KONDISI diisi dari data protap (lihat build). */
@@ -1390,6 +1391,87 @@
     "rujukan": [
       "ICU"
     ]
+  },
+  {
+    "id": "preeklampsia",
+    "kategori": "hipertensi",
+    "nama": "Preeklampsia",
+    "ringkas": "Hipertensi ≥20 minggu disertai disfungsi organ; pencegahan aspirin + kalsium, MgSO₄ untuk pencegahan kejang.",
+    "hal": "",
+    "definisi": "Hipertensi yang timbul setelah usia kehamilan 20 minggu disertai disfungsi organ (proteinuria dan/atau gangguan multisistem lain). Merupakan bagian dari spektrum hipertensi dalam kehamilan yang berisiko menjadi preeklampsia berat dan eklampsia.",
+    "diagnosis": [
+      "Tekanan darah ≥140/90 mmHg pada 2 kali pengukuran berjarak ≥15 menit setelah usia kehamilan 20 minggu",
+      "Disertai proteinuria ≥300 mg/24 jam ATAU dipstik ≥+1 (dipstik kurang akurat)",
+      "Bila tanpa proteinuria: dapat ditegakkan bila ada disfungsi organ (trombositopenia, gangguan ginjal, gangguan hati, edema paru, atau gejala serebral/visual)",
+      "Preeklampsia berat: TD ≥160/110 mmHg dan/atau disertai gejala/tanda berat (nyeri kepala hebat, gangguan penglihatan, nyeri epigastrium, edema paru, oliguria, trombositopenia, peningkatan enzim hati, kreatinin meningkat)",
+      "Edema TIDAK lagi menjadi kriteria diagnosis"
+    ],
+    "penunjang": [
+      "Protein urin (dipstik / protein urin kuantitatif 24 jam atau rasio protein-kreatinin)",
+      "Darah lengkap termasuk trombosit",
+      "Fungsi hati (SGOT/SGPT, LDH) dan fungsi ginjal (ureum, kreatinin, asam urat)",
+      "Evaluasi kesejahteraan janin (USG, profil biofisik, Doppler bila tersedia)"
+    ],
+    "langkah": [
+      "Nilai keparahan (ada/tidaknya gejala berat) dan usia kehamilan untuk menentukan ekspektatif vs terminasi",
+      "Pencegahan pada risiko tinggi: aspirin dosis rendah 75 mg/hari dimulai SEBELUM 20 minggu + suplementasi kalsium ≥1 g/hari",
+      "Kontrol tekanan darah dengan antihipertensi bila TD ≥160/110 (target <160/<110)",
+      "Berikan MgSO₄ sebagai profilaksis kejang pada preeklampsia BERAT (tidak rutin bila tanpa gejala berat)",
+      "Ekspektatif tanpa gejala berat hingga 37 minggu; preeklampsia berat <34 minggu hanya bila ibu & janin stabil di fasilitas dengan perawatan intensif maternal-neonatal + kortikosteroid pematangan paru",
+      "Rujuk ke fasilitas dengan kemampuan penanganan maternal-neonatal intensif bila preeklampsia berat"
+    ],
+    "obat": [
+      {
+        "n": "Aspirin dosis rendah",
+        "d": "75 mg/hari, dimulai sebelum 20 minggu pada risiko tinggi",
+        "c": "oral — pencegahan"
+      },
+      {
+        "n": "Kalsium",
+        "d": "≥1 g/hari",
+        "c": "oral — pencegahan"
+      },
+      {
+        "n": "Nifedipin oral short-acting",
+        "d": "10 mg, dapat diulang tiap 15–30 menit (maks 30 mg)",
+        "c": "antihipertensi lini pertama"
+      },
+      {
+        "n": "MgSO₄",
+        "d": "loading 4 g IV + rumatan sesuai protokol; antikejang lini pertama",
+        "c": "profilaksis/terapi kejang preeklampsia berat"
+      },
+      {
+        "n": "Kalsium glukonas",
+        "d": "1 g (10 mL) IV pelan",
+        "c": "antidotum intoksikasi MgSO₄"
+      }
+    ],
+    "penyulit": [
+      "Eklampsia",
+      "Sindrom HELLP",
+      "Solusio plasenta",
+      "Edema paru",
+      "Gangguan ginjal akut",
+      "Pertumbuhan janin terhambat"
+    ],
+    "rujukan": [
+      "SpOG",
+      "ICU / HCU maternal",
+      "Fasilitas dengan NICU"
+    ],
+    "sumber": "PPK Obgyn RSHS 2015 + PNPK POGI 2016",
+    "pembaruanSumber": "PNPK Preeklampsia POGI 2016",
+    "pembaruan": [
+      "Pencegahan (risiko tinggi): Aspirin dosis rendah 75 mg/hari dimulai SEBELUM 20 minggu + suplementasi kalsium ≥1 g/hari.",
+      "Tidak direkomendasikan untuk pencegahan: tirah baring, restriksi garam, serta vitamin C & E.",
+      "Diagnosis diperbarui: preeklampsia = hipertensi (≥20 mgg) + disfungsi organ — DAPAT tanpa proteinuria bila ada gangguan multisistem. Edema tidak lagi jadi kriteria.",
+      "Ambang: hipertensi ≥140/90 (2× jarak 15 mnt), berat ≥160/110. Proteinuria ≥300 mg/24 jam atau dipstik ≥+1 (dipstik kurang akurat).",
+      "Antihipertensi: target <160/<110. Lini pertama Nifedipin oral short-acting 10 mg, ulang tiap 15–30 mnt (maks 30 mg); atau hidralazin/labetalol parenteral. Waspada kombinasi Nifedipin + MgSO₄ (risiko blokade neuromuskular/hipotensi).",
+      "MgSO₄: lini pertama antikejang (> diazepam/fenitoin); profilaksis pada preeklampsia BERAT — TIDAK rutin bila tanpa gejala berat. Kadar Mg serum rutin tidak perlu → pantau klinis (refleks patella, RR, urin). Antidotum: Ca glukonas 1 g (10 mL) IV pelan.",
+      "Ekspektatif: tanpa gejala berat → hingga 37 minggu (boleh rawat poliklinis ketat). Berat <34 mgg → hanya bila ibu & janin stabil, di fasilitas dgn perawatan intensif maternal-neonatal + rawat inap + kortikosteroid pematangan paru.",
+      "Sindrom HELLP: kortikosteroid BELUM direkomendasikan rutin (bukti belum cukup)."
+    ]
   }
 ]/*__END__*/;
 
@@ -1552,6 +1634,13 @@
                     <h1 class="font-extrabold text-xl text-slate-800">${k.nama}</h1>
                     ${k.definisi ? `<p class="text-sm text-slate-600 mt-2 leading-relaxed">${k.definisi}</p>` : ''}
                 </div>
+
+                ${Array.isArray(k.pembaruan) && k.pembaruan.length ? `
+                <div class="rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm p-4 mb-4">
+                    <div class="flex items-center gap-2 mb-3"><div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center"><i class="fa-solid fa-arrows-rotate text-emerald-600 text-sm"></i></div><h3 class="font-bold text-emerald-800 text-sm">Pembaruan · ${k.pembaruanSumber || 'PNPK POGI'}</h3></div>
+                    <ul class="space-y-2">${k.pembaruan.map(p => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle-plus text-emerald-500 text-xs mt-0.5"></i><span class="leading-snug">${p}</span></li>`).join('')}</ul>
+                    <div class="text-[10px] text-emerald-700/70 mt-2">Tambahan/pemutakhiran dari ${k.pembaruanSumber || 'PNPK POGI'} — melengkapi konten PPK RSHS 2015 di atas.</div>
+                </div>` : ''}
 
                 ${arr(k.diagnosis) ? sectionCard('fa-stethoscope', 'purple', 'Diagnosis / Kriteria',
                     `<ul class="space-y-1.5">${k.diagnosis.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-purple-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
