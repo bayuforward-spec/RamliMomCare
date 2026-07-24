@@ -682,8 +682,8 @@
         //  STATE
         // ==========================================================
         const DEFAULT_CONTACTS = [
-            { label: 'Call Centre', sub: 'Pusat panggilan darurat', tel: '085381338887', ikon: 'fa-headset', warna: 'red' },
-            { label: 'RS Harapan Bunda / PONEK', sub: 'IGD PONEK', tel: '082181522611', ikon: 'fa-hospital', warna: 'rose' }
+            { label: 'RS Harapan Bunda / PONEK', sub: 'IGD PONEK', tel: '082181522611', ikon: 'fa-hospital', warna: 'rose' },
+            { label: 'VK RS Bhayangkara Lampung', sub: 'Kamar Bersalin (VK)', tel: '081271474410', ikon: 'fa-hospital', warna: 'red' }
         ];
         function loadContacts() {
             try { const c = JSON.parse(safeStorage.get('ramli_contacts')); return Array.isArray(c) && c.length ? c : JSON.parse(JSON.stringify(DEFAULT_CONTACTS)); }
