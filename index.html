@@ -629,7 +629,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
         function renderNavbar() {
             const trimester = Math.min(3, Math.max(1, Math.ceil(formData.mingguKehamilan / 13)));
             return `
-                <nav class="bg-white/90 backdrop-blur shadow-sm px-4 md:px-6 py-3 flex justify-between items-center sticky top-0 z-50 border-b-2 border-rose-100 no-print">
+                <nav class="bg-white/90 backdrop-blur shadow-sm px-4 md:px-6 py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2.5 sticky top-0 z-50 border-b-2 border-rose-100 no-print">
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="bg-gradient-to-br from-rose-500 to-pink-600 p-2 rounded-xl shadow-md shadow-rose-200 shrink-0">
                             <i class="fa-solid fa-heart text-white text-xl"></i>
@@ -639,7 +639,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Asisten AI dr. Bayu · Claude Edition</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 md:gap-3 shrink-0">
+                    <div class="flex items-center gap-2 md:gap-3 overflow-x-auto scrollbar-hide -mx-1 px-1 sm:mx-0 sm:px-0 sm:shrink-0 [&>*]:shrink-0">
                         <a href="panduan-obstetri.html" title="Panduan Praktik Klinis Obstetri (untuk tenaga kesehatan)" class="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-3 md:px-4 py-2 rounded-full border border-emerald-100 hover:bg-emerald-100 transition-colors shadow-sm">
                             <i class="fa-solid fa-book-medical"></i>
                             <span class="hidden sm:inline">Panduan</span>
