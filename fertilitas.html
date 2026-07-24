@@ -11,6 +11,9 @@
         body { font-family: 'Inter', sans-serif; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        h1,h2,h3,h4,h5,p,span,li,a,button,label,div,td,th { overflow-wrap: break-word; }
+        .clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+        #fontCtl button:active { transform: scale(.92); }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-up { animation: fadeUp .3s ease both; }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
@@ -852,7 +855,7 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="font-bold text-slate-800 text-[15px]">${k.nama}</div>
-                                    <div class="text-xs text-slate-500 truncate">${k.ringkas || ''}</div>
+                                    <div class="text-xs text-slate-500 clamp-2">${k.ringkas || ''}</div>
                                 </div>
                                 <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
                             </button>`).join('')}
@@ -1042,6 +1045,21 @@ Struktur:
         }
 
         renderApp();
+    </script>
+    <!-- Kontrol ukuran huruf (aksesibilitas) -->
+    <div id="fontCtl" class="fixed z-50 bottom-20 right-3 flex items-center gap-0.5 bg-white/95 backdrop-blur border border-slate-200 shadow-lg rounded-full p-1 no-print" role="group" aria-label="Ukuran huruf">
+        <button type="button" onclick="setFont(-1)" aria-label="Perkecil huruf" title="Perkecil huruf" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center"><span class="text-xs font-bold leading-none">A</span></button>
+        <span id="fontLbl" class="text-[10px] text-slate-400 w-9 text-center tabular-nums select-none">100%</span>
+        <button type="button" onclick="setFont(1)" aria-label="Perbesar huruf" title="Perbesar huruf" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-800 flex items-center justify-center"><span class="text-lg font-black leading-none">A</span></button>
+    </div>
+    <script>
+    (function(){
+        var KEY='ramli_font_scale', STEPS=[90,100,112,125,140,160];
+        function idx(){var v;try{v=parseInt(localStorage.getItem(KEY),10);}catch(e){}var i=STEPS.indexOf(v);return i<0?1:i;}
+        function apply(i){var p=STEPS[i];document.documentElement.style.fontSize=p+'%';var l=document.getElementById('fontLbl');if(l)l.textContent=p+'%';}
+        window.setFont=function(d){var i=Math.max(0,Math.min(STEPS.length-1,idx()+d));try{localStorage.setItem(KEY,STEPS[i]);}catch(e){}apply(i);};
+        apply(idx());
+    })();
     </script>
 </body>
 </html>
