@@ -1,8 +1,8 @@
 /* Service worker: aplikasi tetap jalan tanpa internet */
-const CACHE = 'arai-prep-v1';
+const CACHE = 'arai-prep-v2';
 const ASET = [
   './', './index.html', './app.js', './manifest.json', './icon.svg',
-  './data/bank-bindo.js', './data/bank-mtk.js', './data/bank-bing.js', './data/bank-bio.js', './data/bank-kim.js'
+  './data/materi.js', './data/bank-bindo.js', './data/bank-mtk.js', './data/bank-bing.js', './data/bank-bio.js', './data/bank-kim.js'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASET)).then(() => self.skipWaiting()));

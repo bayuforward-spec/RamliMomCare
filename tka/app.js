@@ -71,7 +71,7 @@ function defaultState(){
     profil:{nama:'ARAI', tglTKA:'2026-10-26', tglSNBP:'2027-02-15', jamBelajar:2, pilihan:['bio','kim'], pesanAbi:[], pesanUmmi:[],
             kampus:[{nama:'FK Universitas Lampung', catatan:'Target utama'},{nama:'FK Universitas Indonesia', catatan:'Target tantangan'}]},
     stat:{}, kesulitan:{}, rating:{umum:RATING_AWAL, mapel:{}, topik:{}, riwayat:[]},
-    sesi:[], tryout:[], rapor:{}, jurnal:[], harian:{}, sesiAktif:null, umpanBalik:[]
+    sesi:[], tryout:[], rapor:{}, jurnal:[], harian:{}, sesiAktif:null, umpanBalik:[], simulasi:null, simulasiRiwayat:[]
   };
 }
 let S = Object.assign(defaultState(), baca()||{});
@@ -96,6 +96,15 @@ function bgAkurasi(p){ return p>=80?'bg-emerald-500':p>=60?'bg-amber-500':'bg-ro
 const BANK = () => (window.BANK_SOAL||[]);
 const soalById = id => BANK().find(q=>q.id===id);
 const namaPanggil = () => (S.profil.nama||'ARAI').split(' ')[0];
+const MAT = () => (window.MATERI||{});
+function kartuMateri(m,t,ringkas){
+  const d = MAT()[m+'|'+t]; if(!d) return '';
+  return `<details class="rounded-xl border border-sky-200 bg-sky-50 p-3 mt-3" ${ringkas?'':'open'}>
+    <summary class="text-xs font-bold text-sky-800 cursor-pointer"><i class="fa-solid fa-book-open mr-1"></i>Materi singkat: ${esc(t)}</summary>
+    <ul class="text-xs text-sky-900 list-disc ml-4 mt-2 space-y-1">${d.poin.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    ${d.jebakan?`<p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i><b>Sering jadi jebakan:</b> ${esc(d.jebakan)}</p>`:''}
+  </details>`;
+}
 
 /* =============================================================
    MESIN ADAPTIF — model kemampuan gaya Elo
@@ -177,6 +186,10 @@ function catatJawaban(q, benar, detik){
   x.terakhir = hariIni();
   x.detik = detik || x.detik;
   x.due = benar ? tambahHari(hariIni(), INTERVAL[x.box]) : hariIni();
+  const h = hariIni();
+  S.harian[h] = S.harian[h] || {soal:0, menit:0};
+  S.harian[h].total = (S.harian[h].total||0) + 1;
+  S.harian[h].benar = (S.harian[h].benar||0) + (benar?1:0);
   perbaruiKemampuan(q, benar);
   simpanRiwayatRating();
 }
@@ -276,7 +289,7 @@ function render(){
   setNav(rute);
   window.scrollTo(0,0);
   if(SESI && rute!=='kerja'){ simpanSesiAktif(); hentikanTimer(); SESI=null; }
-  const peta = {beranda:viewBeranda, latihan:viewLatihan, tryout:viewTryout, analisis:viewAnalisis, snbp:viewTarget, target:viewTarget, rapor:viewRapor,
+  const peta = {beranda:viewBeranda, latihan:viewLatihan, tryout:viewTryout, analisis:viewAnalisis, snbp:viewTarget, target:viewTarget, rapor:viewRapor, materi:viewMateri, simulasi:viewSimulasi, ortu:viewOrtu,
                 rencana:viewRencana, jurnal:viewJurnal, pengaturan:viewPengaturan, kerja:viewKerja, hasil:viewHasil};
   $('#view').innerHTML = (peta[rute]||viewBeranda)();
   if(rute==='kerja') setelahRenderSoal();
@@ -398,6 +411,11 @@ function viewBeranda(){
   </section>`:''}
 
   <section class="grid grid-cols-3 gap-2 mb-3">
+    <a href="#/materi" class="card p-3 text-center"><i class="fa-solid fa-book-open text-sky-500 text-xl"></i><p class="text-xs font-semibold mt-1">Materi</p><p class="text-[10px] text-slate-500">rumus & konsep</p></a>
+    <a href="#/simulasi" class="card p-3 text-center"><i class="fa-solid fa-calendar-check text-violet-500 text-xl"></i><p class="text-xs font-semibold mt-1">Simulasi</p><p class="text-[10px] text-slate-500">5 mata uji</p></a>
+    <a href="#/ortu" class="card p-3 text-center"><i class="fa-solid fa-user-shield text-amber-500 text-xl"></i><p class="text-xs font-semibold mt-1">Abi &amp; Ummi</p><p class="text-[10px] text-slate-500">pantau & pesan</p></a>
+  </section>
+  <section class="grid grid-cols-3 gap-2 mb-3">
     <a href="#/rapor" class="card p-3 text-center"><i class="fa-solid fa-file-lines text-violet-500 text-xl"></i><p class="text-xs font-semibold mt-1">Rapor</p><p class="text-[10px] text-slate-500">kirim ke Abi/Ummi</p></a>
     <a href="#/jurnal" class="card p-3 text-center"><i class="fa-solid fa-book-bookmark text-indigo-500 text-xl"></i><p class="text-xs font-semibold mt-1">Jurnal salah</p><p class="text-[10px] text-slate-500">${S.jurnal.length} catatan</p></a>
     <a href="#/target" class="card p-3 text-center"><i class="fa-solid fa-bullseye text-emerald-500 text-xl"></i><p class="text-xs font-semibold mt-1">Target FK</p><p class="text-[10px] text-slate-500">patokan kampus</p></a>
@@ -464,6 +482,7 @@ function viewTryout(){
         <i class="fa-solid fa-play text-slate-400"></i></button>`;
     }).join('')}
     <button onclick="mulaiTryout('paket')" class="w-full btn bg-slate-900 text-white py-3 mt-1 text-sm"><i class="fa-solid fa-layer-group mr-1"></i>Paket campuran 25 soal (45 menit)</button>
+    <a href="#/simulasi" class="w-full btn bg-violet-600 text-white py-3 mt-2 text-sm block text-center"><i class="fa-solid fa-calendar-check mr-1"></i>Simulasi hari-H · 5 mata uji penuh</a>
   </section>
   <section class="card p-4">
     <h3 class="font-bold mb-2">Riwayat tryout</h3>
@@ -490,7 +509,7 @@ function mulaiSesi(o){
   const soal = pilihSoal({mapel:o.mapel, topik:o.topik, n:o.n, mode:o.mode});
   if(!soal.length){ alert('Belum ada soal yang cocok untuk pilihan ini. Coba mode lain.'); return; }
   SESI = {soal, i:0, jawaban:new Array(soal.length).fill(null), dikunci:new Array(soal.length).fill(false),
-          judul:o.judul||'Latihan', tryout:o.tryout||null, tanpaBatas:!!o.tanpaBatas,
+          judul:o.judul||'Latihan', tryout:o.tryout||null, simulasi:o.simulasi||null, tanpaBatas:!!o.tanpaBatas,
           mapel:o.mapel||'semua', topik:o.topik||null, mode:o.mode,
           sisa:o.detik||null, mulai:Date.now(), langsung:!o.tryout, ratingAwal:S.rating.umum, waktuSoal:[]};
   MULAI_SOAL=Date.now();
@@ -500,7 +519,7 @@ function mulaiSesi(o){
 function simpanSesiAktif(){
   if(!SESI){ return; }
   S.sesiAktif = {ids:SESI.soal.map(q=>q.id), i:SESI.i, jawaban:SESI.jawaban, dikunci:SESI.dikunci, judul:SESI.judul,
-                 tryout:SESI.tryout, tanpaBatas:SESI.tanpaBatas, mapel:SESI.mapel, topik:SESI.topik, mode:SESI.mode,
+                 tryout:SESI.tryout, simulasi:SESI.simulasi, tanpaBatas:SESI.tanpaBatas, mapel:SESI.mapel, topik:SESI.topik, mode:SESI.mode,
                  sisa:SESI.sisa, ratingAwal:SESI.ratingAwal, waktuSoal:SESI.waktuSoal, tgl:hariIni()};
   simpan();
 }
@@ -508,7 +527,7 @@ function lanjutkanSesi(){
   const a=S.sesiAktif; if(!a) return;
   const soal=a.ids.map(soalById).filter(Boolean);
   if(!soal.length){ buangSesi(); return; }
-  SESI={soal, i:Math.min(a.i,soal.length-1), jawaban:a.jawaban, dikunci:a.dikunci, judul:a.judul, tryout:a.tryout,
+  SESI={soal, i:Math.min(a.i,soal.length-1), jawaban:a.jawaban, dikunci:a.dikunci, judul:a.judul, tryout:a.tryout, simulasi:a.simulasi,
         tanpaBatas:a.tanpaBatas, mapel:a.mapel, topik:a.topik, mode:a.mode, sisa:a.sisa, mulai:Date.now(),
         langsung:!a.tryout, ratingAwal:a.ratingAwal!=null?a.ratingAwal:S.rating.umum, waktuSoal:a.waktuSoal||[]};
   MULAI_SOAL=Date.now();
@@ -593,6 +612,7 @@ function viewKerja(){
         <p class="font-bold text-sm ${benar?'text-emerald-700':'text-rose-700'} mb-1">
           <i class="fa-solid ${benar?'fa-circle-check':'fa-circle-xmark'} mr-1"></i>${benar?'Benar':'Belum tepat'}</p>
         <p class="text-sm leading-relaxed text-slate-700">${esc(q.e)}</p>
+        ${!benar?kartuMateri(q.m,q.t,true):''}
         ${!benar?`<div class="mt-2"><p class="text-[11px] font-semibold text-slate-500 mb-1">Kenapa salah? (masuk jurnal)</p>
           <div class="flex flex-wrap gap-1">${SEBAB_SALAH.map(s=>`<button onclick="catatJurnal('${q.id}','${js(s)}',this)" class="text-[11px] bg-white border border-slate-200 rounded-lg px-2 py-1">${s}</button>`).join('')}</div></div>`:''}
       </div>`:''}
@@ -689,6 +709,7 @@ function akhiriSesi(){
   catatHarian(SESI.soal.length, detik);
   S.sesi.push({tgl:hariIni(), judul:SESI.judul, benar, total:SESI.soal.length, menit:Math.round(detik/60), skor:persen(benar,SESI.soal.length)});
   S.sesi=S.sesi.slice(-300);
+  if(SESI.simulasi){ simulasiAktif().selesai[SESI.simulasi]={skor:persen(benar,SESI.soal.length), benar, total:SESI.soal.length, menit:Math.round(detik/60), tgl:hariIni()}; }
   if(SESI.tryout) S.tryout.push({tgl:hariIni(), mapel:SESI.tryout, benar, total:SESI.soal.length, skor:persen(benar,SESI.soal.length), menit:Math.round(detik/60)});
   S.sesiAktif=null; simpan(); SESI=null;
   location.hash='#/hasil'; render();
@@ -1080,15 +1101,216 @@ function hapusKampus(i){ S.profil.kampus.splice(i,1); normalisasiKampus(); simpa
 function jadikanUtama(i){ S.profil.kampus.forEach((k,j)=>k.utama=(i===j)); simpan(); render(); }
 function ubahTarget(i,k,v){ const n=parseFloat(v); if(isNaN(n)) return; S.profil.kampus[i][k]=Math.max(0,Math.min(100,n)); simpan(); render(); }
 
+/* ---------- MATERI ---------- */
+function viewMateri(){
+  const q = (location.hash.split('?')[1]||'').replace('m=','');
+  const per = {};
+  Object.keys(MAT()).forEach(k=>{ const [m,t]=k.split('|'); (per[m]=per[m]||[]).push(t); });
+  return `
+  <section class="card p-4 mb-3">
+    <h2 class="text-lg font-extrabold">Ringkasan materi</h2>
+    <p class="text-xs text-slate-500 mt-1">Rangkuman konsep dan rumus kunci tiap topik, plus jebakan yang paling sering bikin salah. Baca sebentar sebelum latihan topik itu.</p>
+  </section>
+  ${URUT_MAPEL.filter(m=>per[m]).map(m=>`
+    <section class="card p-4 mb-3">
+      <h3 class="font-bold mb-2"><i class="fa-solid ${MAPEL[m].ikon} text-${MAPEL[m].w}-500 mr-1"></i>${MAPEL[m].nama}</h3>
+      ${per[m].sort().map(t=>{
+        const a = akurasiTopik().find(o=>o.m===m&&o.t===t);
+        return `<details class="border border-slate-200 rounded-xl p-3 mb-2" ${q===m+'|'+t?'open':''}>
+          <summary class="text-sm font-semibold cursor-pointer flex items-center justify-between">
+            <span>${esc(t)}</span>
+            ${a?`<span class="text-[11px] font-bold ${warnaAkurasi(a.akur)}">${a.akur}%</span>`:'<span class="text-[11px] text-slate-300">belum dilatih</span>'}
+          </summary>
+          <ul class="text-xs text-slate-700 list-disc ml-4 mt-2 space-y-1">${MAT()[m+'|'+t].poin.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+          ${MAT()[m+'|'+t].jebakan?`<p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-2"><b>Jebakan:</b> ${esc(MAT()[m+'|'+t].jebakan)}</p>`:''}
+          <button onclick="mulaiTopik('${js(m)}','${js(t)}')" class="btn text-[11px] bg-indigo-600 text-white px-3 py-1.5 mt-2">Latihan topik ini</button>
+        </details>`;
+      }).join('')}
+    </section>`).join('')}`;
+}
+
+/* ---------- SIMULASI HARI-H (5 mata uji penuh) ---------- */
+function simulasiAktif(){
+  if(!S.simulasi) S.simulasi = {mulai:hariIni(), selesai:{}};
+  return S.simulasi;
+}
+function viewSimulasi(){
+  const sim = simulasiAktif();
+  const selesai = URUT_MAPEL.filter(m=>sim.selesai[m]);
+  const semua = selesai.length===URUT_MAPEL.length;
+  const rata = selesai.length? Math.round(selesai.reduce((a,m)=>a+sim.selesai[m].skor,0)/selesai.length) : 0;
+  normalisasiKampus();
+  const u=S.profil.kampus.find(k=>k.utama)||S.profil.kampus[0];
+  return `
+  <section class="card p-4 mb-3">
+    <h2 class="text-lg font-extrabold">Simulasi hari-H</h2>
+    <p class="text-xs text-slate-500 mt-1">Lima mata uji penuh sesuai format TKA 2026. Aturan resminya satu mata uji per hari, jadi boleh dicicil — kemajuannya tersimpan sampai lengkap.</p>
+    <div class="mt-3 grid grid-cols-2 gap-2">
+      <div class="rounded-xl bg-indigo-600 text-white p-3"><p class="text-[11px] text-indigo-200 font-semibold uppercase">Rata-rata</p>
+        <p class="text-3xl font-extrabold leading-none">${rata}</p><p class="text-[11px] text-indigo-100 mt-1">${selesai.length}/5 mata uji</p></div>
+      <div class="rounded-xl bg-slate-900 text-white p-3"><p class="text-[11px] text-slate-400 font-semibold uppercase">Mulai</p>
+        <p class="text-lg font-extrabold leading-tight mt-1">${fmtTgl(sim.mulai)}</p>
+        <p class="text-[11px] text-slate-300">${semua?'lengkap':'sedang berjalan'}</p></div>
+    </div>
+  </section>
+
+  <section class="card p-4 mb-3">
+    <h3 class="font-bold mb-2">Jadwal mata uji</h3>
+    ${URUT_MAPEL.map(m=>{
+      const h=sim.selesai[m];
+      return `<div class="flex items-center gap-3 border border-slate-200 rounded-xl p-3 mb-2">
+        <i class="fa-solid ${MAPEL[m].ikon} text-${MAPEL[m].w}-500 text-lg w-6 text-center"></i>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold">${MAPEL[m].nama}</p>
+          <p class="text-[11px] text-slate-500">${Math.min(MAPEL[m].soalTO, BANK().filter(q=>q.m===m).length)} soal · ${MAPEL[m].menitTO} menit${h?` · dikerjakan ${fmtTgl(h.tgl)}`:''}</p>
+        </div>
+        ${h?`<span class="text-xl font-extrabold ${warnaAkurasi(h.skor)}">${h.skor}</span>
+             <button onclick="ulangSimulasi('${m}')" class="btn text-[11px] bg-slate-100 text-slate-600 px-2 py-1.5">Ulang</button>`
+           :`<button onclick="mulaiSimulasi('${m}')" class="btn text-xs bg-indigo-600 text-white px-3 py-2">Kerjakan</button>`}
+      </div>`;
+    }).join('')}
+  </section>
+
+  ${semua?`<section class="card p-4 mb-3">
+    <h3 class="font-bold mb-2">Hasil simulasi lengkap</h3>
+    <p class="text-sm text-slate-700 mb-2">Rata-rata lima mata uji: <b class="${warnaAkurasi(rata)}">${rata}</b>/100.
+      ${u?(rata>=u.targetTKA?`Sudah melampaui patokan ${esc(u.nama)} (${u.targetTKA}).`:`Patokan ${esc(u.nama)} adalah ${u.targetTKA}, kurang ${u.targetTKA-rata} poin.`):''}</p>
+    ${URUT_MAPEL.map(m=>{const h=sim.selesai[m];
+      return `<div class="mb-2"><div class="flex justify-between text-xs mb-1"><span>${MAPEL[m].nama}</span>
+        <span class="font-semibold ${warnaAkurasi(h.skor)}">${h.skor} · ${h.benar}/${h.total} · ${h.menit} menit</span></div>
+        <div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full ${bgAkurasi(h.skor)}" style="width:${h.skor}%"></div></div></div>`;}).join('')}
+    <div class="rounded-xl bg-slate-50 border border-slate-200 p-3 mt-3">
+      <p class="text-xs text-slate-700"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i>
+      ${(function(){ const lemah=URUT_MAPEL.slice().sort((a,b)=>sim.selesai[a].skor-sim.selesai[b].skor)[0];
+        return `Mata uji paling perlu digenjot: <b>${MAPEL[lemah].nama}</b> (${sim.selesai[lemah].skor}). Jadikan fokus utama dua minggu ke depan.`; })()}</p>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mt-3">
+      <a href="#/rapor" class="btn bg-slate-100 text-slate-700 py-3 text-sm text-center">Lihat rapor</a>
+      <button onclick="simulasiBaru()" class="btn bg-indigo-600 text-white py-3 text-sm">Simulasi baru</button>
+    </div>
+  </section>`:''}
+
+  ${(S.simulasiRiwayat||[]).length?`<section class="card p-4">
+    <h3 class="font-bold mb-2">Riwayat simulasi</h3>
+    ${S.simulasiRiwayat.slice().reverse().map(r=>`<div class="flex justify-between items-center border-b border-slate-100 py-2 last:border-0">
+      <span class="text-xs text-slate-600">${fmtTgl(r.tgl)}</span>
+      <span class="text-sm font-bold ${warnaAkurasi(r.rata)}">${r.rata}</span></div>`).join('')}
+  </section>`:''}`;
+}
+function mulaiSimulasi(m){
+  mulaiSesi({mode:'tryout', mapel:m, n:MAPEL[m].soalTO, detik:MAPEL[m].menitTO*60,
+             judul:'Simulasi hari-H · '+MAPEL[m].nama, tryout:m, simulasi:m});
+}
+function ulangSimulasi(m){ if(confirm('Kerjakan ulang '+MAPEL[m].nama+'? Nilai sebelumnya diganti.')){ delete simulasiAktif().selesai[m]; simpan(); mulaiSimulasi(m); } }
+function simulasiBaru(){
+  const sim=simulasiAktif(); const nilai=URUT_MAPEL.filter(m=>sim.selesai[m]);
+  if(nilai.length){ S.simulasiRiwayat=S.simulasiRiwayat||[];
+    S.simulasiRiwayat.push({tgl:hariIni(), rata:Math.round(nilai.reduce((a,m)=>a+sim.selesai[m].skor,0)/nilai.length)});
+    S.simulasiRiwayat=S.simulasiRiwayat.slice(-20); }
+  S.simulasi={mulai:hariIni(), selesai:{}}; simpan(); render();
+}
+
+/* ---------- HALAMAN ABI & UMMI ---------- */
+function viewOrtu(){
+  const r7=ringkasanPeriode(7), r30=ringkasanPeriode(30);
+  const hari14=[]; for(let i=13;i>=0;i--){ const t=tambahHari(hariIni(),-i); hari14.push({t,d:S.harian[t]||{soal:0,menit:0}}); }
+  const maks=Math.max(10,...hari14.map(h=>h.d.soal));
+  normalisasiKampus();
+  const u=S.profil.kampus.find(k=>k.utama)||S.profil.kampus[0];
+  const nm=namaPanggil();
+  return `
+  <section class="card p-4 mb-3">
+    <h2 class="text-lg font-extrabold">Halaman Abi &amp; Ummi</h2>
+    <p class="text-xs text-slate-500 mt-1">Ringkasan perkembangan ${esc(nm)} dan tempat menitipkan pesan untuknya.</p>
+  </section>
+
+  <section class="grid grid-cols-2 gap-2 mb-3">
+    ${kartuStat('7 hari terakhir', r7.soal+' soal', r7.aktif+' hari aktif · akurasi '+r7.akur+'%','fa-calendar-week','indigo')}
+    ${kartuStat('30 hari terakhir', r30.soal+' soal', r30.aktif+' hari aktif · akurasi '+r30.akur+'%','fa-calendar','sky')}
+    ${kartuStat('Perkiraan skor TKA', perkiraanSkorTotal(), 'level '+levelDari(S.rating.umum)+'/10','fa-bullseye','emerald')}
+    ${kartuStat('Menuju TKA', Math.max(0,selisihHari(hariIni(),S.profil.tglTKA))+' hari', fmtTgl(S.profil.tglTKA),'fa-hourglass-half','amber')}
+  </section>
+
+  <section class="card p-4 mb-3">
+    <h3 class="font-bold mb-2">Konsistensi 14 hari</h3>
+    <div class="flex items-end gap-1 h-20">
+      ${hari14.map(h=>`<div class="flex-1 flex flex-col justify-end items-center" title="${h.t}: ${h.d.soal} soal">
+        <div class="w-full rounded-t ${h.d.soal>=targetHarian()?'bg-emerald-500':h.d.soal?'bg-amber-400':'bg-slate-100'}" style="height:${Math.max(4,h.d.soal/maks*100)}%"></div></div>`).join('')}
+    </div>
+    <p class="text-[11px] text-slate-500 mt-2">Hijau = target harian tercapai, kuning = belajar tapi belum penuh, abu = kosong.
+      ${r7.aktif>=5?'Ritmenya sudah bagus — cukup dijaga.':'Kalau banyak yang abu, biasanya bukan malas, tapi jadwalnya belum tetap. Sepakati jam belajar yang sama tiap hari.'}</p>
+  </section>
+
+  <section class="card p-4 mb-3">
+    <h3 class="font-bold mb-2">Per mata uji</h3>
+    ${URUT_MAPEL.map(m=>{const a=akurasiMapel(m), sk=perkiraanSkor(m);
+      return `<div class="mb-2"><div class="flex justify-between text-xs mb-1">
+        <span>${MAPEL[m].nama}</span><span class="${warnaAkurasi(sk)} font-semibold">${sk} · ${a.n} soal</span></div>
+        <div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full ${bgAkurasi(sk)}" style="width:${sk}%"></div></div></div>`;}).join('')}
+    ${u?`<p class="text-xs text-slate-600 mt-2">Target utama <b>${esc(u.nama)}</b> (patokan ${u.targetTKA}) — ${u.targetTKA-perkiraanSkorTotal()<=0?'sudah terlampaui':'kurang '+(u.targetTKA-perkiraanSkorTotal())+' poin'}.</p>`:''}
+  </section>
+
+  <section class="card p-4 mb-3">
+    <h3 class="font-bold mb-2">Titipkan pesan untuk ${esc(nm)}</h3>
+    <p class="text-[11px] text-slate-500 mb-2">Pesan ini muncul di layar ${esc(nm)} tiap 10 soal dan di akhir sesi latihan.</p>
+    <div class="flex gap-2 mb-2">
+      <button onclick="PENGIRIM='Abi';render()" class="btn text-xs px-4 py-2 ${PENGIRIM==='Abi'?'bg-sky-600 text-white':'bg-slate-100 text-slate-600'}">Dari Abi</button>
+      <button onclick="PENGIRIM='Ummi';render()" class="btn text-xs px-4 py-2 ${PENGIRIM==='Ummi'?'bg-rose-600 text-white':'bg-slate-100 text-slate-600'}">Dari Ummi</button>
+    </div>
+    <textarea id="pesanBaru" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm h-20" placeholder="Tulis pesan singkat untuk ${esc(nm)}…"></textarea>
+    <button onclick="kirimPesan()" class="w-full btn bg-indigo-600 text-white py-2.5 text-sm mt-2"><i class="fa-solid fa-paper-plane mr-1"></i>Simpan pesan</button>
+    ${(function(){
+      const daftar=[].concat((S.profil.pesanAbi||[]).map(t=>({d:'Abi',t})), (S.profil.pesanUmmi||[]).map(t=>({d:'Ummi',t})));
+      return daftar.length? `<div class="mt-3 space-y-1.5">${daftar.map(x=>`
+        <div class="flex items-start gap-2 text-xs bg-slate-50 rounded-lg p-2">
+          <span class="font-bold text-${x.d==='Abi'?'sky':'rose'}-600 shrink-0">${x.d}</span>
+          <span class="flex-1">${esc(x.t)}</span>
+          <button onclick="hapusPesan('${x.d}','${js(x.t)}')" class="text-slate-300 hover:text-rose-500"><i class="fa-solid fa-xmark"></i></button>
+        </div>`).join('')}</div>` : '<p class="text-[11px] text-slate-400 mt-2">Belum ada pesan tersimpan. Pesan bawaan tetap muncul.</p>';
+    })()}
+  </section>
+
+  <section class="card p-4 mb-3">
+    <h3 class="font-bold mb-2">Cara mendampingi yang membantu</h3>
+    <ul class="text-xs text-slate-600 space-y-1.5 list-disc ml-4">
+      <li>Tanyakan <b>berapa lama belajar dan topik apa</b>, bukan hanya "dapat nilai berapa". Proses yang konsisten lebih meramalkan hasil.</li>
+      <li>Skor harian naik-turun itu normal; yang dilihat adalah tren dua mingguan di halaman Analisis.</li>
+      <li>Saat skornya turun setelah masuk topik baru, itu tanda sedang belajar hal sulit — bukan kemunduran.</li>
+      <li>Tidur 7–8 jam dan makan teratur berpengaruh besar terhadap ketelitian; banyak kesalahan lahir dari lelah, bukan dari tidak paham.</li>
+      <li>Rencanakan jalur cadangan (SNBT dan mandiri) sejak awal supaya tekanannya tidak menumpuk pada satu jalur.</li>
+    </ul>
+  </section>
+
+  <section class="card p-4">
+    <h3 class="font-bold mb-2">Rapor</h3>
+    <p class="text-xs text-slate-500 mb-2">Ringkasan lengkap yang bisa disimpan atau dikirim ke keluarga.</p>
+    <a href="#/rapor" class="btn bg-indigo-600 text-white py-3 text-sm block text-center">Buka rapor belajar</a>
+  </section>`;
+}
+let PENGIRIM='Ummi';
+function kirimPesan(){
+  const el=$('#pesanBaru'); const t=(el.value||'').trim(); if(!t) return;
+  const kunci = PENGIRIM==='Abi'?'pesanAbi':'pesanUmmi';
+  S.profil[kunci]=S.profil[kunci]||[]; S.profil[kunci].push(t); simpan(); render();
+  alert('Pesan dari '+PENGIRIM+' tersimpan. Akan muncul saat '+namaPanggil()+' latihan.');
+}
+function hapusPesan(dari,teks){
+  const kunci = dari==='Abi'?'pesanAbi':'pesanUmmi';
+  S.profil[kunci]=(S.profil[kunci]||[]).filter(x=>x!==teks); simpan(); render();
+}
+
 /* ---------- RAPOR (bisa dibagikan ke Abi / Ummi) ---------- */
 let PERIODE = 7;
 function setPeriode(n){ PERIODE=n; render(); }
 function ringkasanPeriode(hari){
   const batas = hari? tambahHari(hariIni(), -(hari-1)) : '0000-00-00';
-  let soal=0, menit=0, aktif=0;
-  Object.entries(S.harian).forEach(([t,d])=>{ if(t>=batas){ soal+=d.soal; menit+=d.menit; if(d.soal>0) aktif++; } });
+  let soal=0, menit=0, aktif=0, hBenar=0, hTotal=0;
+  Object.entries(S.harian).forEach(([t,d])=>{ if(t>=batas){ soal+=d.soal; menit+=d.menit; if(d.soal>0||d.total>0) aktif++;
+    hBenar += d.benar||0; hTotal += d.total||0; } });
   const sesi = S.sesi.filter(x=>x.tgl>=batas);
-  const benar = sesi.reduce((a,b)=>a+b.benar,0), total = sesi.reduce((a,b)=>a+b.total,0);
+  /* utamakan catatan per jawaban; sesi dipakai bila data harian belum ada (data lama) */
+  const benar = hTotal ? hBenar : sesi.reduce((a,b)=>a+b.benar,0);
+  const total = hTotal ? hTotal : sesi.reduce((a,b)=>a+b.total,0);
   const tryout = S.tryout.filter(x=>x.tgl>=batas);
   const rh = (S.rating.riwayat||[]).filter(x=>x.tgl>=batas);
   const naik = rh.length>=2 ? rh[rh.length-1].skor - rh[0].skor : null;

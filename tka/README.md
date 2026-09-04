@@ -12,7 +12,8 @@ dan tetap bisa dipakai tanpa internet setelah sekali dibuka.
 |---|---|
 | `index.html` | Kerangka aplikasi (Tailwind CDN + Font Awesome) |
 | `app.js` | Seluruh logika: mesin adaptif, sesi, rapor, target |
-| `data/bank-*.js` | Bank soal per mata uji beserta pembahasan |
+| `data/bank-*.js` | Bank soal per mata uji beserta pembahasan (275 soal) |
+| `data/materi.js` | Ringkasan materi, rumus kunci, dan jebakan tiap topik (77 kartu) |
 | `sw.js`, `manifest.json` | Dukungan offline & pemasangan ke layar utama (PWA) |
 
 ## Fitur
@@ -37,6 +38,12 @@ dan tetap bisa dipakai tanpa internet setelah sekali dibuka.
   lewat menu ⚙.
 - **Rapor belajar** — ringkasan 7 hari / 30 hari / seluruh waktu yang bisa dibagikan lewat
   WhatsApp, tombol Bagikan bawaan HP, disalin, atau dicetak ke PDF.
+- **Ringkasan materi** — 77 kartu konsep, rumus kunci, dan jebakan yang sering menjebak, muncul
+  otomatis saat menjawab salah dan bisa dibaca sendiri di halaman Materi.
+- **Simulasi hari-H** — lima mata uji penuh, boleh dicicil satu mata uji per hari sesuai aturan
+  TKA 2026, lalu dirangkum dalam satu laporan.
+- **Halaman Abi & Ummi** — pemantauan konsistensi, capaian per mata uji, dan tempat menitipkan
+  pesan yang akan muncul di layar ARAI saat berlatih.
 
 ## Format TKA SMA 2026 yang dipakai aplikasi
 
