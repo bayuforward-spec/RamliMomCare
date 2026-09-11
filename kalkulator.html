@@ -33,13 +33,12 @@
 
     <script>
         // =====================================================================
-        //  KALKULATOR PREDIKSI PERSALINAN — SC vs NORMAL
-        //  Model logistik berbasis sintesis odds ratio (OR) dari literatur.
-        //  VBAC: mengikuti prediktor Grobman/MFMU (2007, revisi 2021).
-        //  Bersifat ALAT BANTU EDUKASI — bukan kalkulator diagnostik tervalidasi.
+        //  HUB KALKULATOR PRAKTIK — dr. Bayu SpOG
+        //  Alat bantu edukasi/keputusan klinis. BUKAN pengganti penilaian klinis.
+        //  Disesuaikan untuk fasilitas RS tipe C (USG + lab dasar).
         // =====================================================================
 
-        const state = { mode: 'hamil' };
+        const state = { view: 'menu', scMode: 'hamil' };
 
         // ---------- helpers ----------
         const $ = (id) => document.getElementById(id);
@@ -51,427 +50,553 @@
         const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
         const orTxt = (d) => 'OR≈' + Math.exp(d).toFixed(Math.exp(d) < 1 ? 2 : 1);
 
-        // =====================================================================
-        //  MODEL — SAAT HAMIL (antenatal)
-        // =====================================================================
-        function computeHamil() {
-            const contrib = [];       // {label, delta}
-            const flags = [];         // indikasi (near-)absolut
-            const add = (cond, delta, label) => { if (cond) contrib.push({ label, delta }); };
-
-            const sc = sel('h_sc');                       // '0' | '1' | '2plus'
-            const usia = num('h_usia');
-            const bb = num('h_bb'), tb = num('h_tb');
-            const bmi = (bb > 0 && tb > 0) ? bb / Math.pow(tb / 100, 2) : null;
-            const uk = num('h_uk');
-            const efw = num('h_efw');
-            const pervaginam = chk('h_pervaginam');
-            const presentasi = sel('h_presentasi');
-            const previa = chk('h_previa');
-            const klasik = chk('h_klasik');
-
-            // ---- indikasi (near-)absolut ----
-            const previaFlag = previa;
-            const lintangFlag = presentasi === 'lintang';
-            const klasikFlag = sc !== '0' && klasik;
-            if (previaFlag) flags.push('Plasenta previa menutupi jalan lahir → indikasi SC');
-            if (lintangFlag) flags.push('Letak lintang persisten aterm → indikasi SC');
-            if (klasikFlag) flags.push('Riwayat SC klasik / insisi T / ruptur uteri → kontraindikasi TOLAC, SC');
-            const hardAbs = previaFlag || lintangFlag || klasikFlag;
-
-            let p;
-            if (hardAbs) {
-                p = 0.98;
-            } else if (sc === '0') {
-                // ------- antenatal tanpa riwayat SC -------
-                let L = -2.44; // baseline multipara, term, cephalic (~8%)
-                add(!pervaginam, 0.69, 'Nulipara / belum pernah melahirkan pervaginam');
-                add(usia >= 40, 0.69, 'Usia ≥40 tahun');
-                add(usia >= 35 && usia < 40, 0.41, 'Usia 35–39 tahun');
-                if (bmi !== null) {
-                    add(bmi >= 40, 0.99, 'IMT ≥40 (obesitas III)');
-                    add(bmi >= 35 && bmi < 40, 0.69, 'IMT 35–39,9 (obesitas II)');
-                    add(bmi >= 30 && bmi < 35, 0.41, 'IMT 30–34,9 (obesitas I)');
-                }
-                add(tb > 0 && tb < 150, 0.41, 'Tinggi badan <150 cm');
-                add(efw >= 4500, 1.10, 'Taksiran BB janin ≥4500 g');
-                add(efw >= 4000 && efw < 4500, 0.69, 'Taksiran BB janin 4000–4499 g (makrosomia)');
-                add(uk >= 41, 0.26, 'Usia kehamilan ≥41 minggu (lewat waktu)');
-                add(chk('h_diabetes'), 0.34, 'Diabetes (GDM/pregestasional)');
-                add(chk('h_ht'), 0.41, 'Hipertensi / preeklampsia');
-                add(chk('h_kembar'), 0.92, 'Kehamilan kembar');
-                add(chk('h_art'), 0.26, 'Kehamilan hasil ART/IVF');
-                add(chk('h_induksi'), 0.41, 'Rencana induksi (serviks belum matang)');
-                add(pervaginam, -0.92, 'Riwayat persalinan pervaginam');
-                contrib.forEach(c => L += c.delta);
-                p = clamp(sig(L), 0.03, 0.97);
-            } else {
-                // ------- riwayat SC → prediksi keberhasilan VBAC (Grobman) -------
-                let S = 0.85; // basis ~70% keberhasilan TOLAC
-                const indikasi = sel('h_indikasi');
-                add(pervaginam, 0.85, 'Riwayat persalinan pervaginam');
-                add(chk('h_vbac'), 1.00, 'Riwayat VBAC berhasil sebelumnya');
-                add(indikasi === 'nonrecurring', 0.40, 'Indikasi SC lalu non-recurring (sungsang/gawat janin/previa)');
-                add(indikasi === 'distosia', -0.55, 'Indikasi SC lalu distosia / gagal kemajuan persalinan');
-                add(chk('h_induksi'), -0.35, 'Rencana induksi (bukan persalinan spontan)');
-                if (bmi !== null) {
-                    add(bmi >= 40, -0.80, 'IMT ≥40');
-                    add(bmi >= 30 && bmi < 40, -0.45, 'IMT 30–39,9');
-                }
-                add(usia >= 35, -0.30, 'Usia ≥35 tahun');
-                add(efw >= 4000, -0.50, 'Taksiran makrosomia ≥4000 g');
-                add(chk('h_jarak'), -0.30, 'Jarak dari SC terakhir <18 bulan');
-                contrib.forEach(c => S += c.delta);
-                const success = clamp(sig(S), 0.05, 0.95);
-                p = 1 - success;
-            }
-
-            // ---- overlay flag non-hard ----
-            if (!hardAbs && sc === '2plus') {
-                p = Math.max(p, 0.90);
-                flags.push('Riwayat ≥2 SC → umumnya SC elektif (TOLAC hanya di pusat rujukan terpilih, konseling khusus)');
-            }
-            if (!hardAbs && presentasi === 'sungsang') {
-                p = Math.max(p, 0.90);
-                flags.push('Presentasi sungsang aterm → umumnya direncanakan SC (kecuali syarat persalinan sungsang pervaginam terpenuhi)');
-            }
-            p = clamp(p, 0.02, 0.985);
-
-            return { p, contrib, flags, mode: 'hamil', isVbac: sc !== '0' && !hardAbs, hardAbs };
-        }
-
-        // =====================================================================
-        //  MODEL — SAAT INPARTU (intrapartum)
-        // =====================================================================
-        function computeInpartu() {
-            const contrib = [];
-            const flags = [];
-            const cautions = [];
-            const add = (cond, delta, label) => { if (cond) contrib.push({ label, delta }); };
-
-            const ctg = sel('i_ctg');
-            const posisi = sel('i_posisi');
-            const prolaps = chk('i_prolaps'), ruptur = chk('i_ruptur'), solusio = chk('i_solusio');
-
-            if (prolaps) flags.push('Prolaps tali pusat → SC darurat');
-            if (ruptur) flags.push('Dugaan ruptur uteri → SC darurat / laparotomi');
-            if (solusio) flags.push('Solusio/previa dengan perdarahan aktif → SC darurat');
-            if (ctg === 'III') flags.push('CTG kategori III (abnormal, gawat janin) → segera lahirkan (umumnya SC bila belum kala II)');
-            if (posisi === 'dahi') flags.push('Presentasi dahi/muka mento-posterior / letak lintang → indikasi SC');
-            const hardAbs = prolaps || ruptur || solusio || ctg === 'III' || posisi === 'dahi';
-
-            let p;
-            if (hardAbs) {
-                p = 0.99;
-            } else {
-                let L = -1.99; // basis ~12%
-                const dil = num('i_dilatasi');
-                const kemajuan = sel('i_kemajuan');
-                add(chk('i_nulipara'), 0.50, 'Nulipara');
-                if (chk('i_sc')) { add(true, 0.50, 'Riwayat SC (persalinan percobaan / TOLAC)'); cautions.push('Pantau ketat tanda ruptur uteri (nyeri hebat, deselerasi, perdarahan, bagian janin teraba).'); }
-                add(has('i_dilatasi') && dil >= 6, -0.50, 'Pembukaan ≥6 cm (fase aktif lanjut)');
-                add(has('i_dilatasi') && dil < 4, 0.30, 'Pembukaan <4 cm');
-                add(kemajuan === 'arrest_dilatasi', 1.60, 'Arrest of dilatation (tak maju ≥4 jam his adekuat)');
-                add(kemajuan === 'arrest_descent', 1.40, 'Arrest of descent / kala II memanjang');
-                add(chk('i_induksi'), 0.40, 'Induksi / augmentasi oksitosin');
-                add(chk('i_induksi') && chk('i_bishop'), 0.50, 'Bishop <6 saat induksi');
-                add(ctg === 'II', 0.50, 'CTG kategori II (indeterminate)');
-                add(chk('i_mekonium'), 0.40, 'Mekonium kental');
-                add(chk('i_korio'), 0.40, 'Korioamnionitis / demam intrapartum');
-                add(chk('i_makrosomia'), 0.60, 'Taksiran makrosomia ≥4000 g');
-                add(chk('i_cpd'), 1.20, 'Dugaan disproporsi sefalopelvik (CPD)');
-                add(posisi === 'op', 0.70, 'Oksiput posterior persisten');
-                contrib.forEach(c => L += c.delta);
-                p = clamp(sig(L), 0.03, 0.97);
-            }
-            return { p, contrib, flags, cautions, mode: 'inpartu', hardAbs };
-        }
-
-        // =====================================================================
-        //  RECOMPUTE + RENDER HASIL
-        // =====================================================================
-        function recompute() {
-            // toggle grup VBAC (mode hamil)
-            const vg = $('vbacGroup');
-            if (vg) vg.hidden = (sel('h_sc') === '0' || sel('h_sc') === '');
-            const bishopWrap = $('bishopWrap');
-            if (bishopWrap) bishopWrap.hidden = !chk('i_induksi');
-
-            const r = state.mode === 'hamil' ? computeHamil() : computeInpartu();
-            const el = $('hasil');
-            if (el) el.innerHTML = renderHasil(r);
-        }
-        window.recompute = recompute;
-
-        function catInfo(p) {
-            if (p >= 0.75) return { t: 'Sangat mungkin SC', c: 'red', ic: 'fa-triangle-exclamation' };
-            if (p >= 0.50) return { t: 'Risiko SC Tinggi', c: 'orange', ic: 'fa-circle-exclamation' };
-            if (p >= 0.25) return { t: 'Risiko SC Sedang', c: 'amber', ic: 'fa-circle-half-stroke' };
-            return { t: 'Cenderung Persalinan Normal', c: 'emerald', ic: 'fa-circle-check' };
-        }
-
-        function renderHasil(r) {
-            const pSC = Math.round(r.p * 100);
-            const pN = 100 - pSC;
-            let cat = catInfo(r.p);
-            if (r.flags.length) cat = { t: 'Indikasi SC', c: 'red', ic: 'fa-triangle-exclamation' };
-
-            const dorong = r.contrib.filter(c => c.delta > 0).sort((a, b) => b.delta - a.delta);
-            const dukung = r.contrib.filter(c => c.delta < 0).sort((a, b) => a.delta - b.delta);
-
-            const chip = (c, color) => `<div class="flex items-start gap-2 text-sm text-slate-700 py-1"><i class="fa-solid ${c.delta > 0 ? 'fa-arrow-up text-' + color + '-500' : 'fa-arrow-down text-emerald-500'} text-xs mt-1"></i><span class="leading-snug flex-1">${c.label} <span class="text-[11px] text-slate-400 whitespace-nowrap">(${orTxt(c.delta)})</span></span></div>`;
-
-            return `
-            <div class="fade-up space-y-4">
-                <!-- Gauge -->
-                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5">
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-${cat.c}-100 text-${cat.c}-700"><i class="fa-solid ${cat.ic} mr-1"></i>${cat.t}</span>
-                    </div>
-                    <div class="flex items-end justify-between mb-1.5">
-                        <div><div class="text-3xl font-black text-emerald-600">${pN}%</div><div class="text-xs font-bold text-emerald-700/70">Normal / pervaginam${r.isVbac ? ' (VBAC berhasil)' : ''}</div></div>
-                        <div class="text-right"><div class="text-3xl font-black text-red-600">${pSC}%</div><div class="text-xs font-bold text-red-700/70">Seksio sesarea</div></div>
-                    </div>
-                    <div class="flex h-4 rounded-full overflow-hidden bg-slate-100 mt-2">
-                        <div class="bar-anim bg-emerald-500 h-full" style="width:${pN}%"></div>
-                        <div class="bar-anim bg-red-500 h-full" style="width:${pSC}%"></div>
-                    </div>
-                </div>
-
-                ${r.flags.length ? `
-                <div class="rounded-2xl bg-red-50 border border-red-200 p-4">
-                    <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-triangle-exclamation text-red-600"></i><h3 class="font-bold text-red-800 text-sm">Indikasi SC (near-absolut)</h3></div>
-                    <ul class="space-y-1.5">${r.flags.map(f => `<li class="flex gap-2 text-sm text-red-700"><i class="fa-solid fa-circle text-[5px] mt-2"></i><span>${f}</span></li>`).join('')}</ul>
-                </div>` : ''}
-
-                ${(r.cautions && r.cautions.length) ? `
-                <div class="rounded-xl bg-amber-50 border border-amber-200 p-3">
-                    ${r.cautions.map(c => `<div class="flex gap-2 text-xs text-amber-800"><i class="fa-solid fa-eye mt-0.5"></i><span>${c}</span></div>`).join('')}
-                </div>` : ''}
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4">
-                        <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-arrow-trend-up text-orange-500"></i><h3 class="font-bold text-slate-700 text-sm">Faktor pendorong SC</h3></div>
-                        ${dorong.length ? dorong.map(c => chip(c, 'orange')).join('') : '<div class="text-xs text-slate-400 py-1">Tidak ada faktor pendorong terpilih.</div>'}
-                    </div>
-                    <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4">
-                        <div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-arrow-trend-down text-emerald-500"></i><h3 class="font-bold text-slate-700 text-sm">Faktor pendukung normal</h3></div>
-                        ${dukung.length ? dukung.map(c => chip(c, 'emerald')).join('') : '<div class="text-xs text-slate-400 py-1">Tidak ada faktor pendukung terpilih.</div>'}
-                    </div>
-                </div>
-
-                <div class="rounded-xl bg-teal-50 border border-teal-100 p-3 text-[11px] text-teal-800 leading-relaxed">
-                    <i class="fa-solid fa-circle-info mr-1"></i>${interpretasi(r, pSC, cat)}
-                </div>
-
-                <button onclick="window.print()" class="w-full py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold hover:bg-slate-50 no-print"><i class="fa-solid fa-print mr-1.5"></i>Cetak / Simpan PDF</button>
-
-                <details class="rounded-xl bg-white border border-slate-100 shadow-sm p-4 text-sm">
-                    <summary class="font-bold text-slate-700 cursor-pointer">Sumber & catatan metode</summary>
-                    <div class="mt-3 space-y-2 text-xs text-slate-600 leading-relaxed">
-                        <p><b>Metode:</b> model logistik — logit = ln(odds dasar) + Σ ln(OR faktor). Persentase = fungsi sigmoid dari logit. Prediksi keberhasilan VBAC mengikuti prediktor Grobman/MFMU; OR faktor lain merupakan <b>sintesis dari literatur</b> (perkiraan, bukan koefisien regresi tunggal tervalidasi).</p>
-                        <ul class="list-disc pl-4 space-y-1">
-                            <li>Grobman WA, dkk. Development of a nomogram for prediction of vaginal birth after cesarean delivery. <i>Obstet Gynecol</i> 2007;109:806–12.</li>
-                            <li>Grobman WA, dkk. Prediction of VBAC — model tanpa ras/etnisitas. <i>Am J Obstet Gynecol</i> 2021.</li>
-                            <li>ACOG Practice Bulletin No. 205: Vaginal Birth After Cesarean Delivery, 2019.</li>
-                            <li>ACOG/SMFM Obstetric Care Consensus No. 1: Safe Prevention of the Primary Cesarean Delivery, 2014 (reaffirmed).</li>
-                            <li>Cunningham FG, dkk. <i>Williams Obstetrics</i>, ed. 26. McGraw-Hill; 2022 (persalinan normal, distosia, seksio sesarea).</li>
-                            <li>WHO. Recommendations non-clinical interventions to reduce unnecessary caesarean sections, 2018.</li>
-                            <li>PPK Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung, 2015.</li>
-                        </ul>
-                    </div>
-                </details>
-            </div>`;
-        }
-
-        function interpretasi(r, pSC, cat) {
-            if (r.flags.length) return 'Terdapat indikasi SC (near-absolut). Persentase di atas hanya ilustrasi; keputusan mengikuti indikasi tersebut dan protap institusi.';
-            if (r.isVbac) return `Estimasi keberhasilan percobaan persalinan pervaginam pasca-SC (TOLAC). Keputusan TOLAC vs SC elektif berulang bergantung pada konseling, fasilitas kegawatan, dan preferensi pasien. Keberhasilan VBAC ${100 - pSC}% umumnya tergolong ${(100 - pSC) >= 70 ? 'baik (≥70%) — TOLAC layak dipertimbangkan' : (100 - pSC) >= 50 ? 'sedang — perlu konseling seksama' : 'rendah — SC elektif berulang sering lebih dipilih'}.`;
-            if (r.mode === 'inpartu') return `Estimasi kemungkinan persalinan berakhir SC berdasarkan kondisi intrapartum saat ini. Nilai bersifat dinamis — hitung ulang mengikuti perkembangan pembukaan, penurunan, dan CTG.`;
-            return 'Estimasi antenatal kemungkinan persalinan berakhir SC. Angka dapat berubah mengikuti perjalanan persalinan; gunakan sebagai bahan konseling, bukan penentu tunggal.';
-        }
-
-        // =====================================================================
-        //  FORM UI
-        // =====================================================================
-        const fieldNum = (id, label, ph, unit) => `
+        // ---------- field builders ----------
+        const fNum = (id, label, ph, unit) => `
             <label class="block">
                 <span class="text-xs font-semibold text-slate-600">${label}</span>
                 <div class="relative mt-1">
-                    <input id="${id}" type="number" inputmode="decimal" oninput="recompute()" placeholder="${ph || ''}" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-teal-400 text-sm">
+                    <input id="${id}" type="number" inputmode="decimal" step="any" oninput="recompute()" placeholder="${ph || ''}" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-teal-400 text-sm">
                     ${unit ? `<span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">${unit}</span>` : ''}
                 </div>
             </label>`;
-        const fieldSel = (id, label, opts) => `
+        const fSel = (id, label, opts) => `
             <label class="block">
                 <span class="text-xs font-semibold text-slate-600">${label}</span>
                 <select id="${id}" onchange="recompute()" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-teal-400 text-sm bg-white">
                     ${opts.map(o => `<option value="${o.v}">${o.t}</option>`).join('')}
                 </select>
             </label>`;
-        const fieldChk = (id, label, sub) => `
+        const fChk = (id, label, sub) => `
             <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50">
                 <input id="${id}" type="checkbox" onchange="recompute()" class="mt-0.5 w-4 h-4 accent-teal-600 shrink-0">
                 <span class="text-sm text-slate-700 leading-snug">${label}${sub ? `<span class="block text-[11px] text-slate-400">${sub}</span>` : ''}</span>
             </label>`;
 
-        function formHamil() {
-            return `
-            <div class="space-y-3">
-                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 space-y-3">
-                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-teal-600"></i> Data dasar</h3>
-                    ${fieldSel('h_sc', 'Riwayat seksio sesarea', [{ v: '0', t: 'Belum pernah SC' }, { v: '1', t: '1× SC' }, { v: '2plus', t: '≥2× SC' }])}
-                    <div class="grid grid-cols-2 gap-3">
-                        ${fieldNum('h_usia', 'Usia ibu', '28', 'th')}
-                        ${fieldNum('h_uk', 'Usia kehamilan', '39', 'mgg')}
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        ${fieldNum('h_bb', 'Berat badan', '65', 'kg')}
-                        ${fieldNum('h_tb', 'Tinggi badan', '158', 'cm')}
-                    </div>
-                    ${fieldNum('h_efw', 'Taksiran berat janin', '3200', 'g')}
-                    ${fieldSel('h_presentasi', 'Presentasi', [{ v: 'kepala', t: 'Kepala (verteks)' }, { v: 'sungsang', t: 'Sungsang' }, { v: 'lintang', t: 'Lintang / oblik' }])}
-                    ${fieldChk('h_pervaginam', 'Pernah melahirkan pervaginam', 'riwayat persalinan normal sebelumnya')}
-                </div>
+        const card = (inner, cls) => `<div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 ${cls || ''}">${inner}</div>`;
+        const secTitle = (icon, t) => `<h3 class="font-bold text-slate-700 text-sm flex items-center gap-2 mb-2"><i class="fa-solid ${icon} text-teal-600"></i> ${t}</h3>`;
+        const badge = (t, c, icon) => `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-${c}-100 text-${c}-700">${icon ? `<i class="fa-solid ${icon} mr-1"></i>` : ''}${t}</span>`;
+        const alertBox = (c, icon, title, body) => `<div class="rounded-2xl bg-${c}-50 border border-${c}-200 p-4"><div class="flex items-center gap-2 mb-2"><i class="fa-solid ${icon} text-${c}-600"></i><h3 class="font-bold text-${c}-800 text-sm">${title}</h3></div><div class="text-sm text-${c}-800 leading-relaxed">${body}</div></div>`;
+        const srcBox = (items) => `<details class="rounded-xl bg-white border border-slate-100 shadow-sm p-4 text-sm"><summary class="font-bold text-slate-700 cursor-pointer">Sumber & catatan</summary><ul class="mt-3 list-disc pl-4 space-y-1 text-xs text-slate-600 leading-relaxed">${items.map(i => `<li>${i}</li>`).join('')}</ul></details>`;
 
-                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 space-y-2">
-                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2"><i class="fa-solid fa-notes-medical text-teal-600"></i> Faktor risiko</h3>
-                    ${fieldChk('h_diabetes', 'Diabetes (GDM / pregestasional)')}
-                    ${fieldChk('h_ht', 'Hipertensi / preeklampsia')}
-                    ${fieldChk('h_kembar', 'Kehamilan kembar')}
-                    ${fieldChk('h_art', 'Kehamilan hasil ART / IVF')}
-                    ${fieldChk('h_induksi', 'Rencana induksi persalinan', 'serviks belum matang')}
-                    ${fieldChk('h_previa', 'Plasenta previa menutupi jalan lahir')}
-                </div>
+        // =====================================================================
+        //  KATALOG KALKULATOR
+        // =====================================================================
+        const CALCS = [
+            { id: 'sc', nama: 'Prediksi Persalinan', ket: 'SC vs Normal (antenatal & intrapartum)', ikon: 'fa-scale-balanced', warna: 'teal', tag: 'Klinis' },
+            { id: 'pe', nama: 'Skrining Preeklampsia & Aspirin', ket: 'Faktor risiko + MAP + Uterine Artery PI', ikon: 'fa-heart-pulse', warna: 'rose', tag: 'USG + Klinis' },
+            { id: 'doppler', nama: 'Doppler, CPR & Staging FGR', ket: 'UA/MCA/DV → timing persalinan', ikon: 'fa-wave-square', warna: 'indigo', tag: 'USG' },
+            { id: 'aneuploidy', nama: 'Risiko Aneuploidi Trimester-1', ket: 'Usia + NT + penanda USG (tanpa biokimia)', ikon: 'fa-dna', warna: 'violet', tag: 'USG + Klinis' },
+            { id: 'pcos', nama: 'PCOS — Kriteria Rotterdam', ket: 'Klinis + USG (2 dari 3)', ikon: 'fa-venus', warna: 'pink', tag: 'USG + Klinis' },
+            { id: 'adnex', nama: 'Massa Adneksa — IOTA Simple Rules', ket: 'Bedakan jinak/ganas dari USG', ikon: 'fa-circle-dot', warna: 'amber', tag: 'USG' },
+            { id: 'pap', nama: 'Manajemen Hasil Pap Smear', ket: 'Rekomendasi berbasis sitologi', ikon: 'fa-microscope', warna: 'cyan', tag: 'Lab dasar' }
+        ];
 
-                <div id="vbacGroup" hidden class="rounded-2xl bg-teal-50/60 border border-teal-200 shadow-sm p-4 space-y-2">
-                    <h3 class="font-bold text-teal-800 text-sm flex items-center gap-2"><i class="fa-solid fa-repeat text-teal-600"></i> Khusus riwayat SC (VBAC)</h3>
-                    ${fieldSel('h_indikasi', 'Indikasi SC sebelumnya', [{ v: 'unknown', t: 'Tidak diketahui' }, { v: 'distosia', t: 'Distosia / gagal kemajuan persalinan' }, { v: 'nonrecurring', t: 'Non-recurring (sungsang, gawat janin, previa)' }])}
-                    ${fieldChk('h_vbac', 'Pernah VBAC berhasil sebelumnya')}
-                    ${fieldChk('h_jarak', 'Jarak dari SC terakhir <18 bulan')}
-                    ${fieldChk('h_klasik', 'Riwayat SC klasik / insisi T / ruptur uteri', 'kontraindikasi TOLAC')}
+        // =====================================================================
+        //  1) PREDIKSI PERSALINAN — SC vs NORMAL  (antenatal + intrapartum)
+        // =====================================================================
+        function computeHamil() {
+            const contrib = [], flags = [];
+            const add = (cond, delta, label) => { if (cond) contrib.push({ label, delta }); };
+            const sc = sel('h_sc'), usia = num('h_usia'), bb = num('h_bb'), tb = num('h_tb');
+            const bmi = (bb > 0 && tb > 0) ? bb / Math.pow(tb / 100, 2) : null;
+            const uk = num('h_uk'), efw = num('h_efw'), pervaginam = chk('h_pervaginam');
+            const presentasi = sel('h_presentasi'), previa = chk('h_previa'), klasik = chk('h_klasik');
+            const previaFlag = previa, lintangFlag = presentasi === 'lintang', klasikFlag = sc !== '0' && klasik;
+            if (previaFlag) flags.push('Plasenta previa menutupi jalan lahir → indikasi SC');
+            if (lintangFlag) flags.push('Letak lintang persisten aterm → indikasi SC');
+            if (klasikFlag) flags.push('Riwayat SC klasik / insisi T / ruptur uteri → kontraindikasi TOLAC, SC');
+            const hardAbs = previaFlag || lintangFlag || klasikFlag;
+            let p;
+            if (hardAbs) { p = 0.98; }
+            else if (sc === '0') {
+                let L = -2.44;
+                add(!pervaginam, 0.69, 'Nulipara / belum pernah melahirkan pervaginam');
+                add(usia >= 40, 0.69, 'Usia ≥40 tahun'); add(usia >= 35 && usia < 40, 0.41, 'Usia 35–39 tahun');
+                if (bmi !== null) { add(bmi >= 40, 0.99, 'IMT ≥40'); add(bmi >= 35 && bmi < 40, 0.69, 'IMT 35–39,9'); add(bmi >= 30 && bmi < 35, 0.41, 'IMT 30–34,9'); }
+                add(tb > 0 && tb < 150, 0.41, 'Tinggi badan <150 cm');
+                add(efw >= 4500, 1.10, 'TBJ ≥4500 g'); add(efw >= 4000 && efw < 4500, 0.69, 'TBJ 4000–4499 g (makrosomia)');
+                add(uk >= 41, 0.26, 'Usia kehamilan ≥41 minggu');
+                add(chk('h_diabetes'), 0.34, 'Diabetes (GDM/pregestasional)'); add(chk('h_ht'), 0.41, 'Hipertensi / preeklampsia');
+                add(chk('h_kembar'), 0.92, 'Kehamilan kembar'); add(chk('h_art'), 0.26, 'Kehamilan ART/IVF');
+                add(chk('h_induksi'), 0.41, 'Rencana induksi (serviks belum matang)');
+                add(pervaginam, -0.92, 'Riwayat persalinan pervaginam');
+                contrib.forEach(c => L += c.delta); p = clamp(sig(L), 0.03, 0.97);
+            } else {
+                let S = 0.85; const indikasi = sel('h_indikasi');
+                add(pervaginam, 0.85, 'Riwayat persalinan pervaginam');
+                add(chk('h_vbac'), 1.00, 'Riwayat VBAC berhasil sebelumnya');
+                add(indikasi === 'nonrecurring', 0.40, 'Indikasi SC lalu non-recurring');
+                add(indikasi === 'distosia', -0.55, 'Indikasi SC lalu distosia/gagal kemajuan');
+                add(chk('h_induksi'), -0.35, 'Rencana induksi (bukan persalinan spontan)');
+                if (bmi !== null) { add(bmi >= 40, -0.80, 'IMT ≥40'); add(bmi >= 30 && bmi < 40, -0.45, 'IMT 30–39,9'); }
+                add(usia >= 35, -0.30, 'Usia ≥35 tahun'); add(efw >= 4000, -0.50, 'Taksiran makrosomia ≥4000 g');
+                add(chk('h_jarak'), -0.30, 'Jarak dari SC terakhir <18 bulan');
+                contrib.forEach(c => S += c.delta); p = 1 - clamp(sig(S), 0.05, 0.95);
+            }
+            if (!hardAbs && sc === '2plus') { p = Math.max(p, 0.90); flags.push('Riwayat ≥2 SC → umumnya SC elektif (TOLAC hanya di pusat rujukan terpilih)'); }
+            if (!hardAbs && presentasi === 'sungsang') { p = Math.max(p, 0.90); flags.push('Presentasi sungsang aterm → umumnya direncanakan SC'); }
+            p = clamp(p, 0.02, 0.985);
+            return { p, contrib, flags, isVbac: sc !== '0' && !hardAbs };
+        }
+        function computeInpartu() {
+            const contrib = [], flags = [], cautions = [];
+            const add = (cond, delta, label) => { if (cond) contrib.push({ label, delta }); };
+            const ctg = sel('i_ctg'), posisi = sel('i_posisi');
+            const prolaps = chk('i_prolaps'), ruptur = chk('i_ruptur'), solusio = chk('i_solusio');
+            if (prolaps) flags.push('Prolaps tali pusat → SC darurat');
+            if (ruptur) flags.push('Dugaan ruptur uteri → SC darurat / laparotomi');
+            if (solusio) flags.push('Solusio/previa dengan perdarahan aktif → SC darurat');
+            if (ctg === 'III') flags.push('CTG kategori III → segera lahirkan (umumnya SC bila belum kala II)');
+            if (posisi === 'dahi') flags.push('Presentasi dahi/muka mento-post / lintang → indikasi SC');
+            const hardAbs = prolaps || ruptur || solusio || ctg === 'III' || posisi === 'dahi';
+            let p;
+            if (hardAbs) { p = 0.99; }
+            else {
+                let L = -1.99; const dil = num('i_dilatasi'), kemajuan = sel('i_kemajuan');
+                add(chk('i_nulipara'), 0.50, 'Nulipara');
+                if (chk('i_sc')) { add(true, 0.50, 'Riwayat SC (TOLAC)'); cautions.push('Pantau ketat tanda ruptur uteri.'); }
+                add(has('i_dilatasi') && dil >= 6, -0.50, 'Pembukaan ≥6 cm'); add(has('i_dilatasi') && dil < 4, 0.30, 'Pembukaan <4 cm');
+                add(kemajuan === 'arrest_dilatasi', 1.60, 'Arrest of dilatation'); add(kemajuan === 'arrest_descent', 1.40, 'Arrest of descent / kala II memanjang');
+                add(chk('i_induksi'), 0.40, 'Induksi/augmentasi oksitosin'); add(chk('i_induksi') && chk('i_bishop'), 0.50, 'Bishop <6 saat induksi');
+                add(ctg === 'II', 0.50, 'CTG kategori II'); add(chk('i_mekonium'), 0.40, 'Mekonium kental'); add(chk('i_korio'), 0.40, 'Korioamnionitis/demam');
+                add(chk('i_makrosomia'), 0.60, 'Taksiran makrosomia ≥4000 g'); add(chk('i_cpd'), 1.20, 'Dugaan disproporsi sefalopelvik');
+                add(posisi === 'op', 0.70, 'Oksiput posterior persisten');
+                contrib.forEach(c => L += c.delta); p = clamp(sig(L), 0.03, 0.97);
+            }
+            return { p, contrib, flags, cautions, isVbac: false };
+        }
+        function catInfoSC(p) {
+            if (p >= 0.75) return { t: 'Sangat mungkin SC', c: 'red', ic: 'fa-triangle-exclamation' };
+            if (p >= 0.50) return { t: 'Risiko SC Tinggi', c: 'orange', ic: 'fa-circle-exclamation' };
+            if (p >= 0.25) return { t: 'Risiko SC Sedang', c: 'amber', ic: 'fa-circle-half-stroke' };
+            return { t: 'Cenderung Persalinan Normal', c: 'emerald', ic: 'fa-circle-check' };
+        }
+        function renderHasilSC(r) {
+            const pSC = Math.round(r.p * 100), pN = 100 - pSC;
+            let cat = r.flags.length ? { t: 'Indikasi SC', c: 'red', ic: 'fa-triangle-exclamation' } : catInfoSC(r.p);
+            const dorong = r.contrib.filter(c => c.delta > 0).sort((a, b) => b.delta - a.delta);
+            const dukung = r.contrib.filter(c => c.delta < 0).sort((a, b) => a.delta - b.delta);
+            const chip = (c, col) => `<div class="flex items-start gap-2 text-sm text-slate-700 py-1"><i class="fa-solid ${c.delta > 0 ? 'fa-arrow-up text-' + col + '-500' : 'fa-arrow-down text-emerald-500'} text-xs mt-1"></i><span class="leading-snug flex-1">${c.label} <span class="text-[11px] text-slate-400 whitespace-nowrap">(${orTxt(c.delta)})</span></span></div>`;
+            let interp = r.flags.length ? 'Terdapat indikasi SC (near-absolut). Persentase hanya ilustrasi; keputusan mengikuti indikasi tersebut & protap institusi.'
+                : r.isVbac ? `Estimasi keberhasilan TOLAC/VBAC. Keberhasilan ${pN}% tergolong ${pN >= 70 ? 'baik (≥70%) — TOLAC layak dipertimbangkan' : pN >= 50 ? 'sedang — konseling seksama' : 'rendah — SC elektif berulang sering dipilih'}.`
+                : (state.scMode === 'inpartu' ? 'Estimasi berdasarkan kondisi intrapartum — hitung ulang mengikuti perkembangan pembukaan, penurunan & CTG.'
+                    : 'Estimasi antenatal; angka dapat berubah mengikuti perjalanan persalinan.');
+            return `<div class="fade-up space-y-4">
+                ${card(`<div class="flex items-center gap-2 mb-3">${badge(cat.t, cat.c, cat.ic)}</div>
+                    <div class="flex items-end justify-between mb-1.5">
+                        <div><div class="text-3xl font-black text-emerald-600">${pN}%</div><div class="text-xs font-bold text-emerald-700/70">Normal/pervaginam${r.isVbac ? ' (VBAC)' : ''}</div></div>
+                        <div class="text-right"><div class="text-3xl font-black text-red-600">${pSC}%</div><div class="text-xs font-bold text-red-700/70">Seksio sesarea</div></div>
+                    </div>
+                    <div class="flex h-4 rounded-full overflow-hidden bg-slate-100 mt-2"><div class="bar-anim bg-emerald-500 h-full" style="width:${pN}%"></div><div class="bar-anim bg-red-500 h-full" style="width:${pSC}%"></div></div>`)}
+                ${r.flags.length ? alertBox('red', 'fa-triangle-exclamation', 'Indikasi SC (near-absolut)', `<ul class="space-y-1.5">${r.flags.map(f => `<li class="flex gap-2"><i class="fa-solid fa-circle text-[5px] mt-2"></i><span>${f}</span></li>`).join('')}</ul>`) : ''}
+                ${(r.cautions && r.cautions.length) ? `<div class="rounded-xl bg-amber-50 border border-amber-200 p-3">${r.cautions.map(c => `<div class="flex gap-2 text-xs text-amber-800"><i class="fa-solid fa-eye mt-0.5"></i><span>${c}</span></div>`).join('')}</div>` : ''}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    ${card(`${secTitle('fa-arrow-trend-up', 'Faktor pendorong SC')}${dorong.length ? dorong.map(c => chip(c, 'orange')).join('') : '<div class="text-xs text-slate-400 py-1">Tidak ada.</div>'}`)}
+                    ${card(`${secTitle('fa-arrow-trend-down', 'Faktor pendukung normal')}${dukung.length ? dukung.map(c => chip(c, 'emerald')).join('') : '<div class="text-xs text-slate-400 py-1">Tidak ada.</div>'}`)}
                 </div>
+                <div class="rounded-xl bg-teal-50 border border-teal-100 p-3 text-[11px] text-teal-800 leading-relaxed"><i class="fa-solid fa-circle-info mr-1"></i>${interp}</div>
+                ${srcBox(['Grobman WA, dkk. VBAC nomogram. Obstet Gynecol 2007; revisi tanpa ras/etnis 2021.', 'ACOG PB No. 205 (VBAC) 2019; Obstetric Care Consensus No. 1 (Primary Cesarean) 2014.', 'Williams Obstetrics ed. 26, 2022. WHO 2018. PPK RSHS 2015.'])}
+            </div>`;
+        }
+        function scForm() {
+            const hamil = `<div class="space-y-3">
+                ${card(`${secTitle('fa-clipboard-list', 'Data dasar')}
+                    ${fSel('h_sc', 'Riwayat seksio sesarea', [{ v: '0', t: 'Belum pernah SC' }, { v: '1', t: '1× SC' }, { v: '2plus', t: '≥2× SC' }])}
+                    <div class="grid grid-cols-2 gap-3 mt-3">${fNum('h_usia', 'Usia ibu', '28', 'th')}${fNum('h_uk', 'Usia kehamilan', '39', 'mgg')}</div>
+                    <div class="grid grid-cols-2 gap-3 mt-3">${fNum('h_bb', 'Berat badan', '65', 'kg')}${fNum('h_tb', 'Tinggi badan', '158', 'cm')}</div>
+                    <div class="mt-3">${fNum('h_efw', 'Taksiran berat janin', '3200', 'g')}</div>
+                    <div class="mt-3">${fSel('h_presentasi', 'Presentasi', [{ v: 'kepala', t: 'Kepala (verteks)' }, { v: 'sungsang', t: 'Sungsang' }, { v: 'lintang', t: 'Lintang/oblik' }])}</div>
+                    <div class="mt-3">${fChk('h_pervaginam', 'Pernah melahirkan pervaginam')}</div>`)}
+                ${card(`${secTitle('fa-notes-medical', 'Faktor risiko')}<div class="space-y-2">${fChk('h_diabetes', 'Diabetes (GDM/pregestasional)')}${fChk('h_ht', 'Hipertensi / preeklampsia')}${fChk('h_kembar', 'Kehamilan kembar')}${fChk('h_art', 'Kehamilan hasil ART/IVF')}${fChk('h_induksi', 'Rencana induksi (serviks belum matang)')}${fChk('h_previa', 'Plasenta previa menutupi jalan lahir')}</div>`)}
+                <div id="vbacGroup" hidden>${card(`${secTitle('fa-repeat', 'Khusus riwayat SC (VBAC)')}${fSel('h_indikasi', 'Indikasi SC sebelumnya', [{ v: 'unknown', t: 'Tidak diketahui' }, { v: 'distosia', t: 'Distosia/gagal kemajuan' }, { v: 'nonrecurring', t: 'Non-recurring (sungsang/gawat janin/previa)' }])}<div class="space-y-2 mt-3">${fChk('h_vbac', 'Pernah VBAC berhasil')}${fChk('h_jarak', 'Jarak dari SC terakhir <18 bulan')}${fChk('h_klasik', 'Riwayat SC klasik/insisi T/ruptur uteri')}</div>`, 'bg-teal-50/60 border-teal-200')}</div>
+            </div>`;
+            const inpartu = `<div class="space-y-3">
+                ${card(`${secTitle('fa-person-pregnant', 'Kondisi persalinan')}<div class="space-y-2">${fChk('i_nulipara', 'Nulipara (persalinan pertama)')}${fChk('i_sc', 'Riwayat SC (TOLAC)')}</div>
+                    <div class="mt-3">${fNum('i_dilatasi', 'Pembukaan serviks saat ini', '5', 'cm')}</div>
+                    <div class="mt-3">${fSel('i_kemajuan', 'Kemajuan persalinan', [{ v: 'progresif', t: 'Progresif/sesuai partograf' }, { v: 'arrest_dilatasi', t: 'Arrest of dilatation (≥4 jam his adekuat)' }, { v: 'arrest_descent', t: 'Arrest of descent / kala II memanjang' }])}</div>
+                    <div class="mt-3">${fSel('i_posisi', 'Presentasi/posisi', [{ v: 'oa', t: 'Kepala, oksiput anterior' }, { v: 'op', t: 'Oksiput posterior persisten' }, { v: 'dahi', t: 'Dahi/muka mento-post / lintang' }])}</div>`)}
+                ${card(`${secTitle('fa-wave-square', 'Kesejahteraan janin & lain-lain')}<div class="mb-3">${fSel('i_ctg', 'CTG / DJJ', [{ v: 'I', t: 'Kategori I (normal)' }, { v: 'II', t: 'Kategori II (indeterminate)' }, { v: 'III', t: 'Kategori III (abnormal)' }])}</div><div class="space-y-2">${fChk('i_mekonium', 'Mekonium kental')}${fChk('i_korio', 'Korioamnionitis/demam')}${fChk('i_makrosomia', 'Taksiran makrosomia ≥4000 g')}${fChk('i_cpd', 'Dugaan disproporsi sefalopelvik (CPD)')}${fChk('i_induksi', 'Induksi/augmentasi oksitosin')}<div id="bishopWrap" hidden>${fChk('i_bishop', 'Bishop <6 saat mulai induksi')}</div></div>`)}
+                ${card(`${secTitle('fa-triangle-exclamation', 'Kegawatan (SC darurat)')}<div class="space-y-2">${fChk('i_prolaps', 'Prolaps tali pusat')}${fChk('i_ruptur', 'Dugaan ruptur uteri')}${fChk('i_solusio', 'Solusio/previa dengan perdarahan aktif')}</div>`, 'bg-red-50 border-red-200')}
+            </div>`;
+            return `<div class="grid grid-cols-2 gap-2 mb-4">
+                    <button onclick="setScMode('hamil')" class="py-2.5 rounded-xl text-sm font-bold border transition-colors ${state.scMode === 'hamil' ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-baby mr-1.5"></i>Saat Hamil</button>
+                    <button onclick="setScMode('inpartu')" class="py-2.5 rounded-xl text-sm font-bold border transition-colors ${state.scMode === 'inpartu' ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-person-pregnant mr-1.5"></i>Saat Inpartu</button>
+                </div>${state.scMode === 'hamil' ? hamil : inpartu}`;
+        }
+        window.setScMode = (m) => { state.scMode = m; renderApp(); };
+
+        // =====================================================================
+        //  2) SKRINING PREEKLAMPSIA & KANDIDAT ASPIRIN  (faktor + MAP + UtA-PI)
+        // =====================================================================
+        function utaThreshold(ga) { if (ga > 0 && ga < 14) return 2.35; if (ga < 18) return 2.0; if (ga < 24) return 1.6; return 1.4; }
+        function computePE() {
+            const high = [
+                [chk('pe_priorpe'), 'Riwayat preeklampsia'], [chk('pe_chtn'), 'Hipertensi kronik'],
+                [chk('pe_dm'), 'DM pragestasional (tipe 1/2)'], [chk('pe_renal'), 'Penyakit ginjal kronik'],
+                [chk('pe_auto'), 'Autoimun (SLE/APS)'], [chk('pe_multi'), 'Kehamilan kembar']
+            ].filter(x => x[0]).map(x => x[1]);
+            const mod = [
+                [chk('pe_nulli'), 'Nulipara'], [chk('pe_obes'), 'Obesitas (IMT ≥30)'],
+                [chk('pe_fh'), 'Riwayat PE pada ibu/saudari'], [chk('pe_age'), 'Usia ≥35 tahun'],
+                [chk('pe_ivf'), 'Kehamilan hasil ART/IVF'], [chk('pe_sga'), 'Riwayat BBLR/SGA sebelumnya'],
+                [chk('pe_interval'), 'Jarak antar-kehamilan >10 th / primipaternitas']
+            ].filter(x => x[0]).map(x => x[1]);
+            const sbp = num('pe_sbp'), dbp = num('pe_dbp');
+            const map = (sbp > 0 && dbp > 0) ? (sbp + 2 * dbp) / 3 : null;
+            const mapHigh = map !== null && map >= 100, mapBorder = map !== null && map >= 95 && map < 100;
+            const ga = num('pe_ga'), utapi = num('pe_utapi'), utaThr = utaThreshold(ga);
+            const utaHigh = utapi > 0 && ga > 0 && utapi > utaThr, notch = chk('pe_notch');
+            const dopplerAbn = utaHigh || notch;
+
+            const aspirinByFactor = high.length >= 1 || mod.length >= 2;
+            const aspirin = aspirinByFactor || dopplerAbn || mapHigh;
+            let level, lc;
+            if (high.length >= 1 || (utaHigh && notch) || mapHigh) { level = 'Risiko TINGGI'; lc = 'red'; }
+            else if (mod.length >= 2 || dopplerAbn || mapBorder) { level = 'Risiko SEDANG'; lc = 'amber'; }
+            else { level = 'Risiko Rendah'; lc = 'emerald'; }
+
+            const mapTxt = map !== null ? `MAP ${map.toFixed(0)} mmHg ${mapHigh ? '<b class="text-red-600">(meningkat)</b>' : mapBorder ? '<b class="text-amber-600">(borderline)</b>' : '(normal)'}` : 'MAP belum diisi';
+            const utaTxt = utapi > 0 && ga > 0 ? `Uterine artery mean PI ${utapi.toFixed(2)} (ambang >95th ≈ ${utaThr} pada ${ga} mgg) ${utaHigh ? '<b class="text-red-600">→ meningkat</b>' : '→ normal'}` : 'UtA-PI belum diisi';
+
+            return { html: `<div class="fade-up space-y-4">
+                ${card(`<div class="flex items-center gap-2 mb-3">${badge(level, lc, 'fa-heart-pulse')}</div>
+                    ${aspirin ? `<div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3 mb-2"><div class="font-bold text-emerald-800 text-sm mb-1"><i class="fa-solid fa-pills mr-1"></i>Aspirin dosis rendah DIREKOMENDASIKAN</div><div class="text-xs text-emerald-800 leading-relaxed">Aspirin <b>75–150 mg/hari</b> (umumnya 150 mg malam hari), mulai <b>12–16 minggu</b> (idealnya sebelum 16 mgg), lanjut hingga <b>36–37 minggu</b>. Pertimbangkan suplementasi <b>kalsium ≥1 g/hari</b> bila asupan rendah.</div></div>` : `<div class="rounded-xl bg-slate-50 border border-slate-200 p-3 mb-2 text-xs text-slate-600">Belum memenuhi ambang indikasi aspirin (perlu ≥1 faktor risiko tinggi atau ≥2 faktor sedang, atau penanda USG/MAP abnormal). Tetap lakukan surveilans tekanan darah & proteinuria rutin.</div>`}
+                    <div class="text-xs text-slate-600 space-y-1"><div><i class="fa-solid fa-gauge-high text-teal-500 mr-1"></i>${mapTxt}</div><div><i class="fa-solid fa-wave-square text-teal-500 mr-1"></i>${utaTxt}</div>${notch ? '<div><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>Notching diastolik bilateral (+)</div>' : ''}</div>`)}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    ${card(`${secTitle('fa-circle-exclamation', 'Faktor risiko tinggi (' + high.length + ')')}${high.length ? high.map(f => `<div class="text-sm text-slate-700 py-0.5"><i class="fa-solid fa-circle text-[5px] text-red-400 mr-1.5 align-middle"></i>${f}</div>`).join('') : '<div class="text-xs text-slate-400">Tidak ada.</div>'}`)}
+                    ${card(`${secTitle('fa-circle-half-stroke', 'Faktor risiko sedang (' + mod.length + ')')}${mod.length ? mod.map(f => `<div class="text-sm text-slate-700 py-0.5"><i class="fa-solid fa-circle text-[5px] text-amber-400 mr-1.5 align-middle"></i>${f}</div>`).join('') : '<div class="text-xs text-slate-400">Tidak ada.</div>'}`)}
+                </div>
+                ${srcBox(['ACOG Committee Opinion 743 (2018) / USPSTF 2021: aspirin pencegahan preeklampsia.', 'NICE NG133 (2019). FMF: UtA-PI & MAP sebagai penanda risiko (skrining trimester-1/mid).', 'POGI PNPK Preeklampsia 2016 (aspirin + kalsium).'])}
+            </div>` };
+        }
+        function peForm() {
+            return `<div class="space-y-3">
+                ${card(`${secTitle('fa-circle-exclamation', 'Faktor risiko TINGGI')}<div class="space-y-2">${fChk('pe_priorpe', 'Riwayat preeklampsia (kehamilan lalu)')}${fChk('pe_chtn', 'Hipertensi kronik')}${fChk('pe_dm', 'DM pragestasional (tipe 1/2)')}${fChk('pe_renal', 'Penyakit ginjal kronik')}${fChk('pe_auto', 'Autoimun (SLE / sindrom antifosfolipid)')}${fChk('pe_multi', 'Kehamilan kembar')}</div>`)}
+                ${card(`${secTitle('fa-circle-half-stroke', 'Faktor risiko SEDANG')}<div class="space-y-2">${fChk('pe_nulli', 'Nulipara')}${fChk('pe_obes', 'Obesitas (IMT ≥30)')}${fChk('pe_fh', 'Riwayat PE pada ibu/saudari kandung')}${fChk('pe_age', 'Usia ≥35 tahun')}${fChk('pe_ivf', 'Kehamilan hasil ART/IVF')}${fChk('pe_sga', 'Riwayat bayi BBLR/SGA sebelumnya')}${fChk('pe_interval', 'Jarak antar-kehamilan >10 th / primipaternitas')}</div>`)}
+                ${card(`${secTitle('fa-gauge-high', 'Penanda USG & tekanan darah (opsional)')}
+                    <div class="grid grid-cols-2 gap-3">${fNum('pe_sbp', 'Sistolik', '120', 'mmHg')}${fNum('pe_dbp', 'Diastolik', '80', 'mmHg')}</div>
+                    <div class="grid grid-cols-2 gap-3 mt-3">${fNum('pe_ga', 'Usia kehamilan', '12', 'mgg')}${fNum('pe_utapi', 'Uterine artery mean PI', '1.2', '')}</div>
+                    <div class="mt-3">${fChk('pe_notch', 'Notching diastolik bilateral pada Doppler UtA')}</div>`)}
             </div>`;
         }
 
-        function formInpartu() {
-            return `
-            <div class="space-y-3">
-                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 space-y-3">
-                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2"><i class="fa-solid fa-person-pregnant text-teal-600"></i> Kondisi persalinan</h3>
-                    ${fieldChk('i_nulipara', 'Nulipara (persalinan pertama)')}
-                    ${fieldChk('i_sc', 'Riwayat SC (persalinan percobaan / TOLAC)')}
-                    ${fieldNum('i_dilatasi', 'Pembukaan serviks saat ini', '5', 'cm')}
-                    ${fieldSel('i_kemajuan', 'Kemajuan persalinan', [{ v: 'progresif', t: 'Progresif / sesuai partograf' }, { v: 'arrest_dilatasi', t: 'Arrest of dilatation (tak maju ≥4 jam his adekuat)' }, { v: 'arrest_descent', t: 'Arrest of descent / kala II memanjang' }])}
-                    ${fieldSel('i_posisi', 'Presentasi / posisi', [{ v: 'oa', t: 'Kepala, oksiput anterior' }, { v: 'op', t: 'Oksiput posterior persisten' }, { v: 'dahi', t: 'Dahi/muka mento-post / lintang' }])}
-                </div>
+        // =====================================================================
+        //  3) DOPPLER, CPR & STAGING FGR  (Barcelona/ISUOG)
+        // =====================================================================
+        function computeDoppler() {
+            const ga = num('d_ga'), ua = num('d_uapi'), mca = num('d_mcapi');
+            const cpr = (ua > 0 && mca > 0) ? mca / ua : null;
+            const efw = sel('d_efw'), uact = sel('d_uact'), mcact = sel('d_mcact'), cprct = sel('d_cprct');
+            const edf = sel('d_edf'), dv = sel('d_dv'), uta = sel('d_uta');
 
-                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 space-y-2">
-                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2"><i class="fa-solid fa-wave-square text-teal-600"></i> Kesejahteraan janin & lain-lain</h3>
-                    ${fieldSel('i_ctg', 'CTG / DJJ', [{ v: 'I', t: 'Kategori I (normal)' }, { v: 'II', t: 'Kategori II (indeterminate)' }, { v: 'III', t: 'Kategori III (abnormal)' }])}
-                    ${fieldChk('i_mekonium', 'Mekonium kental')}
-                    ${fieldChk('i_korio', 'Korioamnionitis / demam intrapartum')}
-                    ${fieldChk('i_makrosomia', 'Taksiran makrosomia ≥4000 g')}
-                    ${fieldChk('i_cpd', 'Dugaan disproporsi sefalopelvik (CPD)')}
-                    ${fieldChk('i_induksi', 'Induksi / augmentasi oksitosin')}
-                    <div id="bishopWrap" hidden>${fieldChk('i_bishop', 'Bishop <6 saat mulai induksi')}</div>
-                </div>
+            const smallEFW = efw === 'lt3' || efw === '3to9';
+            const anyStageI = uact === 'high' || mcact === 'low' || cprct === 'low' || uta === 'high' || efw === 'lt3';
+            let stage = 0, timing = '', freq = '', sc = false;
+            if (edf === 'redf' || dv === 'abn') { stage = 3; timing = '≈ 30–32 minggu (atau segera bila DV a-wave reversed / CTG abnormal)'; freq = 'Rawat inap, pemantauan 12 jam–harian, kortikosteroid, MgSO₄ neuroproteksi'; sc = true; }
+            else if (edf === 'aedf') { stage = 2; timing = '≈ 34 minggu'; freq = 'Pemantauan 1–2×/hari (rawat), kortikosteroid'; sc = true; }
+            else if (anyStageI) { stage = 1; timing = '≈ 37 minggu'; freq = 'Doppler 1–2×/minggu, evaluasi pertumbuhan tiap 2 minggu'; }
+            else if (efw === '3to9') { stage = 0; timing = '≈ 37–39 minggu'; freq = 'SGA/low-risk: Doppler tiap 1–2 minggu, surveilans janin'; }
+            else { stage = -1; }
 
-                <div class="rounded-2xl bg-red-50 border border-red-200 shadow-sm p-4 space-y-2">
-                    <h3 class="font-bold text-red-800 text-sm flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Kegawatan (indikasi SC darurat)</h3>
-                    ${fieldChk('i_prolaps', 'Prolaps tali pusat')}
-                    ${fieldChk('i_ruptur', 'Dugaan ruptur uteri')}
-                    ${fieldChk('i_solusio', 'Solusio / previa dengan perdarahan aktif')}
-                </div>
+            const stageName = { '-1': 'Doppler dalam batas normal', '0': 'Small-for-GA / risiko rendah', '1': 'FGR Stadium I', '2': 'FGR Stadium II', '3': 'FGR Stadium III–IV' };
+            const stageColor = { '-1': 'emerald', '0': 'teal', '1': 'amber', '2': 'orange', '3': 'red' };
+            const cprTxt = cpr !== null ? cpr.toFixed(2) : '—';
+
+            return { html: `<div class="fade-up space-y-4">
+                ${card(`<div class="flex items-center gap-2 mb-3 flex-wrap">${badge(stageName[stage], stageColor[stage], 'fa-wave-square')}${sc ? badge('Umumnya SC', 'red', 'fa-scissors') : ''}</div>
+                    <div class="grid grid-cols-3 gap-2 text-center mb-2">
+                        <div class="rounded-lg bg-slate-50 p-2"><div class="text-lg font-black text-slate-700">${ua > 0 ? ua.toFixed(2) : '—'}</div><div class="text-[10px] text-slate-500">UA-PI</div></div>
+                        <div class="rounded-lg bg-slate-50 p-2"><div class="text-lg font-black text-slate-700">${mca > 0 ? mca.toFixed(2) : '—'}</div><div class="text-[10px] text-slate-500">MCA-PI</div></div>
+                        <div class="rounded-lg bg-indigo-50 p-2"><div class="text-lg font-black text-indigo-700">${cprTxt}</div><div class="text-[10px] text-indigo-500">CPR</div></div>
+                    </div>
+                    <div class="text-[11px] text-slate-500">CPR = MCA-PI ÷ UA-PI. CPR <5th centile (± <1,0 mendekati aterm) = abnormal (brain sparing). Gunakan tabel centile mesin USG Anda sesuai usia kehamilan.</div>`)}
+                ${stage >= 1 ? alertBox(stageColor[String(stage)], 'fa-clock', 'Rencana tindak lanjut', `<div class="space-y-1"><div><b>Perkiraan waktu persalinan:</b> ${timing}</div><div><b>Pemantauan:</b> ${freq}</div>${sc ? '<div><b>Cara persalinan:</b> umumnya seksio sesarea (toleransi persalinan buruk).</div>' : ''}</div>`) : (stage === 0 ? alertBox('teal', 'fa-clock', 'Rencana tindak lanjut', `<div><b>Perkiraan waktu persalinan:</b> ${timing}</div><div><b>Pemantauan:</b> ${freq}</div>`) : `<div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-800">Doppler normal — lanjutkan surveilans rutin sesuai indikasi.</div>`)}
+                <div class="rounded-xl bg-indigo-50 border border-indigo-100 p-3 text-[11px] text-indigo-800 leading-relaxed"><i class="fa-solid fa-circle-info mr-1"></i><b>Kapan dipakai:</b> UtA-PI trimester 1 (11–13⁺⁶) / mid (20–24 mgg) untuk skrining PE; UA/MCA/CPR untuk surveilans FGR trimester 3 (≥26–28 mgg), CPR/MCA paling bermakna late-onset (≥32 mgg).</div>
+                ${srcBox(['Figueras F, Gratacós E. Protokol Barcelona: staging & manajemen FGR. Fetal Diagn Ther 2014.', 'ISUOG Practice Guidelines: Doppler in obstetrics, 2020.', 'Gordijn SJ, dkk. Consensus definition FGR (Delphi). UOG 2016.'])}
+            </div>` };
+        }
+        function dopplerForm() {
+            return `<div class="space-y-3">
+                ${card(`${secTitle('fa-ruler', 'Data & pengukuran')}
+                    <div class="mb-3">${fNum('d_ga', 'Usia kehamilan', '32', 'mgg')}</div>
+                    <div class="grid grid-cols-2 gap-3">${fNum('d_uapi', 'Umbilical artery PI', '1.1', '')}${fNum('d_mcapi', 'MCA-PI', '1.5', '')}</div>
+                    <div class="mt-3">${fSel('d_efw', 'Persentil taksiran berat janin', [{ v: 'na', t: 'Tidak dinilai' }, { v: 'gt10', t: '≥10th (normal)' }, { v: '3to9', t: '3th–9th (SGA)' }, { v: 'lt3', t: '<3rd centile' }])}</div>`)}
+                ${card(`${secTitle('fa-list-check', 'Status centile & gelombang (dari mesin USG Anda)')}
+                    ${fSel('d_uact', 'UA-PI centile', [{ v: 'norm', t: '≤95th (normal)' }, { v: 'high', t: '>95th (meningkat)' }])}
+                    <div class="mt-3">${fSel('d_edf', 'End-diastolic flow (UA)', [{ v: 'normal', t: 'Positif/normal' }, { v: 'aedf', t: 'Absent (AEDF)' }, { v: 'redf', t: 'Reversed (REDF)' }])}</div>
+                    <div class="mt-3">${fSel('d_mcact', 'MCA-PI centile', [{ v: 'norm', t: '≥5th (normal)' }, { v: 'low', t: '<5th (brain sparing)' }])}</div>
+                    <div class="mt-3">${fSel('d_cprct', 'CPR centile', [{ v: 'norm', t: '≥5th (normal)' }, { v: 'low', t: '<5th (abnormal)' }])}</div>
+                    <div class="mt-3">${fSel('d_uta', 'Uterine artery mean PI', [{ v: 'norm', t: '≤95th (normal)' }, { v: 'high', t: '>95th (meningkat)' }])}</div>
+                    <div class="mt-3">${fSel('d_dv', 'Ductus venosus a-wave', [{ v: 'norm', t: 'Normal/positif' }, { v: 'abn', t: 'Absent / reversed' }])}</div>`)}
             </div>`;
         }
+
+        // =====================================================================
+        //  4) RISIKO ANEUPLOIDI TRIMESTER-1  (usia + NT + penanda USG)
+        // =====================================================================
+        const AGE_T21 = { 20: 1450, 25: 1350, 30: 900, 31: 820, 32: 720, 33: 600, 34: 480, 35: 350, 36: 280, 37: 220, 38: 170, 39: 130, 40: 100, 41: 80, 42: 60, 43: 45, 44: 35, 45: 28 };
+        function ageRiskDenom(age) {
+            if (age <= 20) return 1450; if (age >= 45) return 28;
+            const lo = Math.floor(age), hi = Math.ceil(age);
+            const dl = AGE_T21[lo] || AGE_T21[Math.max(20, Math.min(45, lo))];
+            const dh = AGE_T21[hi] || dl;
+            return Math.round(dl + (dh - dl) * (age - lo));
+        }
+        function computeAneuploidy() {
+            const age = num('an_age'), nt = num('an_nt');
+            const nb = sel('an_nb'), tr = sel('an_tr'), dv = sel('an_dv');
+            const denom = ageRiskDenom(age || 30);
+            const priorOdds = 1 / (denom - 1);
+            const markers = [];
+            let LR = 1;
+            if (nt >= 4.5) { LR *= 14; markers.push(['NT ≥4,5 mm', 14]); }
+            else if (nt >= 3.5) { LR *= 7; markers.push(['NT 3,5–4,4 mm', 7]); }
+            else if (nt >= 3.0) { LR *= 3; markers.push(['NT 3,0–3,4 mm', 3]); }
+            else if (nt > 0) { LR *= 0.8; markers.push(['NT <3,0 mm', 0.8]); }
+            if (nb === 'absent') { LR *= 25; markers.push(['Nasal bone absen', 25]); } else if (nb === 'present') { LR *= 0.65; markers.push(['Nasal bone (+)', 0.65]); }
+            if (tr === 'yes') { LR *= 7; markers.push(['Regurgitasi trikuspid (+)', 7]); } else if (tr === 'no') { LR *= 0.6; markers.push(['Trikuspid normal', 0.6]); }
+            if (dv === 'rev') { LR *= 5; markers.push(['Ductus venosus a-wave reversed', 5]); } else if (dv === 'norm') { LR *= 0.6; markers.push(['Ductus venosus normal', 0.6]); }
+            let postOdds = priorOdds * LR;
+            let risk = postOdds / (1 + postOdds);
+            risk = clamp(risk, 1 / 20000, 0.5);
+            const adjDenom = Math.round(1 / risk);
+            let cat, cc;
+            if (adjDenom <= 50 || nt >= 3.5) { cat = 'Risiko TINGGI'; cc = 'red'; }
+            else if (adjDenom <= 250) { cat = 'Risiko Sedang'; cc = 'amber'; }
+            else { cat = 'Risiko Rendah'; cc = 'emerald'; }
+            const rec = cc === 'red' ? 'Rujuk untuk <b>NIPT</b> atau <b>diagnostik pasti</b> (CVS/amniosentesis) & konseling genetik. Evaluasi USG anomali (18–22 mgg).'
+                : cc === 'amber' ? 'Pertimbangkan <b>NIPT</b> untuk stratifikasi lanjut; USG anomali terjadwal.'
+                    : 'Risiko rendah — lanjutkan skrining/USG rutin. NIPT opsional sesuai preferensi & sumber daya.';
+            return { html: `<div class="fade-up space-y-4">
+                ${card(`<div class="flex items-center gap-2 mb-3">${badge(cat, cc, 'fa-dna')}</div>
+                    <div class="flex items-end justify-between">
+                        <div><div class="text-[11px] text-slate-500">Risiko dasar (usia ${age || '?'} th)</div><div class="text-lg font-bold text-slate-600">≈ 1 : ${denom}</div></div>
+                        <div class="text-right"><div class="text-[11px] text-slate-500">Risiko disesuaikan (T21)</div><div class="text-2xl font-black text-${cc}-600">≈ 1 : ${adjDenom}</div></div>
+                    </div>`)}
+                ${card(`${secTitle('fa-list', 'Penanda yang diterapkan')}${markers.length ? markers.map(m => `<div class="flex justify-between text-sm text-slate-700 py-0.5"><span>${m[0]}</span><span class="text-[11px] text-slate-400">LR ×${m[1]}</span></div>`).join('') : '<div class="text-xs text-slate-400">Belum ada penanda diisi.</div>'}`)}
+                ${alertBox(cc, 'fa-user-doctor', 'Rekomendasi', rec)}
+                <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-[11px] text-amber-800 leading-relaxed"><i class="fa-solid fa-triangle-exclamation mr-1"></i><b>Penting:</b> Ini estimasi berbasis usia + NT + penanda USG dengan likelihood ratio pustaka — <b>bukan</b> uji kombinasi tervalidasi (yang butuh PAPP-A/β-hCG bebas) apalagi diagnostik. Sensitivitas lebih rendah. Ambang klinis lazim 1:250–1:270. Selalu tawarkan NIPT/diagnostik bila risiko sedang–tinggi atau NT ≥3,5 mm.</div>
+                ${srcBox(['Nicolaides KH / Fetal Medicine Foundation: NT & penanda USG (nasal bone, tricuspid, ductus venosus) — likelihood ratio.', 'Kagan KO, dkk. First-trimester combined screening. UOG.', 'Risiko spesifik usia untuk trisomi 21 (tabel populasi).'])}
+            </div>` };
+        }
+        function aneuploidyForm() {
+            return `<div class="space-y-3">
+                ${card(`${secTitle('fa-user', 'Data ibu & NT')}<div class="grid grid-cols-2 gap-3">${fNum('an_age', 'Usia ibu', '30', 'th')}${fNum('an_nt', 'Nuchal translucency', '1.8', 'mm')}</div><div class="text-[11px] text-slate-400 mt-2">NT diukur pada CRL 45–84 mm (11–13⁺⁶ mgg).</div>`)}
+                ${card(`${secTitle('fa-magnifying-glass', 'Penanda USG (opsional)')}
+                    ${fSel('an_nb', 'Nasal bone', [{ v: 'na', t: 'Tidak dinilai' }, { v: 'present', t: 'Ada (normal)' }, { v: 'absent', t: 'Absen' }])}
+                    <div class="mt-3">${fSel('an_tr', 'Regurgitasi trikuspid', [{ v: 'na', t: 'Tidak dinilai' }, { v: 'no', t: 'Tidak ada (normal)' }, { v: 'yes', t: 'Ada' }])}</div>
+                    <div class="mt-3">${fSel('an_dv', 'Ductus venosus a-wave', [{ v: 'na', t: 'Tidak dinilai' }, { v: 'norm', t: 'Normal/positif' }, { v: 'rev', t: 'Reversed' }])}</div>`)}
+            </div>`;
+        }
+
+        // =====================================================================
+        //  5) PCOS — KRITERIA ROTTERDAM (klinis + USG)
+        // =====================================================================
+        function computePCOS() {
+            const oligo = chk('pc_oligo'), ha = chk('pc_ha'), usg = chk('pc_usg'), excl = chk('pc_excl');
+            const n = [oligo, ha, usg].filter(Boolean).length;
+            const dx = n >= 2;
+            let phen = '—';
+            if (oligo && ha && usg) phen = 'Fenotipe A (HA + oligo-anovulasi + PCOM)';
+            else if (oligo && ha) phen = 'Fenotipe B (HA + oligo-anovulasi)';
+            else if (ha && usg) phen = 'Fenotipe C (HA + PCOM)';
+            else if (oligo && usg) phen = 'Fenotipe D (oligo-anovulasi + PCOM)';
+            const c = dx ? 'pink' : 'slate';
+            return { html: `<div class="fade-up space-y-4">
+                ${card(`<div class="flex items-center gap-2 mb-3">${badge(dx ? 'Memenuhi kriteria PCOS' : 'Belum memenuhi (butuh ≥2 dari 3)', c, dx ? 'fa-check' : 'fa-circle-info')}</div>
+                    <div class="space-y-1.5 text-sm">
+                        <div class="flex items-center gap-2"><i class="fa-solid ${oligo ? 'fa-square-check text-pink-600' : 'fa-square text-slate-300'}"></i>Oligo-/anovulasi</div>
+                        <div class="flex items-center gap-2"><i class="fa-solid ${ha ? 'fa-square-check text-pink-600' : 'fa-square text-slate-300'}"></i>Hiperandrogenisme klinis</div>
+                        <div class="flex items-center gap-2"><i class="fa-solid ${usg ? 'fa-square-check text-pink-600' : 'fa-square text-slate-300'}"></i>Morfologi ovarium polikistik (USG)</div>
+                    </div>
+                    ${dx ? `<div class="mt-3 text-sm font-bold text-pink-700">${phen}</div>` : ''}`)}
+                ${!excl ? alertBox('amber', 'fa-flask', 'Singkirkan diagnosis banding dulu', 'Diagnosis Rotterdam bersifat <b>eksklusi</b>: singkirkan gangguan tiroid (TSH), hiperprolaktinemia (prolaktin), dan bila dicurigai — CAH (17-OHP), Cushing, tumor penghasil androgen. Centang konfirmasi bila sudah disingkirkan.') : ''}
+                ${dx ? alertBox('pink', 'fa-clipboard-list', 'Tata laksana ringkas', '<b>Lini pertama:</b> modifikasi gaya hidup (berat badan, aktivitas). <b>Induksi ovulasi (ingin hamil):</b> letrozol lini pertama. <b>Tanpa rencana hamil:</b> kontrasepsi oral kombinasi untuk siklus & hiperandrogenisme; ± metformin bila ada gangguan metabolik. Skrining toleransi glukosa & profil lipid.') : ''}
+                ${srcBox(['Rotterdam ESHRE/ASRM 2003: kriteria diagnostik PCOS (≥2 dari 3).', 'International Evidence-based Guideline PCOS 2018 (ESHRE): PCOM USG ≥20 folikel/ovarium (transduser ≥8 MHz) atau volume ≥10 mL.', 'Bila remaja: butuh oligo-anovulasi + hiperandrogenisme (PCOM saja tidak cukup).'])}
+            </div>` };
+        }
+        function pcosForm() {
+            return `<div class="space-y-3">
+                ${card(`${secTitle('fa-venus', 'Kriteria Rotterdam (klinis + USG)')}<div class="space-y-2">
+                    ${fChk('pc_oligo', 'Oligo-/anovulasi', 'siklus >35 hari / <8 siklus per tahun / amenorea')}
+                    ${fChk('pc_ha', 'Hiperandrogenisme klinis', 'hirsutisme (skor mFG ≥4–6), akne berat, alopesia androgenik')}
+                    ${fChk('pc_usg', 'Morfologi ovarium polikistik (USG)', '≥20 folikel 2–9 mm per ovarium atau volume ovarium ≥10 mL')}
+                </div>`)}
+                ${card(`${secTitle('fa-flask', 'Diagnosis banding')}${fChk('pc_excl', 'Sudah menyingkirkan penyebab lain (tiroid, prolaktin, CAH, Cushing)')}`)}
+            </div>`;
+        }
+
+        // =====================================================================
+        //  6) MASSA ADNEKSA — IOTA SIMPLE RULES
+        // =====================================================================
+        function computeAdnex() {
+            const M = [
+                [chk('m1'), 'Tumor solid ireguler'], [chk('m2'), 'Asites'], [chk('m3'), '≥4 struktur papiler'],
+                [chk('m4'), 'Tumor multilokular-solid ireguler, diameter ≥100 mm'], [chk('m5'), 'Vaskularisasi sangat kuat (colour score 4)']
+            ].filter(x => x[0]).map(x => x[1]);
+            const B = [
+                [chk('b1'), 'Kista unilokular'], [chk('b2'), 'Komponen solid terbesar <7 mm'], [chk('b3'), 'Bayangan akustik (acoustic shadow)'],
+                [chk('b4'), 'Tumor multilokular halus, diameter <100 mm'], [chk('b5'), 'Tanpa aliran darah (colour score 1)']
+            ].filter(x => x[0]).map(x => x[1]);
+            const hasM = M.length > 0, hasB = B.length > 0;
+            let res, c, rec;
+            if (hasM && !hasB) { res = 'GANAS (malignant)'; c = 'red'; rec = 'Rujuk ke <b>ginekologi onkologi</b>. Lengkapi CA-125 (± HE4/ADNEX), pencitraan stadium, tumor board.'; }
+            else if (hasB && !hasM) { res = 'JINAK (benign)'; c = 'emerald'; rec = 'Kemungkinan besar jinak. Tata laksana konservatif/ekspektatif atau bedah minimal invasif sesuai gejala & ukuran; kontrol USG.'; }
+            else { res = 'TIDAK DAPAT DISIMPULKAN'; c = 'amber'; rec = 'Simple Rules tidak berlaku (fitur M & B bersamaan, atau tidak ada). Nilai oleh <b>pemeriksa ahli</b> dan/atau gunakan model <b>ADNEX</b> (± CA-125); pertimbangkan rujukan.'; }
+            return { html: `<div class="fade-up space-y-4">
+                ${card(`<div class="flex items-center gap-2 mb-2">${badge(res, c, 'fa-circle-dot')}</div><div class="text-xs text-slate-500">Fitur M (ganas): <b>${M.length}</b> · Fitur B (jinak): <b>${B.length}</b></div>`)}
+                ${alertBox(c, 'fa-user-doctor', 'Rekomendasi', rec)}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    ${card(`${secTitle('fa-triangle-exclamation', 'Fitur M terpilih')}${M.length ? M.map(f => `<div class="text-sm text-slate-700 py-0.5"><i class="fa-solid fa-circle text-[5px] text-red-400 mr-1.5 align-middle"></i>${f}</div>`).join('') : '<div class="text-xs text-slate-400">Tidak ada.</div>'}`)}
+                    ${card(`${secTitle('fa-circle-check', 'Fitur B terpilih')}${B.length ? B.map(f => `<div class="text-sm text-slate-700 py-0.5"><i class="fa-solid fa-circle text-[5px] text-emerald-400 mr-1.5 align-middle"></i>${f}</div>`).join('') : '<div class="text-xs text-slate-400">Tidak ada.</div>'}`)}
+                </div>
+                <div class="rounded-xl bg-amber-50 border border-amber-100 p-3 text-[11px] text-amber-800 leading-relaxed"><i class="fa-solid fa-circle-info mr-1"></i>IOTA Simple Rules dapat diterapkan pada ~76–80% massa; sensitivitas ~93%, spesifisitas ~81% untuk keganasan. Sisanya (inconclusive) perlu penilai ahli/ADNEX.</div>
+                ${srcBox(['Timmerman D, dkk. IOTA Simple Rules. Ultrasound Obstet Gynecol 2008; validasi lanjutan.', 'Van Calster B, dkk. ADNEX model. BMJ 2014 (untuk kasus inconclusive / estimasi risiko %).'])}
+            </div>` };
+        }
+        function adnexForm() {
+            return `<div class="space-y-3">
+                ${card(`${secTitle('fa-triangle-exclamation', 'Fitur M (mencurigakan ganas)')}<div class="space-y-2">${fChk('m1', 'Tumor solid ireguler')}${fChk('m2', 'Asites')}${fChk('m3', '≥4 struktur papiler')}${fChk('m4', 'Tumor multilokular-solid ireguler, diameter ≥100 mm')}${fChk('m5', 'Vaskularisasi sangat kuat (colour score 4)')}</div>`, 'bg-red-50/50 border-red-100')}
+                ${card(`${secTitle('fa-circle-check', 'Fitur B (mendukung jinak)')}<div class="space-y-2">${fChk('b1', 'Kista unilokular')}${fChk('b2', 'Komponen solid terbesar <7 mm')}${fChk('b3', 'Bayangan akustik (acoustic shadow)')}${fChk('b4', 'Tumor multilokular halus, diameter <100 mm')}${fChk('b5', 'Tanpa aliran darah (colour score 1)')}</div>`, 'bg-emerald-50/50 border-emerald-100')}
+            </div>`;
+        }
+
+        // =====================================================================
+        //  7) MANAJEMEN HASIL PAP SMEAR  (berbasis sitologi)
+        // =====================================================================
+        const PAP = {
+            nilm: { t: 'NILM / Normal', c: 'emerald', r: 'Skrining rutin: ulang sitologi tiap 3 tahun (usia 21–65), atau ikuti program IVA/see-and-treat setempat.' },
+            ascus: { t: 'ASC-US', c: 'amber', r: 'Tanpa ko-tes HPV: <b>ulang sitologi 6–12 bulan</b>. Bila hasil ulang ≥ASC-US → <b>kolposkopi</b>. Alternatif: kolposkopi langsung. (Usia 21–24: cukup ulang sitologi 12 bulan.)' },
+            lsil: { t: 'LSIL', c: 'orange', r: '<b>Kolposkopi.</b> (Usia 21–24 atau hamil: boleh ulang sitologi 12 bulan.) Pascamenopause: kolposkopi.' },
+            asch: { t: 'ASC-H', c: 'orange', r: '<b>Kolposkopi</b> (risiko CIN2+ tinggi) + biopsi terarah.' },
+            hsil: { t: 'HSIL', c: 'red', r: '<b>Kolposkopi + biopsi</b>; pertimbangkan eksisi diagnostik (LEEP) / see-and-treat pada dewasa non-hamil.' },
+            agc: { t: 'AGC', c: 'red', r: '<b>Kolposkopi + kuret endoserviks.</b> Sampling <b>endometrium</b> bila usia ≥35 th atau perdarahan uterus abnormal / risiko.' },
+            ais: { t: 'AIS (adenokarsinoma in situ)', c: 'red', r: '<b>Eksisi diagnostik</b> (konisasi) + evaluasi endoserviks; rujuk ginekologi onkologi.' },
+            ca: { t: 'Karsinoma (KSS/adeno)', c: 'red', r: '<b>Rujuk ginekologi onkologi</b> untuk penentuan stadium & terapi definitif.' }
+        };
+        function computePap() {
+            const v = sel('pap_res');
+            const p = PAP[v] || PAP.nilm;
+            const hamil = chk('pap_hamil');
+            return { html: `<div class="fade-up space-y-4">
+                ${card(`<div class="flex items-center gap-2 mb-2">${badge('Hasil: ' + p.t, p.c, 'fa-microscope')}</div>`)}
+                ${alertBox(p.c, 'fa-clipboard-check', 'Rekomendasi tindak lanjut', p.r + (hamil ? '<div class="mt-2 pt-2 border-t border-white/40"><b>Kehamilan:</b> kolposkopi boleh (oleh pemeriksa berpengalaman); <b>hindari kuret endoserviks</b>. Biopsi hanya bila dicurigai invasif. Evaluasi definitif & tata laksana ditunda ~6 minggu pascapersalinan kecuali dicurigai kanker invasif.</div>' : ''))}
+                <div class="rounded-xl bg-cyan-50 border border-cyan-100 p-3 text-[11px] text-cyan-800 leading-relaxed"><i class="fa-solid fa-circle-info mr-1"></i>Alur ini berbasis <b>sitologi saja</b> (tanpa ko-tes HPV). Bila HPV tersedia, gunakan manajemen berbasis risiko ASCCP 2019. Sesuaikan dengan program skrining nasional (IVA/see-and-treat) di layanan Anda.</div>
+                ${srcBox(['ASCCP: alur manajemen sitologi serviks (pathway tanpa HPV).', 'WHO Guideline for screening & treatment of cervical pre-cancer 2021.', 'Kemenkes RI: Program deteksi dini kanker serviks (IVA & see-and-treat).'])}
+            </div>` };
+        }
+        function papForm() {
+            return `<div class="space-y-3">
+                ${card(`${secTitle('fa-microscope', 'Hasil sitologi (Pap smear)')}
+                    ${fSel('pap_res', 'Kategori (Bethesda)', [{ v: 'nilm', t: 'NILM / Normal' }, { v: 'ascus', t: 'ASC-US' }, { v: 'lsil', t: 'LSIL' }, { v: 'asch', t: 'ASC-H' }, { v: 'hsil', t: 'HSIL' }, { v: 'agc', t: 'AGC (sel glandular atipik)' }, { v: 'ais', t: 'AIS' }, { v: 'ca', t: 'Karsinoma (KSS/adeno)' }])}
+                    <div class="mt-3">${fChk('pap_hamil', 'Pasien sedang hamil')}</div>`)}
+            </div>`;
+        }
+
+        // =====================================================================
+        //  ROUTER / DISPATCH
+        // =====================================================================
+        const REG = {
+            sc: { form: scForm, compute: () => renderHasilSC(state.scMode === 'hamil' ? computeHamil() : computeInpartu()) },
+            pe: { form: peForm, compute: () => computePE().html },
+            doppler: { form: dopplerForm, compute: () => computeDoppler().html },
+            aneuploidy: { form: aneuploidyForm, compute: () => computeAneuploidy().html },
+            pcos: { form: pcosForm, compute: () => computePCOS().html },
+            adnex: { form: adnexForm, compute: () => computeAdnex().html },
+            pap: { form: papForm, compute: () => computePap().html }
+        };
+        function recompute() {
+            if (state.view === 'menu') return;
+            // conditional visibility (SC)
+            if (state.view === 'sc') {
+                const vg = $('vbacGroup'); if (vg) vg.hidden = (sel('h_sc') === '0' || sel('h_sc') === '');
+                const bw = $('bishopWrap'); if (bw) bw.hidden = !chk('i_induksi');
+            }
+            const el = $('hasil'); if (el && REG[state.view]) el.innerHTML = REG[state.view].compute();
+        }
+        window.recompute = recompute;
 
         // =====================================================================
         //  SHELL
         // =====================================================================
+        function renderMenu() {
+            return `<main class="max-w-3xl mx-auto px-4 pb-28 pt-4">
+                <div class="rounded-2xl bg-gradient-to-br from-teal-600 to-cyan-700 text-white p-5 mb-4 shadow-lg">
+                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-calculator"></i><span class="text-xs font-bold uppercase tracking-widest text-teal-100">Kalkulator Praktik</span></div>
+                    <h1 class="text-xl font-black leading-tight">Pilih kalkulator</h1>
+                    <p class="text-sm text-teal-50/90 mt-1 leading-snug">Alat bantu keputusan klinis untuk praktik sehari-hari — disesuaikan dengan fasilitas USG & lab dasar.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    ${CALCS.map(c => `<button onclick="openCalc('${c.id}')" class="text-left rounded-2xl bg-white border border-slate-100 shadow-sm p-4 hover:shadow-md hover:border-${c.warna}-200 transition-all active:scale-[.99]">
+                        <div class="flex items-start gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-${c.warna}-100 flex items-center justify-center shrink-0"><i class="fa-solid ${c.ikon} text-${c.warna}-600 text-lg"></i></div>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-bold text-slate-800 text-sm leading-tight">${c.nama}</div>
+                                <div class="text-xs text-slate-500 mt-0.5 leading-snug">${c.ket}</div>
+                                <span class="inline-block mt-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-${c.warna}-50 text-${c.warna}-600">${c.tag}</span>
+                            </div>
+                        </div>
+                    </button>`).join('')}
+                </div>
+                ${renderDisclaimer()}
+            </main>`;
+        }
+        function renderCalc(id) {
+            const c = CALCS.find(x => x.id === id);
+            return `<main class="max-w-3xl mx-auto px-4 pb-28 pt-4">
+                <button onclick="goMenu()" class="text-slate-500 text-sm mb-3 flex items-center gap-1.5 no-print"><i class="fa-solid fa-arrow-left"></i> Semua kalkulator</button>
+                <div class="rounded-2xl bg-gradient-to-br from-${c.warna}-500 to-${c.warna}-700 text-white p-5 mb-4 shadow-lg">
+                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid ${c.ikon}"></i><span class="text-xs font-bold uppercase tracking-widest opacity-80">Kalkulator</span></div>
+                    <h1 class="text-xl font-black leading-tight">${c.nama}</h1>
+                    <p class="text-sm opacity-90 mt-1 leading-snug">${c.ket}</p>
+                </div>
+                ${REG[id].form()}
+                <div class="flex justify-end mt-3"><button onclick="resetCalc()" class="text-xs font-semibold text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 bg-white no-print"><i class="fa-solid fa-rotate-left mr-1"></i>Reset</button></div>
+                <div class="mt-5 mb-2"><h2 class="text-sm font-black text-slate-700 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-${c.warna}-600"></i> Hasil</h2></div>
+                <div id="hasil"></div>
+                <button onclick="window.print()" class="w-full mt-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold hover:bg-slate-50 no-print"><i class="fa-solid fa-print mr-1.5"></i>Cetak / Simpan PDF</button>
+                ${renderDisclaimer()}
+            </main>`;
+        }
         function renderApp() {
             const el = $('app');
-            const form = state.mode === 'hamil' ? formHamil() : formInpartu();
-            const heroSub = state.mode === 'hamil'
-                ? 'Estimasi kemungkinan persalinan normal vs SC secara antenatal (termasuk keberhasilan VBAC bila ada riwayat SC).'
-                : 'Estimasi kemungkinan persalinan berakhir SC berdasarkan kondisi saat inpartu — hitung ulang mengikuti perkembangan.';
-            el.innerHTML = `${renderNavbar()}
-                <main class="max-w-3xl mx-auto px-4 pb-28 pt-4">
-                    <div class="rounded-2xl bg-gradient-to-br from-teal-600 to-cyan-700 text-white p-5 mb-4 shadow-lg">
-                        <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-calculator"></i><span class="text-xs font-bold uppercase tracking-widest text-teal-100">Prediksi Persalinan</span></div>
-                        <h1 class="text-xl font-black leading-tight">SC atau Normal?</h1>
-                        <p class="text-sm text-teal-50/90 mt-1 leading-snug">${heroSub}</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <button onclick="setMode('hamil')" class="py-2.5 rounded-xl text-sm font-bold border transition-colors ${state.mode === 'hamil' ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-baby mr-1.5"></i>Saat Hamil</button>
-                        <button onclick="setMode('inpartu')" class="py-2.5 rounded-xl text-sm font-bold border transition-colors ${state.mode === 'inpartu' ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-person-pregnant mr-1.5"></i>Saat Inpartu</button>
-                    </div>
-
-                    ${form}
-
-                    <div class="flex justify-end mt-3">
-                        <button onclick="resetForm()" class="text-xs font-semibold text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 bg-white no-print"><i class="fa-solid fa-rotate-left mr-1"></i>Reset</button>
-                    </div>
-
-                    <div class="mt-5 mb-2"><h2 class="text-sm font-black text-slate-700 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-teal-600"></i> Hasil estimasi</h2></div>
-                    <div id="hasil"></div>
-                </main>
-                ${renderBottomNav()}
-                ${renderDisclaimer()}`;
+            const body = state.view === 'menu' ? renderMenu() : renderCalc(state.view);
+            el.innerHTML = `${renderNavbar()}${body}${renderBottomNav()}`;
             recompute();
         }
-
-        function setMode(m) { state.mode = m; renderApp(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } }
-        window.setMode = setMode;
-        function resetForm() { renderApp(); }
-        window.resetForm = resetForm;
+        function openCalc(id) { state.view = id; renderApp(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } }
+        function goMenu() { state.view = 'menu'; renderApp(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } }
+        function resetCalc() { const v = state.view; renderApp(); }
+        window.openCalc = openCalc; window.goMenu = goMenu; window.resetCalc = resetCalc;
 
         function renderNavbar() {
-            return `
-            <header class="sticky top-0 z-30 bg-teal-600 text-white shadow-lg no-print">
+            return `<header class="sticky top-0 z-30 bg-teal-600 text-white shadow-lg no-print">
                 <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                    <button onclick="goMenu()" class="flex items-center gap-2.5 flex-1 min-w-0 text-left">
                         <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-calculator text-lg"></i></div>
-                        <div class="min-w-0">
-                            <div class="font-extrabold leading-tight text-[15px]">Asisten AI dr. Bayu</div>
-                            <div class="text-[11px] text-teal-100 leading-tight">Kalkulator Prediksi Persalinan</div>
-                        </div>
-                    </div>
+                        <div class="min-w-0"><div class="font-extrabold leading-tight text-[15px]">Asisten AI dr. Bayu</div><div class="text-[11px] text-teal-100 leading-tight">Kalkulator Praktik</div></div>
+                    </button>
                     <div class="flex items-center gap-2 shrink-0">
-                        <a href="panduan-obstetri.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Panduan Praktik Klinis Obstetri"><i class="fa-solid fa-book-medical"></i></a>
-                        <a href="gawatdarurat.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Panduan Kegawatdaruratan"><i class="fa-solid fa-truck-medical"></i></a>
+                        <a href="panduan-obstetri.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Panduan Obstetri"><i class="fa-solid fa-book-medical"></i></a>
+                        <a href="gawatdarurat.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Kegawatdaruratan"><i class="fa-solid fa-truck-medical"></i></a>
                         <a href="fertilitas.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Fertilitas"><i class="fa-solid fa-dna"></i></a>
-                        <a href="index.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="dr. Bayu SpOG Personal Momscare"><i class="fa-solid fa-heart"></i></a>
-                        <a href="update-ilmu.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Update Ilmu (PubMed)"><i class="fa-solid fa-graduation-cap"></i></a>
+                        <a href="index.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Momscare"><i class="fa-solid fa-heart"></i></a>
+                        <a href="update-ilmu.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Update Ilmu"><i class="fa-solid fa-graduation-cap"></i></a>
                     </div>
                 </div>
             </header>`;
         }
-
         function renderBottomNav() {
-            const items = [
-                { v: 'hamil', i: 'fa-baby', t: 'Saat Hamil' },
-                { v: 'inpartu', i: 'fa-person-pregnant', t: 'Saat Inpartu' }
-            ];
-            return `
-            <nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 no-print">
-                <div class="max-w-3xl mx-auto grid grid-cols-2">
-                    ${items.map(it => `
-                        <button onclick="setMode('${it.v}')" class="py-2.5 flex flex-col items-center gap-1 ${state.mode === it.v ? 'text-teal-600' : 'text-slate-400'}">
-                            <i class="fa-solid ${it.i} text-lg"></i>
-                            <span class="text-[11px] font-semibold">${it.t}</span>
-                        </button>`).join('')}
+            return `<nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 no-print">
+                <div class="max-w-3xl mx-auto grid grid-cols-1">
+                    <button onclick="goMenu()" class="py-2.5 flex flex-col items-center gap-1 ${state.view === 'menu' ? 'text-teal-600' : 'text-slate-400'}"><i class="fa-solid fa-grip text-lg"></i><span class="text-[11px] font-semibold">Menu Kalkulator</span></button>
                 </div>
             </nav>`;
         }
-
         function renderDisclaimer() {
-            return `<div class="max-w-3xl mx-auto px-4 pb-24 -mt-2">
-                <div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
-                    <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Alat bantu edukasi/keputusan klinis untuk tenaga kesehatan. Estimasi berbasis <b>sintesis odds ratio dari literatur</b> (VBAC mengikuti prediktor Grobman/MFMU) dan <b>bukan kalkulator diagnostik tervalidasi</b>. Angka bersifat perkiraan populasi, dapat berbeda pada individu. BUKAN pengganti penilaian klinis, pemeriksaan langsung, atau protap institusi Anda. Keputusan akhir tetap pada klinisi.
-                </div>
-            </div>`;
+            return `<div class="mt-4"><div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
+                <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Alat bantu edukasi/keputusan klinis untuk tenaga kesehatan. Sebagian model berbasis sintesis pustaka & disederhanakan untuk fasilitas terbatas — <b>bukan</b> kalkulator diagnostik tervalidasi tunggal. BUKAN pengganti penilaian klinis, pemeriksaan langsung, atau protap institusi. Keputusan akhir pada klinisi.
+            </div></div>`;
         }
 
         renderApp();
