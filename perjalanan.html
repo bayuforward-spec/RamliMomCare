@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asisten AI dr. Bayu · Perjalanan Pasien</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        h1,h2,h3,h4,h5,p,span,li,a,button,label,div,td,th { overflow-wrap: break-word; }
+        #fontCtl button:active { transform: scale(.92); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp .3s ease both; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            @page { margin: 1.2cm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="app"></div>
+
+    <script>
+        // =====================================================================
+        //  PERJALANAN PASIEN — roadmap + hitung tanggal (detail untuk nakes)
+        //  Draf standar (alur fertilitas + ANC POGI/WHO). Silakan direvisi.
+        // =====================================================================
+        const state = { mode: 'program', base: '' };
+
+        const $ = (id) => document.getElementById(id);
+        const BLN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const HARI = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        function parseDate(v) { if (!v) return null; const p = v.split('-'); if (p.length !== 3) return null; const d = new Date(+p[0], +p[1] - 1, +p[2]); return isNaN(d) ? null : d; }
+        function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+        function fmt(d) { return d ? `${HARI[d.getDay()]}, ${d.getDate()} ${BLN[d.getMonth()]} ${d.getFullYear()}` : ''; }
+        function fmtShort(d) { return d ? `${d.getDate()} ${BLN[d.getMonth()]}` : ''; }
+        function daysBetween(a, b) { return Math.round((a - b) / 86400000); }
+
+        // ---------------------------------------------------------------------
+        //  DATA — PROGRAM HAMIL (offset dari hari haid pertama = CD1)
+        // ---------------------------------------------------------------------
+        const PROGRAM = [
+            {
+                cd: [2, 3], label: 'Hari haid ke-2–3', ikon: 'fa-flask-vial', warna: 'sky',
+                periksa: ['USG transvaginal <b>baseline</b>: hitung folikel antral (AFC) kedua ovarium; pastikan bebas kista fungsional/korpus luteum sisa.', 'Endometrium tipis (garis haid, ±2–4 mm).'],
+                lab: ['Hormon basal (bila diindikasikan): <b>FSH, LH, estradiol</b> (hari 2–3), <b>prolaktin, TSH</b>; AMH bila tersedia.', 'Suami: <b>analisis sperma</b> (abstinensia 2–5 hari, rujukan WHO 2010/2021).'],
+                obat: ['Mulai/lanjut <b>asam folat 400–800 mcg/hari</b> (naikkan <b>5 mg</b> bila DM, epilepsi, riwayat defek tabung saraf, atau obesitas).', 'Vitamin D bila defisiensi.'],
+                nutrisi: ['Optimalkan IMT 18,5–24,9; berhenti rokok & alkohol; batasi kafein <200 mg/hari; kelola stres & tidur cukup.']
+            },
+            {
+                cd: [3, 7], label: 'Hari ke-3–7 · Induksi ovulasi', ikon: 'fa-pills', warna: 'sky',
+                periksa: ['Hanya bila program induksi ovulasi (mis. anovulasi/PCOS). Pada siklus alami, lewati langkah ini.'],
+                obat: ['<b>Letrozol 2,5–5 mg/hari</b> selama 5 hari (hari ke-3–7) — <b>lini pertama</b>, khususnya PCOS.', 'Alternatif: <b>klomifen sitrat 50 mg/hari</b> hari ke-3–7 (maks 150 mg).'],
+                nutrisi: []
+            },
+            {
+                cd: [10, 12], label: 'Hari ke-10–12 · Folikulometri', ikon: 'fa-magnifying-glass-chart', warna: 'sky',
+                periksa: ['USG TV: ukur <b>folikel dominan</b> (matang ±17–20 mm; folikel tumbuh ~2 mm/hari), jumlah folikel matang.', 'Endometrium ideal <b>≥7 mm</b>, pola <b>trilaminar</b>.', 'Ulang tiap 2 hari sampai folikel matang.'],
+                catatan: ['Waspada respons berlebih (banyak folikel → risiko OHSS & kehamilan kembar).', 'Endometrium tipis akibat klomifen → pertimbangkan ganti letrozol / tambah estradiol.']
+            },
+            {
+                cd: [13, 15], label: 'Saat folikel ±18–20 mm · Trigger', ikon: 'fa-bullseye', warna: 'sky',
+                periksa: ['Konfirmasi folikel matang & endometrium adekuat sebelum trigger.'],
+                obat: ['<b>Trigger ovulasi: hCG 5.000–10.000 IU</b> SC/IM (ovulasi ±36 jam) — atau tunggu LH surge alami.', 'Dukungan fase luteal bila diindikasikan: <b>didrogesteron 2×10 mg</b> atau <b>progesteron mikronisasi 200–400 mg/hari</b> hingga tes kehamilan.'],
+                catatan: ['<b>Timed intercourse</b>: setiap 1–2 hari, mulai hari trigger s/d 2 hari setelah.', 'Bila IUI: 24–36 jam pasca-hCG.']
+            },
+            {
+                cd: [21, 21], label: 'Hari ke-21 (± 7 hari pasca-ovulasi)', ikon: 'fa-vial-circle-check', warna: 'sky',
+                periksa: ['USG: konfirmasi korpus luteum & cairan bebas (tanda ovulasi).'],
+                lab: ['<b>Progesteron serum midluteal</b>: >3 ng/mL = ovulasi (ideal >10 ng/mL).'],
+            },
+            {
+                cd: [28, 28], label: '±14 hari pasca-ovulasi / telat haid', ikon: 'fa-vial', warna: 'emerald',
+                periksa: ['Bila positif: <b>lanjut ke roadmap Kehamilan (ANC)</b> — pertahankan asam folat & progesteron.', 'Bila negatif & haid datang: evaluasi, ulang siklus. Gagal 3–6 siklus → evaluasi lanjut / rujuk.'],
+                lab: ['<b>β-hCG serum</b> (lebih sensitif) atau tes kehamilan urine.'],
+            }
+        ];
+
+        // ---------------------------------------------------------------------
+        //  DATA — KEHAMILAN / ANC (usia kehamilan dalam minggu dari HPHT)
+        // ---------------------------------------------------------------------
+        const ANC = [
+            {
+                w: [5, 8], label: '5–8 mgg', tri: 1, ikon: 'fa-clipboard-list', warna: 'sky',
+                judul: 'Kunjungan pertama (booking)',
+                periksa: ['Anamnesis lengkap, tekanan darah, BB/TB (IMT), taksiran HPL.', 'USG: konfirmasi kehamilan <b>intrauterin</b>, viabilitas, jumlah janin.'],
+                lab: ['Darah lengkap (<b>Hb</b>), <b>golongan darah & Rh</b>, gula darah (GDP/GDS), <b>HbsAg, HIV, sifilis (VDRL/TPHA)</b>, urinalisis (protein/glukosa).'],
+                obat: ['<b>Asam folat 400 mcg/hari.</b>', 'Skrining risiko preeklampsia → <b>aspirin 150 mg</b> malam mulai &lt;16 mgg bila berisiko (buka <a href="kalkulator.html" class="text-sky-600 underline">Kalkulator → Skrining Preeklampsia</a>).', 'Kalsium ≥1 g/hari bila asupan rendah.'],
+                catatan: ['Edukasi nutrisi, hindari rokok/alkohol & obat teratogenik, tanda bahaya.']
+            },
+            {
+                w: [11, 13.857], label: '11–13⁺⁶ mgg', tri: 1, ikon: 'fa-dna', warna: 'sky',
+                judul: 'USG penentuan usia + skrining aneuploidi',
+                periksa: ['USG: <b>CRL</b> untuk penentuan usia paling akurat; <b>nuchal translucency (NT)</b>.'],
+                obat: [],
+                catatan: ['Skrining risiko aneuploidi (buka <a href="kalkulator.html" class="text-sky-600 underline">Kalkulator → Risiko Aneuploidi</a>). Tawarkan NIPT/diagnostik bila berisiko.']
+            },
+            {
+                w: [18, 22], label: '18–22 mgg', tri: 2, ikon: 'fa-baby', warna: 'indigo',
+                judul: 'USG anomali (morfologi janin)',
+                periksa: ['USG morfologi menyeluruh (anatomi janin), evaluasi <b>plasenta</b> & <b>panjang serviks</b>.'],
+                catatan: ['Rujuk fetomaternal bila ditemukan kelainan.']
+            },
+            {
+                w: [24, 28], label: '24–28 mgg', tri: 2, ikon: 'fa-droplet', warna: 'indigo',
+                judul: 'Skrining diabetes gestasional + ulang Hb',
+                periksa: ['Hitung gerak janin mulai diajarkan.'],
+                lab: ['<b>TTGO 75 g</b> skrining DMG (puasa/1 jam/2 jam).', 'Ulang <b>Hb</b> (skrining anemia).'],
+                obat: ['Lanjutkan kalsium/aspirin sesuai indikasi.']
+            },
+            {
+                w: [27, 36], label: '27–36 mgg', tri: 3, ikon: 'fa-syringe', warna: 'violet',
+                judul: 'Imunisasi & profilaksis',
+                periksa: [],
+                obat: ['<b>Imunisasi Tdap 27–36 mgg</b> (bila tersedia); lengkapi status <b>TT</b>.', 'Anti-D pada <b>Rh negatif</b> (28 mgg) bila tersedia.']
+            },
+            {
+                w: [30, 34], label: '30–34 mgg', tri: 3, ikon: 'fa-ruler', warna: 'violet',
+                judul: 'USG pertumbuhan',
+                periksa: ['USG: <b>TBJ + persentil</b>, presentasi, letak plasenta, <b>indeks cairan amnion</b>.', 'Doppler bila FGR/berisiko (buka <a href="kalkulator.html" class="text-sky-600 underline">Kalkulator → Doppler/CPR/FGR</a>).']
+            },
+            {
+                w: [35, 37], label: '35–37 mgg', tri: 3, ikon: 'fa-bacteria', warna: 'violet',
+                judul: 'Skrining GBS',
+                lab: ['<b>Usap vagino-rektal GBS</b> (bila tersedia) → profilaksis antibiotik intrapartum bila positif.']
+            },
+            {
+                w: [36, 40], label: '36–40 mgg', tri: 3, ikon: 'fa-baby-carriage', warna: 'violet',
+                judul: 'Rencana persalinan',
+                periksa: ['Pastikan <b>presentasi</b> (sungsang → pertimbangkan ECV / rencana SC).', 'Rencana persalinan, tanda bahaya, tanda inpartu.'],
+                catatan: ['Frekuensi kunjungan: tiap 2 minggu (28–36 mgg), tiap minggu (≥36 mgg).']
+            },
+            {
+                w: [41, 41], label: '≥41 mgg', tri: 3, ikon: 'fa-hourglass-end', warna: 'amber',
+                judul: 'Evaluasi lewat bulan',
+                periksa: ['Pemantauan kesejahteraan janin (NST/USG, AFI).', 'Pertimbangkan <b>induksi persalinan pada 41 minggu</b>.']
+            }
+        ];
+
+        // ---------------------------------------------------------------------
+        //  RENDER
+        // ---------------------------------------------------------------------
+        function sect(icon, label, items, color) {
+            if (!items || !items.length) return '';
+            return `<div class="mt-2"><div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-${color}-600 mb-1"><i class="fa-solid ${icon}"></i>${label}</div><ul class="space-y-1">${items.map(t => `<li class="flex gap-2 text-sm text-slate-700 leading-snug"><i class="fa-solid fa-circle text-[5px] mt-2 text-slate-300"></i><span>${t}</span></li>`).join('')}</ul></div>`;
+        }
+        function timelineItem(dateBadge, m, color) {
+            return `<div class="relative pl-8 pb-5">
+                <div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-${color}-100 border-2 border-${color}-500 flex items-center justify-center"><i class="fa-solid ${m.ikon} text-${color}-600 text-[10px]"></i></div>
+                <div class="absolute left-[11px] top-7 bottom-0 w-0.5 bg-slate-200"></div>
+                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4">
+                    <div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+                        <h3 class="font-bold text-slate-800 text-sm">${m.judul || m.label}</h3>
+                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-${color}-50 text-${color}-700 whitespace-nowrap">${m.label}</span>
+                    </div>
+                    ${dateBadge ? `<div class="text-xs font-semibold text-${color}-600 mb-1"><i class="fa-regular fa-calendar mr-1"></i>${dateBadge}</div>` : ''}
+                    ${sect('fa-magnifying-glass', 'Periksa / USG', m.periksa, color)}
+                    ${sect('fa-vial', 'Lab', m.lab, color)}
+                    ${sect('fa-pills', 'Obat', m.obat, color)}
+                    ${sect('fa-utensils', 'Nutrisi / gaya hidup', m.nutrisi, color)}
+                    ${sect('fa-lightbulb', 'Catatan', m.catatan, color)}
+                </div>
+            </div>`;
+        }
+
+        function renderProgram(base) {
+            const items = PROGRAM.map(m => {
+                let dateBadge = '';
+                if (base) {
+                    const d0 = addDays(base, m.cd[0] - 1), d1 = addDays(base, m.cd[1] - 1);
+                    dateBadge = m.cd[0] === m.cd[1] ? fmt(d0) : `${fmtShort(d0)} – ${fmt(d1)}`;
+                }
+                return timelineItem(dateBadge, m, m.warna);
+            }).join('');
+            return `<div class="fade-up">
+                ${base ? `<div class="rounded-2xl bg-sky-50 border border-sky-200 p-3 mb-4 text-sm text-sky-800"><i class="fa-solid fa-circle-info mr-1"></i>Tanggal dihitung dari <b>hari haid pertama</b> yang Anda masukkan. Jadwal folikulometri & trigger menyesuaikan hasil USG aktual.</div>` : `<div class="rounded-2xl bg-slate-100 border border-slate-200 p-3 mb-4 text-sm text-slate-500"><i class="fa-solid fa-calendar-day mr-1"></i>Masukkan tanggal <b>hari haid pertama</b> di atas untuk mendapat tanggal tiap langkah.</div>`}
+                ${items}
+            </div>`;
+        }
+        function renderANC(base) {
+            let head = '';
+            if (base) {
+                const edd = addDays(base, 280);
+                const gaDays = daysBetween(new Date(), base);
+                const gaW = Math.floor(gaDays / 7), gaD = gaDays % 7;
+                const gaTxt = (gaDays >= 0 && gaDays <= 300) ? `Perkiraan usia kehamilan saat ini: <b>${gaW} mgg ${gaD} hr</b>` : '';
+                head = `<div class="rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white p-4 mb-4 shadow">
+                    <div class="text-xs uppercase tracking-widest text-sky-100">Taksiran Persalinan (HPL)</div>
+                    <div class="text-xl font-black">${fmt(edd)}</div>
+                    ${gaTxt ? `<div class="text-sm text-sky-50/90 mt-0.5">${gaTxt}</div>` : ''}
+                    <div class="text-[11px] text-sky-100/80 mt-1">Naegele: HPHT + 7 hari − 3 bulan + 1 tahun (siklus 28 hari).</div>
+                </div>`;
+            } else {
+                head = `<div class="rounded-2xl bg-slate-100 border border-slate-200 p-3 mb-4 text-sm text-slate-500"><i class="fa-solid fa-calendar-day mr-1"></i>Masukkan <b>HPHT</b> (hari pertama haid terakhir) di atas untuk menghitung HPL & tanggal tiap pemeriksaan.</div>`;
+            }
+            let lastTri = 0, out = '';
+            ANC.forEach(m => {
+                if (m.tri !== lastTri) { lastTri = m.tri; out += `<div class="flex items-center gap-2 mt-2 mb-3"><span class="px-3 py-1 rounded-full text-xs font-black bg-slate-800 text-white">TRIMESTER ${m.tri}</span><div class="flex-1 h-px bg-slate-200"></div></div>`; }
+                let dateBadge = '';
+                if (base) {
+                    const d0 = addDays(base, Math.round(m.w[0] * 7)), d1 = addDays(base, Math.round(m.w[1] * 7));
+                    dateBadge = m.w[0] === m.w[1] ? `mulai ${fmt(d0)}` : `${fmtShort(d0)} – ${fmt(d1)}`;
+                }
+                out += timelineItem(dateBadge, m, m.warna);
+            });
+            return `<div class="fade-up">${head}${out}</div>`;
+        }
+
+        function recompute() {
+            const el = $('roadmap'); if (!el) return;
+            const base = parseDate(state.base);
+            el.innerHTML = state.mode === 'program' ? renderProgram(base) : renderANC(base);
+        }
+        window.recompute = recompute;
+        window.setBase = (v) => { state.base = v; recompute(); };
+        window.setJourney = (m) => { state.mode = m; renderApp(); };
+
+        // ---------------------------------------------------------------------
+        //  SHELL
+        // ---------------------------------------------------------------------
+        function renderApp() {
+            const el = $('app');
+            const label = state.mode === 'program' ? 'Tanggal hari haid pertama' : 'HPHT (hari pertama haid terakhir)';
+            el.innerHTML = `${renderNavbar()}
+                <main class="max-w-3xl mx-auto px-4 pb-28 pt-4">
+                    <div class="rounded-2xl bg-gradient-to-br from-sky-600 to-cyan-700 text-white p-5 mb-4 shadow-lg">
+                        <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-route"></i><span class="text-xs font-bold uppercase tracking-widest text-sky-100">Perjalanan Pasien</span></div>
+                        <h1 class="text-xl font-black leading-tight">Roadmap + kalkulator tanggal</h1>
+                        <p class="text-sm text-sky-50/90 mt-1 leading-snug">Alur langkah demi langkah dengan perkiraan tanggal tiap pemeriksaan.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button onclick="setJourney('program')" class="py-2.5 rounded-xl text-sm font-bold border transition-colors ${state.mode === 'program' ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-seedling mr-1.5"></i>Program Hamil</button>
+                        <button onclick="setJourney('anc')" class="py-2.5 rounded-xl text-sm font-bold border transition-colors ${state.mode === 'anc' ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-person-pregnant mr-1.5"></i>Kehamilan (ANC)</button>
+                    </div>
+                    <label class="block rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-4">
+                        <span class="text-xs font-semibold text-slate-600">${label}</span>
+                        <input type="date" id="baseDate" value="${state.base}" onchange="setBase(this.value)" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-sky-400 text-sm">
+                    </label>
+                    <div id="roadmap"></div>
+                    <button onclick="window.print()" class="w-full mt-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold hover:bg-slate-50 no-print"><i class="fa-solid fa-print mr-1.5"></i>Cetak / Simpan PDF</button>
+                    ${renderDisclaimer()}
+                </main>
+                ${renderBottomNav()}`;
+            recompute();
+        }
+        function renderNavbar() {
+            return `<header class="sticky top-0 z-30 bg-sky-600 text-white shadow-lg no-print">
+                <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-route text-lg"></i></div>
+                        <div class="min-w-0"><div class="font-extrabold leading-tight text-[15px]">Asisten AI dr. Bayu</div><div class="text-[11px] text-sky-100 leading-tight">Perjalanan Pasien</div></div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <a href="kalkulator.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Kalkulator"><i class="fa-solid fa-calculator"></i></a>
+                        <a href="panduan-obstetri.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Panduan Obstetri"><i class="fa-solid fa-book-medical"></i></a>
+                        <a href="fertilitas.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Fertilitas"><i class="fa-solid fa-dna"></i></a>
+                        <a href="index.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Momscare"><i class="fa-solid fa-heart"></i></a>
+                    </div>
+                </div>
+            </header>`;
+        }
+        function renderBottomNav() {
+            const items = [{ v: 'program', i: 'fa-seedling', t: 'Program Hamil' }, { v: 'anc', i: 'fa-person-pregnant', t: 'Kehamilan (ANC)' }];
+            return `<nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 no-print">
+                <div class="max-w-3xl mx-auto grid grid-cols-2">
+                    ${items.map(it => `<button onclick="setJourney('${it.v}')" class="py-2.5 flex flex-col items-center gap-1 ${state.mode === it.v ? 'text-sky-600' : 'text-slate-400'}"><i class="fa-solid ${it.i} text-lg"></i><span class="text-[11px] font-semibold">${it.t}</span></button>`).join('')}
+                </div>
+            </nav>`;
+        }
+        function renderDisclaimer() {
+            return `<div class="mt-4"><div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
+                <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Draf alur standar (fertilitas + ANC berbasis POGI/WHO) untuk tenaga kesehatan — <b>perlu disesuaikan</b> dengan kondisi pasien, hasil pemeriksaan aktual, dan protap institusi. Tanggal bersifat perkiraan (siklus 28 hari / HPHT). Bukan pengganti penilaian klinis.
+            </div></div>`;
+        }
+        renderApp();
+    </script>
+
+    <!-- Kontrol ukuran huruf -->
+    <div id="fontCtl" class="fixed z-50 bottom-20 right-3 flex items-center gap-0.5 bg-white/95 backdrop-blur border border-slate-200 shadow-lg rounded-full p-1 no-print" role="group" aria-label="Ukuran huruf">
+        <button type="button" onclick="setFont(-1)" aria-label="Perkecil huruf" title="Perkecil huruf" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center"><span class="text-xs font-bold leading-none">A</span></button>
+        <span id="fontLbl" class="text-[10px] text-slate-400 w-9 text-center tabular-nums select-none">100%</span>
+        <button type="button" onclick="setFont(1)" aria-label="Perbesar huruf" title="Perbesar huruf" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-800 flex items-center justify-center"><span class="text-lg font-black leading-none">A</span></button>
+    </div>
+    <script>
+    (function(){
+        var KEY='ramli_font_scale', STEPS=[90,100,112,125,140,160];
+        function idx(){var v;try{v=parseInt(localStorage.getItem(KEY),10);}catch(e){}var i=STEPS.indexOf(v);return i<0?1:i;}
+        function apply(i){var p=STEPS[i];document.documentElement.style.fontSize=p+'%';var l=document.getElementById('fontLbl');if(l)l.textContent=p+'%';}
+        window.setFont=function(d){var i=Math.max(0,Math.min(STEPS.length-1,idx()+d));try{localStorage.setItem(KEY,STEPS[i]);}catch(e){}apply(i);};
+        apply(idx());
+    })();
+    </script>
+</body>
+</html>
