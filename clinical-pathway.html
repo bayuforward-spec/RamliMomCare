@@ -125,15 +125,16 @@
                 dxKep: ['00132 Nyeri akut', '00004 Risiko infeksi', '00146 Ansietas'],
                 dxGizi: 'Prediksi suboptimal asupan energi terkait rencana tindakan (N1-1.4)',
                 terapi: [
-                    { k: 'Injeksi', u: 'Ceftriaxone 1 g IV / 12 jam (profilaksis)', d: 'all' },
+                    { k: 'Injeksi', u: 'Antibiotik spektrum luas (mis. Ceftriaxone 1 g IV / 12 jam)', d: 'all' },
                     { u: 'Analgetik simptomatik', v: 'all' },
                     { k: 'Induksi', u: 'Drip oksitosin 5 IU + RL 500 cc', d: 'first', t: 'Bila Bishop > 5' },
                     { u: 'Misoprostol (pematangan serviks)', v: 'first', t: 'Bila Bishop < 5' },
                     { k: 'Cairan Infus', u: 'RL / NaCl / Dextrose 5%', d: 'all' },
                     { k: 'Obat Pulang', u: 'Cefadroksil 500 mg, Asam mefenamat 500 mg, Roboransia, (Metilergometrin bila post-partum)', d: 'last' }
                 ],
-                tataMedis: 'Konservatif / terminasi sesuai usia kehamilan & tanda infeksi; induksi persalinan atau SC bila gagal induksi/indikasi',
-                outMedis: 'Persalinan terlaksana, tidak ada tanda infeksi/korioamnionitis, ibu & bayi stabil'
+                tataMedis: 'Infus jaga + antibiotik spektrum luas; terminasi sesuai usia kehamilan & tanda infeksi; utamakan persalinan pervaginam, SC hanya atas indikasi obstetri (induksi dulu; SC bila gagal induksi)',
+                outMedis: 'Persalinan terlaksana, tidak ada tanda infeksi/korioamnionitis, ibu & bayi stabil',
+                sumber: 'PPK Obgyn RSHS 2015 — Infeksi Intrauterin dalam Kehamilan & Persalinan (hal. 51; KPD sbg faktor predisposisi, prinsip terminasi + antibiotik spektrum luas). Struktur grid & kode keperawatan = template standar.'
             },
             normal: {
                 nama: 'Persalinan Normal (Partus Spontan)', icd: 'O80', lama: 2,
@@ -150,8 +151,9 @@
                     { k: 'Antibiotik', u: 'Profilaksis bila episiotomi/laserasi luas', v: 'first' },
                     { k: 'Cairan Infus', u: 'RL', d: 'first' }
                 ],
-                tataMedis: 'Pertolongan persalinan normal sesuai APN, Inisiasi Menyusu Dini (IMD), manajemen aktif kala III, jahit perineum bila robekan',
-                outMedis: 'Ibu & bayi stabil, kontraksi uterus baik, perdarahan terkontrol, laktasi dimulai'
+                tataMedis: 'Asuhan persalinan normal sesuai APN & pemantauan partograf; asuhan sayang ibu; pencegahan infeksi; Inisiasi Menyusu Dini (IMD); manajemen aktif kala III; jahit perineum bila robekan; rujuk tepat waktu bila penyulit',
+                outMedis: 'Ibu & bayi stabil, kontraksi uterus baik, perdarahan terkontrol, laktasi dimulai',
+                sumber: 'PPK Obgyn RSHS 2015 — Asuhan Kala I Persalinan (hal. 7; partograf, asuhan sayang ibu, pencegahan infeksi). Manajemen aktif kala III sesuai APN. Struktur grid & kode keperawatan = template standar.'
             },
             sc: {
                 nama: 'Seksio Sesarea (SC)', icd: 'O82', lama: 3,
@@ -168,8 +170,9 @@
                     { k: 'Cairan Infus', u: 'RL / NaCl', d: 'all' },
                     { k: 'Obat Pulang', u: 'Cefadroksil 500 mg, Asam mefenamat 500 mg, SF, Roboransia', d: 'last' }
                 ],
-                tataMedis: 'Persiapan pra-op (puasa, infus, kateter, informed consent, anestesi RA/GA), seksio sesarea, perawatan luka operasi',
-                outMedis: 'Luka operasi baik, tidak ada perdarahan/infeksi, mobilisasi bertahap, bayi sehat'
+                tataMedis: 'Persiapan pra-op (puasa, infus, kateter, informed consent, anestesi RA/GA, sediakan darah, pemantauan DJJ/KTG), seksio sesarea, perawatan luka operasi',
+                outMedis: 'Luka operasi baik, tidak ada perdarahan/infeksi, mobilisasi bertahap, bayi sehat',
+                sumber: 'PPK Obgyn RSHS 2015 — Persalinan dengan Riwayat Seksio Sesarea (hal. 97) & Partus Percobaan (hal. 31; persediaan darah, KTG kontinyu, konsul anestesi & anak). Antibiotik profilaksis sesuai standar. Struktur grid & kode keperawatan = template standar.'
             },
             peb: {
                 nama: 'Preeklampsia Berat (PEB)', icd: 'O14.1', lama: 4,
@@ -182,12 +185,13 @@
                 terapi: [
                     { k: 'Antikejang', u: 'MgSO₄ loading 4 g IV + rumatan sesuai protokol', d: 'all' },
                     { u: 'Kalsium glukonas 1 g IV (antidotum) — sedia', v: 'all' },
-                    { k: 'Antihipertensi', u: 'Nifedipin oral 10 mg (target <160/110) / per protokol', d: 'all' },
+                    { k: 'Antihipertensi', u: 'Nifedipin oral short-acting 10 mg, ulang tiap 15–30 mnt (maks 30 mg); target <160/110', d: 'all' },
                     { k: 'Pematangan paru', u: 'Deksametason / betametason', v: 'first', t: 'Bila < 34 minggu' },
                     { k: 'Cairan Infus', u: 'RL terkontrol (pantau balans)', d: 'all' }
                 ],
-                tataMedis: 'Stabilisasi, kontrol TD & pencegahan kejang (MgSO₄), evaluasi terminasi kehamilan sesuai usia & kondisi ibu-janin',
-                outMedis: 'TD terkontrol <160/110, tidak kejang, tanda impending eklampsia (-), luaran ibu-janin baik'
+                tataMedis: 'Nilai keparahan & usia kehamilan → ekspektatif vs terminasi; kontrol TD & pencegahan kejang (MgSO₄); rujuk fasilitas dengan perawatan intensif maternal-neonatal bila PEB; kortikosteroid pematangan paru bila <34 mgg',
+                outMedis: 'TD terkontrol <160/110, tidak kejang, tanda impending eklampsia (-), luaran ibu-janin baik',
+                sumber: 'PPK Obgyn RSHS 2015 + PNPK Preeklampsia POGI 2016 — Preeklampsia (MgSO₄ antikejang lini pertama; Nifedipin target <160/110; Ca glukonas antidotum; ekspektatif vs terminasi per usia kehamilan). Struktur grid & kode keperawatan = template standar.'
             }
         };
 
@@ -326,6 +330,7 @@
                             <span><b>✓</b> klik sel = dilaksanakan</span>
                         </div>
                     </div>
+                    <div class="rounded-lg bg-slate-100 border border-slate-200 p-2.5 mb-3 text-[11px] text-slate-600 leading-relaxed"><i class="fa-solid fa-book-bookmark text-slate-500 mr-1"></i><b>Sumber:</b> ${pw.sumber || '—'}</div>
                     ${identityBlock()}
                     <div id="cptable">${renderTable()}</div>
                     <div class="mt-4 flex justify-end text-sm"><div class="text-center"><div class="text-[11px] text-slate-500 mb-10">Bandar Lampung, ........................</div><div class="border-t border-slate-400 px-6 pt-1">Dokter DPJP</div></div></div>
@@ -359,7 +364,7 @@
         }
         function renderDisclaimer() {
             return `<div class="mt-4 no-print"><div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
-                <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Draf Clinical Pathway standar untuk tenaga kesehatan — <b>wajib disesuaikan</b> dengan PPK/protap, formularium, dan kebijakan institusi Anda (termasuk kode ICD-10 & SDKI/SLKI/SIKI atau NANDA/NOC/NIC yang berlaku). Bukan pengganti penilaian klinis.
+                <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Konten klinis mengacu <b>PPK Obgyn RSHS 2015 + PNPK POGI</b> (lihat "Sumber" tiap pathway). Struktur grid 15-bagian & kode keperawatan (NANDA/NOC/NIC) adalah <b>template standar</b> dari format contoh, bukan dari PPK. Tetap <b>wajib disesuaikan</b> dengan protap, formularium, dan kebijakan institusi Anda (termasuk kode ICD-10 & SDKI/SLKI/SIKI yang berlaku). Bukan pengganti penilaian klinis.
             </div></div>`;
         }
         renderApp();
