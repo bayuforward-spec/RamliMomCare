@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asisten AI dr. Bayu · Clinical Pathway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        h1,h2,h3,h4,h5,p,span,li,a,button,label,div,td,th { overflow-wrap: break-word; }
+        #fontCtl button:active { transform: scale(.92); }
+        .cp-table { border-collapse: collapse; width: 100%; font-size: 11px; }
+        .cp-table th, .cp-table td { border: 1px solid #94a3b8; padding: 3px 5px; vertical-align: top; }
+        .cp-sec { background: #1e293b; color: #fff; font-weight: 800; font-size: 11px; }
+        .cp-keg { background: #f1f5f9; font-weight: 700; width: 20%; }
+        .cp-day { width: 26px; text-align: center; cursor: pointer; position: relative; }
+        .cp-day.plan { background: #86efac; }
+        .cp-day.var { background: #fde68a; }
+        .cp-day.done::after { content: '✓'; color: #0f172a; font-weight: 900; }
+        .cp-inp { border: none; border-bottom: 1px dotted #94a3b8; outline: none; background: transparent; font-size: 12px; padding: 1px 3px; }
+        .cp-inp:focus { border-bottom-color: #334155; background: #f8fafc; }
+        @media print {
+            body { background: #fff !important; }
+            .no-print { display: none !important; }
+            @page { size: A4; margin: 0.8cm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .cp-table { font-size: 9px; }
+            .cp-table th, .cp-table td { padding: 2px 3px; }
+            .cp-wrap { overflow: visible !important; }
+            header, nav { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="app"></div>
+
+    <script>
+        // =====================================================================
+        //  CLINICAL PATHWAY — digital & cetak (kop kosong, isi manual)
+        //  Draf standar untuk tenaga kesehatan. Silakan direvisi.
+        // =====================================================================
+        const state = { id: 'kpd' };
+        const $ = (x) => document.getElementById(x);
+        const DAYCOLS = 7;
+
+        // token resolver: 'first'|'last'|'all'|'firstN'|array|undefined → [days]
+        function resolve(tok, lama) {
+            if (!tok) return [];
+            if (Array.isArray(tok)) return tok;
+            if (tok === 'first') return [1];
+            if (tok === 'last') return [lama];
+            if (tok === 'all') return Array.from({ length: lama }, (_, i) => i + 1);
+            const m = /^first(\d+)$/.exec(tok); if (m) { const n = Math.min(+m[1], lama); return Array.from({ length: n }, (_, i) => i + 1); }
+            return [];
+        }
+
+        // ---------- blok seksi umum (pakai token) ----------
+        const S_ASESMEN_AWAL = { n: '1. ASESMEN AWAL', rows: [
+            { k: 'Asesmen Awal Medis', u: 'Dokter IGD / jaga', d: 'first', t: 'Pasien masuk via IGD / VK' },
+            { u: 'Dokter Spesialis (DPJP)', d: 'first' },
+            { k: 'Asesmen Awal Keperawatan / Bidan', u: 'Kondisi umum, kesadaran, TTV, riwayat alergi, skrining gizi, status fungsional (Barthel), risiko jatuh & dekubitus, kebutuhan edukasi & budaya', d: 'first', t: 'Dilanjutkan asesmen bio-psiko-sosio-spiritual' }
+        ] };
+        const S_ASESMEN_LANJUT = { n: '5. ASESMEN LANJUTAN', rows: [
+            { k: 'Asesmen Medis', u: 'Pemeriksaan DPJP', d: 'all', t: 'Visite harian / follow up' },
+            { u: 'Dokter non-DPJP / dr. ruangan', d: 'all', t: 'Atas indikasi / emergency' },
+            { k: 'Asesmen Keperawatan', u: 'Perawat / bidan penanggung jawab', d: 'all', t: 'Dilakukan dalam 3 shift' },
+            { k: 'Asesmen Gizi', u: 'Tenaga gizi (skrining malnutrisi, antropometri, biokimia, fisik/klinis, riwayat makan)', d: 'all', t: 'Asesmen dalam 48 jam' },
+            { k: 'Asesmen Farmasi', u: 'Telaah resep & rekonsiliasi obat', d: 'all' }
+        ] };
+        const S_DISCHARGE = { n: '7. DISCHARGE PLANNING', rows: [
+            { u: 'Informasi aktivitas sesuai kondisi pasien', d: 'first', t: 'Program Pendidikan Pasien & Keluarga' },
+            { u: 'Terapi: kegunaan obat, dosis, efek samping', d: 'first' },
+            { u: 'Penjelasan gejala kekambuhan & penanganannya', d: 'first' },
+            { u: 'Diet pemulihan sesuai kondisi', d: 'first' }
+        ] };
+        const S_EDUKASI = { n: '8. EDUKASI TERINTEGRASI', rows: [
+            { k: 'Edukasi Medis', u: 'Penjelasan diagnosis, rencana terapi, informed consent', d: 'first', t: 'Oleh semua PPA; berdasarkan discharge planning' },
+            { k: 'Edukasi Gizi', u: 'Konseling diet sesuai kondisi (bertahap, TETP bila perlu)', d: 'first2' },
+            { k: 'Edukasi Keperawatan / Bidan', u: 'Manajemen nyeri, penurunan kecemasan, tanda infeksi, mobilisasi', d: 'first' },
+            { k: 'Edukasi Farmasi', u: 'Informasi & konseling obat', d: 'first', t: 'Meningkatkan kepatuhan' },
+            { k: 'Formulir', u: 'Lembar Edukasi Terintegrasi', d: 'first', t: 'Di-TTD keluarga / pasien' }
+        ] };
+        const S_TATA_KEP = [
+            { k: 'Tatalaksana Keperawatan / Bidan', u: 'NIC 1400 Manajemen nyeri', d: 'all', t: 'Mengacu NIC' },
+            { u: 'NIC 6040 Terapi relaksasi', d: 'all' },
+            { u: 'NIC 5820 Reduksi ansietas', d: 'all' },
+            { u: 'NIC 6540 Kontrol infeksi', d: 'all' },
+            { u: 'NIC 4190 Pemasangan infus', d: 'first' },
+            { u: 'NIC 2314 Kolaborasi pemberian obat', d: 'all' }
+        ];
+        const S_TATA_GIZIFAR = [
+            { k: 'Tatalaksana Gizi', u: 'Diet bertahap sesuai kondisi (cair/saring/lunak/biasa); TETP bila perlu', d: 'all', t: 'Disesuaikan usia & kondisi klinis' },
+            { k: 'Tatalaksana Farmasi', u: 'Rekomendasi ke DPJP & intervensi farmasi', d: 'all', t: 'Sesuai hasil monitoring' }
+        ];
+        const S_MONITORING = { n: '11. MONITORING & EVALUASI', rows: [
+            { k: 'Dokter DPJP', u: 'Asesmen ulang & review verifikasi rencana asuhan', d: 'all' },
+            { k: 'Keperawatan / Bidan', u: 'Monitoring skala nyeri, tanda kecemasan, tanda infeksi, kondisi luka, TTV', d: 'all', t: 'Mengacu NOC · 3 shift' },
+            { k: 'Gizi', u: 'Monitoring asupan, antropometri, biokimia, fisik/klinis', d: 'all', t: 'Mengacu IDNT' },
+            { k: 'Farmasi', u: 'Monitoring interaksi & efek samping obat, pemantauan terapi', d: 'all' }
+        ] };
+        const S_MOBILISASI = { n: '12. MOBILISASI / REHABILITASI', rows: [
+            { k: 'Keperawatan', u: 'Mobilisasi dibantu sebagian → mandiri bertahap', d: 'all' }
+        ] };
+        const S_OUT_KEPGIZIFAR = [
+            { k: 'Keperawatan', u: 'NOC 1605 Kontrol nyeri; NOC 1211 Level ansietas; NOC 1102 Penyembuhan luka; NOC 0703 Keparahan infeksi', d: 'all', t: 'Mengacu NOC · 3 shift' },
+            { k: 'Gizi', u: 'Asupan makan >80%, status gizi optimal', d: 'last' },
+            { k: 'Farmasi', u: 'Terapi obat sesuai indikasi & rasional', d: 'all' }
+        ];
+        const S_RENCANA = { n: '15. RENCANA PULANG / EDUKASI LANJUTAN', rows: [
+            { u: 'Resume medis & keperawatan', d: 'last', t: 'Pasien membawa resume / surat rujukan / surat kontrol saat pulang' },
+            { u: 'Penjelasan sesuai keadaan umum pasien', d: 'last' },
+            { u: 'Surat pengantar kontrol', d: 'last' }
+        ] };
+
+        // ---------- definisi pathway (konten spesifik) ----------
+        const PATHWAYS = {
+            kpd: {
+                nama: 'Ketuban Pecah Dini (KPD)', icd: 'O42', lama: 3,
+                lab: ['Darah lengkap', 'Masa perdarahan & pembekuan', 'Gula darah sewaktu', 'Elektrolit', 'Fungsi ginjal (ureum, kreatinin)', 'Tes lakmus / nitrazin, (± kultur)'],
+                radiologi: [{ u: 'EKG', t: 'Usia > 40 th' }, { u: 'Thorax AP', t: 'Atas indikasi' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi', 'Dokter Anak'],
+                dxMedis: 'Ketuban Pecah Dini',
+                dxKep: ['00132 Nyeri akut', '00004 Risiko infeksi', '00146 Ansietas'],
+                dxGizi: 'Prediksi suboptimal asupan energi terkait rencana tindakan (N1-1.4)',
+                terapi: [
+                    { k: 'Injeksi', u: 'Ceftriaxone 1 g IV / 12 jam (profilaksis)', d: 'all' },
+                    { u: 'Analgetik simptomatik', v: 'all' },
+                    { k: 'Induksi', u: 'Drip oksitosin 5 IU + RL 500 cc', d: 'first', t: 'Bila Bishop > 5' },
+                    { u: 'Misoprostol (pematangan serviks)', v: 'first', t: 'Bila Bishop < 5' },
+                    { k: 'Cairan Infus', u: 'RL / NaCl / Dextrose 5%', d: 'all' },
+                    { k: 'Obat Pulang', u: 'Cefadroksil 500 mg, Asam mefenamat 500 mg, Roboransia, (Metilergometrin bila post-partum)', d: 'last' }
+                ],
+                tataMedis: 'Konservatif / terminasi sesuai usia kehamilan & tanda infeksi; induksi persalinan atau SC bila gagal induksi/indikasi',
+                outMedis: 'Persalinan terlaksana, tidak ada tanda infeksi/korioamnionitis, ibu & bayi stabil'
+            },
+            normal: {
+                nama: 'Persalinan Normal (Partus Spontan)', icd: 'O80', lama: 2,
+                lab: ['Darah lengkap', 'Golongan darah & Rh', 'HbsAg / HIV / sifilis (bila belum)', 'Gula darah sewaktu'],
+                radiologi: [],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anak (saat lahir)'],
+                dxMedis: 'Persalinan normal / partus spontan',
+                dxKep: ['00256 Nyeri persalinan', '00146 Ansietas', '00004 Risiko infeksi'],
+                dxGizi: 'Asupan adekuat intrapartum & nifas',
+                terapi: [
+                    { k: 'Uterotonika', u: 'Oksitosin 10 IU IM (manajemen aktif kala III)', d: 'first' },
+                    { u: 'Metilergometrin (bila atonia / indikasi)', v: 'first' },
+                    { k: 'Analgetik', u: 'Parasetamol / asam mefenamat', d: 'all' },
+                    { k: 'Antibiotik', u: 'Profilaksis bila episiotomi/laserasi luas', v: 'first' },
+                    { k: 'Cairan Infus', u: 'RL', d: 'first' }
+                ],
+                tataMedis: 'Pertolongan persalinan normal sesuai APN, Inisiasi Menyusu Dini (IMD), manajemen aktif kala III, jahit perineum bila robekan',
+                outMedis: 'Ibu & bayi stabil, kontraksi uterus baik, perdarahan terkontrol, laktasi dimulai'
+            },
+            sc: {
+                nama: 'Seksio Sesarea (SC)', icd: 'O82', lama: 3,
+                lab: ['Darah lengkap', 'Masa perdarahan & pembekuan', 'Gula darah sewaktu', 'Elektrolit', 'Fungsi ginjal', 'Golongan darah & crossmatch'],
+                radiologi: [{ u: 'EKG', t: 'Usia > 40 th / indikasi' }, { u: 'Thorax AP', t: 'Atas indikasi' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi', 'Dokter Anak'],
+                dxMedis: 'Kehamilan dengan indikasi seksio sesarea',
+                dxKep: ['00132 Nyeri akut', '00004 Risiko infeksi', '00085 Hambatan mobilitas fisik'],
+                dxGizi: 'Prediksi suboptimal asupan energi terkait tindakan bedah (N1-1.4)',
+                terapi: [
+                    { k: 'Injeksi', u: 'Ceftriaxone 1 g IV / 12 jam', d: 'all' },
+                    { u: 'Analgetik (ketorolac / parasetamol IV)', d: 'all' },
+                    { u: 'Oksitosin drip pasca-plasenta', d: 'first' },
+                    { k: 'Cairan Infus', u: 'RL / NaCl', d: 'all' },
+                    { k: 'Obat Pulang', u: 'Cefadroksil 500 mg, Asam mefenamat 500 mg, SF, Roboransia', d: 'last' }
+                ],
+                tataMedis: 'Persiapan pra-op (puasa, infus, kateter, informed consent, anestesi RA/GA), seksio sesarea, perawatan luka operasi',
+                outMedis: 'Luka operasi baik, tidak ada perdarahan/infeksi, mobilisasi bertahap, bayi sehat'
+            },
+            peb: {
+                nama: 'Preeklampsia Berat (PEB)', icd: 'O14.1', lama: 4,
+                lab: ['Darah lengkap + trombosit', 'Fungsi hati (SGOT/SGPT, LDH)', 'Fungsi ginjal (ureum, kreatinin, asam urat)', 'Protein urin (dipstik / 24 jam)', 'Elektrolit'],
+                radiologi: [{ u: 'EKG', t: 'Atas indikasi' }, { u: 'Thorax AP', t: 'Bila curiga edema paru' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi', 'Dokter Anak', 'Penyakit Dalam / Jantung (bila perlu)'],
+                dxMedis: 'Preeklampsia Berat',
+                dxKep: ['00035 Risiko cedera (kejang)', '00026 Kelebihan volume cairan', '00146 Ansietas'],
+                dxGizi: 'Diet preeklampsia (cukup protein, rendah garam bila indikasi)',
+                terapi: [
+                    { k: 'Antikejang', u: 'MgSO₄ loading 4 g IV + rumatan sesuai protokol', d: 'all' },
+                    { u: 'Kalsium glukonas 1 g IV (antidotum) — sedia', v: 'all' },
+                    { k: 'Antihipertensi', u: 'Nifedipin oral 10 mg (target <160/110) / per protokol', d: 'all' },
+                    { k: 'Pematangan paru', u: 'Deksametason / betametason', v: 'first', t: 'Bila < 34 minggu' },
+                    { k: 'Cairan Infus', u: 'RL terkontrol (pantau balans)', d: 'all' }
+                ],
+                tataMedis: 'Stabilisasi, kontrol TD & pencegahan kejang (MgSO₄), evaluasi terminasi kehamilan sesuai usia & kondisi ibu-janin',
+                outMedis: 'TD terkontrol <160/110, tidak kejang, tanda impending eklampsia (-), luaran ibu-janin baik'
+            }
+        };
+
+        // ---------- rakit 15 seksi untuk sebuah pathway ----------
+        function buildSections(pw) {
+            const radioRows = (pw.radiologi && pw.radiologi.length) ? pw.radiologi.map(r => ({ u: r.u, d: 'first', t: r.t })) : [{ u: '(sesuai indikasi)', d: [] }];
+            return [
+                S_ASESMEN_AWAL,
+                { n: '2. LABORATORIUM', rows: pw.lab.map(l => ({ u: l, d: 'first' })) },
+                { n: '3. RADIOLOGI / IMAGING', rows: radioRows },
+                { n: '4. KONSULTASI', rows: pw.konsultasi.map(k => ({ u: k, d: 'first' })) },
+                S_ASESMEN_LANJUT,
+                { n: '6. DIAGNOSIS', rows: [
+                    { k: 'Diagnosis Medis', u: pw.dxMedis, d: 'all' },
+                    { k: 'Diagnosis Keperawatan', u: pw.dxKep.join('; '), d: 'all', t: 'Masalah keperawatan harian' },
+                    { k: 'Diagnosis Gizi', u: pw.dxGizi, d: 'first' }
+                ] },
+                S_DISCHARGE,
+                S_EDUKASI,
+                { n: '9. TERAPI / MEDIKAMENTOSA', rows: pw.terapi },
+                { n: '10. TATALAKSANA / INTERVENSI', rows: [
+                    { k: 'Tatalaksana Medis', u: pw.tataMedis, d: 'first' },
+                    ...S_TATA_KEP, ...S_TATA_GIZIFAR
+                ] },
+                S_MONITORING,
+                S_MOBILISASI,
+                { n: '13. OUTCOME / HASIL', rows: [
+                    { k: 'Medis', u: pw.outMedis, d: 'last' },
+                    ...S_OUT_KEPGIZIFAR
+                ] },
+                { n: '14. KRITERIA PULANG', rows: [
+                    { u: 'Umum: hemodinamik stabil, intake baik, mobilisasi baik', d: 'last', t: 'Sesuai PPK' },
+                    { u: 'Khusus: tanda bahaya (-), tidak ada komplikasi, bayi sehat (bila bersalin)', d: 'last' }
+                ] },
+                S_RENCANA
+            ];
+        }
+
+        // ---------- render tabel ----------
+        function dayCells(row, lama) {
+            const plan = resolve(row.d, lama), vr = resolve(row.v, lama);
+            let out = '';
+            for (let i = 1; i <= DAYCOLS; i++) {
+                const cls = plan.includes(i) ? 'plan' : (vr.includes(i) ? 'var' : '');
+                out += `<td class="cp-day ${cls}" onclick="this.classList.toggle('done')"></td>`;
+            }
+            return out;
+        }
+        function renderTable() {
+            const pw = PATHWAYS[state.id];
+            const secs = buildSections(pw);
+            let rows = '';
+            secs.forEach(s => {
+                rows += `<tr><td class="cp-sec" colspan="${3 + DAYCOLS}">${s.n}</td></tr>`;
+                s.rows.forEach(r => {
+                    rows += `<tr>
+                        <td class="cp-keg">${r.k || ''}</td>
+                        <td>${r.u || ''}</td>
+                        ${dayCells(r, pw.lama)}
+                        <td style="width:18%">${r.t || ''}</td>
+                    </tr>`;
+                });
+            });
+            let dayHead = '';
+            for (let i = 1; i <= DAYCOLS; i++) dayHead += `<th class="cp-day">${i}</th>`;
+            return `<div class="cp-wrap overflow-x-auto">
+                <table class="cp-table">
+                    <thead>
+                        <tr><th class="cp-keg" rowspan="2">KEGIATAN</th><th rowspan="2">URAIAN KEGIATAN</th><th colspan="${DAYCOLS}">HARI KE</th><th rowspan="2">KETERANGAN</th></tr>
+                        <tr>${dayHead}</tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+        }
+
+        // ---------- blok identitas (kop kosong, fillable) ----------
+        function identityBlock() {
+            const line = (lbl, w) => `<span class="text-[11px] text-slate-500">${lbl}</span> <input class="cp-inp" style="width:${w || '120px'}"> `;
+            return `<div class="rounded-xl border border-slate-300 p-3 mb-3 bg-white text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pb-2 border-b border-slate-200">
+                    <div><div class="font-bold text-slate-700 text-[11px] uppercase">Kop / Rumah Sakit</div>
+                        <input class="cp-inp block w-full mt-1" placeholder="Nama rumah sakit / klinik">
+                        <input class="cp-inp block w-full mt-1" placeholder="Alamat / kontak">
+                        <input class="cp-inp block w-full mt-1" placeholder="No. dokumen / RM form">
+                    </div>
+                    <div class="space-y-1">
+                        <div>${line('No. RM:', '140px')}</div>
+                        <div>${line('Nama:', '180px')}</div>
+                        <div>${line('Tgl lahir:', '110px')} <span class="text-[11px] text-slate-500">L / P</span></div>
+                        <div>${line('Umur:', '70px')} <span class="text-[11px] text-slate-500">th</span></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 pt-2">
+                    <div>${line('Diagnosa masuk:', '150px')} ${line('ICD:', '80px')}</div>
+                    <div>${line('Tgl masuk:', '110px')} ${line('jam:', '60px')}</div>
+                    <div>${line('Penyakit utama:', '150px')} ${line('ICD:', '80px')}</div>
+                    <div>${line('Tgl keluar:', '110px')} ${line('jam:', '60px')}</div>
+                    <div>${line('Penyakit penyerta:', '140px')} ${line('ICD:', '80px')}</div>
+                    <div>${line('Lama rawat:', '70px')} <span class="text-[11px] text-slate-500">hari</span></div>
+                    <div>${line('Komplikasi:', '160px')} ${line('ICD:', '80px')}</div>
+                    <div>${line('Kelas / ruang:', '120px')}</div>
+                    <div>${line('Tindakan:', '170px')} ${line('ICD:', '80px')}</div>
+                    <div>${line('Rujukan: Ya / Tidak', '80px')}</div>
+                    <div>${line('BB:', '60px')} <span class="text-[11px] text-slate-500">kg</span> ${line('TB:', '60px')} <span class="text-[11px] text-slate-500">cm</span></div>
+                    <div>${line('DPJP:', '160px')}</div>
+                </div>
+            </div>`;
+        }
+
+        // ---------- shell ----------
+        function renderApp() {
+            const pw = PATHWAYS[state.id];
+            $('app').innerHTML = `${renderNavbar()}
+                <main class="max-w-5xl mx-auto px-3 pb-28 pt-4">
+                    <div class="rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 text-white p-5 mb-4 shadow-lg no-print">
+                        <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-table-list"></i><span class="text-xs font-bold uppercase tracking-widest text-slate-300">Clinical Pathway</span></div>
+                        <h1 class="text-xl font-black leading-tight">Integrated Clinical Pathway</h1>
+                        <p class="text-sm text-slate-300 mt-1 leading-snug">Isi digital atau cetak kosong (A4). Kop & identitas diisi manual.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 mb-3 no-print">
+                        <label class="text-xs font-semibold text-slate-600">Pathway:</label>
+                        <select onchange="setPathway(this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white outline-none focus:border-slate-500">
+                            ${Object.keys(PATHWAYS).map(k => `<option value="${k}" ${k === state.id ? 'selected' : ''}>${PATHWAYS[k].nama}</option>`).join('')}
+                        </select>
+                        <button onclick="window.print()" class="ml-auto px-3 py-2 rounded-lg bg-slate-700 text-white text-sm font-semibold hover:bg-slate-800"><i class="fa-solid fa-print mr-1.5"></i>Cetak / PDF</button>
+                        <button onclick="clearForm()" class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 text-sm font-semibold"><i class="fa-solid fa-eraser mr-1"></i>Bersihkan</button>
+                    </div>
+
+                    <div class="text-center mb-2 hidden print:block"><div class="font-black text-sm">CLINICAL PATHWAY — ${pw.nama.toUpperCase()}</div></div>
+                    <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                        <h2 class="font-black text-slate-800">${pw.nama} <span class="text-xs font-semibold text-slate-400">· ICD ${pw.icd} · rencana rawat ${pw.lama} hari</span></h2>
+                        <div class="flex items-center gap-3 text-[11px] text-slate-500 no-print">
+                            <span><span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:#86efac"></span> terjadwal</span>
+                            <span><span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:#fde68a"></span> varian</span>
+                            <span><b>✓</b> klik sel = dilaksanakan</span>
+                        </div>
+                    </div>
+                    ${identityBlock()}
+                    <div id="cptable">${renderTable()}</div>
+                    <div class="mt-4 flex justify-end text-sm"><div class="text-center"><div class="text-[11px] text-slate-500 mb-10">Bandar Lampung, ........................</div><div class="border-t border-slate-400 px-6 pt-1">Dokter DPJP</div></div></div>
+                    ${renderDisclaimer()}
+                </main>
+                ${renderBottomNav()}`;
+        }
+        window.setPathway = (v) => { state.id = v; renderApp(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {} };
+        window.clearForm = () => { renderApp(); };
+
+        function renderNavbar() {
+            return `<header class="sticky top-0 z-30 bg-slate-700 text-white shadow-lg no-print">
+                <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-table-list text-lg"></i></div>
+                        <div class="min-w-0"><div class="font-extrabold leading-tight text-[15px]">Asisten AI dr. Bayu</div><div class="text-[11px] text-slate-300 leading-tight">Clinical Pathway</div></div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <a href="perjalanan.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Perjalanan Pasien"><i class="fa-solid fa-route"></i></a>
+                        <a href="kalkulator.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Kalkulator"><i class="fa-solid fa-calculator"></i></a>
+                        <a href="panduan-obstetri.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Panduan Obstetri"><i class="fa-solid fa-book-medical"></i></a>
+                        <a href="index.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Momscare"><i class="fa-solid fa-heart"></i></a>
+                    </div>
+                </div>
+            </header>`;
+        }
+        function renderBottomNav() {
+            return `<nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 no-print">
+                <div class="max-w-5xl mx-auto grid grid-cols-1"><a href="index.html" class="py-2.5 flex flex-col items-center gap-1 text-slate-400"><i class="fa-solid fa-grip text-lg"></i><span class="text-[11px] font-semibold">Beranda aplikasi</span></a></div>
+            </nav>`;
+        }
+        function renderDisclaimer() {
+            return `<div class="mt-4 no-print"><div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
+                <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Draf Clinical Pathway standar untuk tenaga kesehatan — <b>wajib disesuaikan</b> dengan PPK/protap, formularium, dan kebijakan institusi Anda (termasuk kode ICD-10 & SDKI/SLKI/SIKI atau NANDA/NOC/NIC yang berlaku). Bukan pengganti penilaian klinis.
+            </div></div>`;
+        }
+        renderApp();
+    </script>
+
+    <!-- Kontrol ukuran huruf -->
+    <div id="fontCtl" class="fixed z-50 bottom-20 right-3 flex items-center gap-0.5 bg-white/95 backdrop-blur border border-slate-200 shadow-lg rounded-full p-1 no-print" role="group" aria-label="Ukuran huruf">
+        <button type="button" onclick="setFont(-1)" aria-label="Perkecil huruf" title="Perkecil huruf" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center"><span class="text-xs font-bold leading-none">A</span></button>
+        <span id="fontLbl" class="text-[10px] text-slate-400 w-9 text-center tabular-nums select-none">100%</span>
+        <button type="button" onclick="setFont(1)" aria-label="Perbesar huruf" title="Perbesar huruf" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-800 flex items-center justify-center"><span class="text-lg font-black leading-none">A</span></button>
+    </div>
+    <script>
+    (function(){
+        var KEY='ramli_font_scale', STEPS=[90,100,112,125,140,160];
+        function idx(){var v;try{v=parseInt(localStorage.getItem(KEY),10);}catch(e){}var i=STEPS.indexOf(v);return i<0?1:i;}
+        function apply(i){var p=STEPS[i];document.documentElement.style.fontSize=p+'%';var l=document.getElementById('fontLbl');if(l)l.textContent=p+'%';}
+        window.setFont=function(d){var i=Math.max(0,Math.min(STEPS.length-1,idx()+d));try{localStorage.setItem(KEY,STEPS[i]);}catch(e){}apply(i);};
+        apply(idx());
+    })();
+    </script>
+</body>
+</html>
