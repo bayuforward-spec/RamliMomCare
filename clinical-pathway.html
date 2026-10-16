@@ -118,11 +118,10 @@
         const PATHWAYS = {
             kpd: {
                 nama: 'Ketuban Pecah Dini (KPD)', icd: 'O42', lama: 3,
-                lab: ['Darah lengkap', 'Masa perdarahan & pembekuan', 'Gula darah sewaktu', 'Elektrolit', 'Fungsi ginjal (ureum, kreatinin)', 'Tes lakmus / nitrazin, (± kultur)'],
+                lab: ['Darah lengkap', 'Masa perdarahan & pembekuan', 'Gula darah sewaktu', 'Elektrolit', 'Fungsi ginjal (ureum, kreatinin)', 'Tes lakmus / nitrazin (± kultur)'],
                 radiologi: [{ u: 'EKG', t: 'Usia > 40 th' }, { u: 'Thorax AP', t: 'Atas indikasi' }],
                 konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi', 'Dokter Anak'],
-                dxMedis: 'Ketuban Pecah Dini',
-                dxKep: ['00132 Nyeri akut', '00004 Risiko infeksi', '00146 Ansietas'],
+                dxMedis: 'Ketuban Pecah Dini', dxKep: ['00132 Nyeri akut', '00004 Risiko infeksi', '00146 Ansietas'],
                 dxGizi: 'Prediksi suboptimal asupan energi terkait rencana tindakan (N1-1.4)',
                 terapi: [
                     { k: 'Injeksi', u: 'Antibiotik spektrum luas (mis. Ceftriaxone 1 g IV / 12 jam)', d: 'all' },
@@ -130,56 +129,53 @@
                     { k: 'Induksi', u: 'Drip oksitosin 5 IU + RL 500 cc', d: 'first', t: 'Bila Bishop > 5' },
                     { u: 'Misoprostol (pematangan serviks)', v: 'first', t: 'Bila Bishop < 5' },
                     { k: 'Cairan Infus', u: 'RL / NaCl / Dextrose 5%', d: 'all' },
-                    { k: 'Obat Pulang', u: 'Cefadroksil 500 mg, Asam mefenamat 500 mg, Roboransia, (Metilergometrin bila post-partum)', d: 'last' }
+                    { k: 'Obat Pulang', u: 'Cefadroksil 500 mg, Asam mefenamat 500 mg, Roboransia', d: 'last' }
                 ],
-                tataMedis: 'Infus jaga + antibiotik spektrum luas; terminasi sesuai usia kehamilan & tanda infeksi; utamakan persalinan pervaginam, SC hanya atas indikasi obstetri (induksi dulu; SC bila gagal induksi)',
+                tataMedis: 'Infus jaga + antibiotik spektrum luas; terminasi sesuai usia kehamilan & tanda infeksi; utamakan persalinan pervaginam, SC hanya atas indikasi obstetri',
                 outMedis: 'Persalinan terlaksana, tidak ada tanda infeksi/korioamnionitis, ibu & bayi stabil',
-                sumber: 'PPK Obgyn RSHS 2015 — Infeksi Intrauterin dalam Kehamilan & Persalinan (hal. 51; KPD sbg faktor predisposisi, prinsip terminasi + antibiotik spektrum luas). Struktur grid & kode keperawatan = template standar.'
+                sumber: 'PPK Obgyn RSHS 2015 — Infeksi Intrauterin dlm Kehamilan & Persalinan (hal. 51; KPD sbg faktor predisposisi, prinsip terminasi + antibiotik spektrum luas). Struktur grid & kode keperawatan = template standar.'
             },
-            normal: {
-                nama: 'Persalinan Normal (Partus Spontan)', icd: 'O80', lama: 2,
-                lab: ['Darah lengkap', 'Golongan darah & Rh', 'HbsAg / HIV / sifilis (bila belum)', 'Gula darah sewaktu'],
-                radiologi: [],
-                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anak (saat lahir)'],
-                dxMedis: 'Persalinan normal / partus spontan',
-                dxKep: ['00256 Nyeri persalinan', '00146 Ansietas', '00004 Risiko infeksi'],
-                dxGizi: 'Asupan adekuat intrapartum & nifas',
+            ppi: {
+                nama: 'Partus Prematurus Iminens (PPI)', icd: 'O60.0', lama: 3,
+                lab: ['Darah lengkap', 'Urinalisis / kultur urin', 'Gula darah sewaktu', 'Swab vagina (bila indikasi)'],
+                radiologi: [{ u: 'USG: TBJ, panjang serviks, presentasi, cairan amnion', d: 'first' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anak / Neonatologi'],
+                dxMedis: 'Partus prematurus iminens (ancaman persalinan preterm 20–36⁺⁶ mgg)',
+                dxKep: ['00256 Nyeri persalinan', '00146 Ansietas', '00004 Risiko infeksi'], dxGizi: 'Asupan adekuat',
                 terapi: [
-                    { k: 'Uterotonika', u: 'Oksitosin 10 IU IM (manajemen aktif kala III)', d: 'first' },
-                    { u: 'Metilergometrin (bila atonia / indikasi)', v: 'first' },
-                    { k: 'Analgetik', u: 'Parasetamol / asam mefenamat', d: 'all' },
-                    { k: 'Antibiotik', u: 'Profilaksis bila episiotomi/laserasi luas', v: 'first' },
-                    { k: 'Cairan Infus', u: 'RL', d: 'first' }
+                    { k: 'Tokolitik', u: 'Nifedipin 10 mg oral, ulang tiap 20 mnt (maks 40 mg/jam) lalu rumatan', d: 'first', t: 'Tunda persalinan 48 jam' },
+                    { k: 'Pematangan paru', u: 'Deksametason 6 mg IM / 12 jam × 4 (atau Betametason 12 mg / 24 jam × 2)', d: 'first', t: 'Usia 24–34 mgg' },
+                    { k: 'Neuroproteksi', u: 'MgSO₄', v: 'first', t: 'Bila < 32 mgg' },
+                    { k: 'Antibiotik', u: 'Bila disertai KPD / infeksi', v: 'all' }
                 ],
-                tataMedis: 'Asuhan persalinan normal sesuai APN & pemantauan partograf; asuhan sayang ibu; pencegahan infeksi; Inisiasi Menyusu Dini (IMD); manajemen aktif kala III; jahit perineum bila robekan; rujuk tepat waktu bila penyulit',
-                outMedis: 'Ibu & bayi stabil, kontraksi uterus baik, perdarahan terkontrol, laktasi dimulai',
-                sumber: 'PPK Obgyn RSHS 2015 — Asuhan Kala I Persalinan (hal. 7; partograf, asuhan sayang ibu, pencegahan infeksi). Manajemen aktif kala III sesuai APN. Struktur grid & kode keperawatan = template standar.'
+                tataMedis: 'Tirah baring + hidrasi; tokolisis untuk tunda persalinan 48 jam agar kortikosteroid bekerja; cari & atasi pemicu (ISK/infeksi); rujuk bila < 34 mgg / perlu NICU',
+                outMedis: 'Kontraksi teratasi & kehamilan dipertahankan, atau persalinan preterm terkelola dengan bayi stabil',
+                sumber: 'Standar persalinan preterm (POGI; tokolitik nifedipin, kortikosteroid 24–34 mgg, MgSO₄ neuroproteksi < 32 mgg). PPK RSHS extract tidak memuat PPI khusus; struktur = template standar.'
             },
-            sc: {
-                nama: 'Seksio Sesarea (SC)', icd: 'O82', lama: 3,
-                lab: ['Darah lengkap', 'Masa perdarahan & pembekuan', 'Gula darah sewaktu', 'Elektrolit', 'Fungsi ginjal', 'Golongan darah & crossmatch'],
-                radiologi: [{ u: 'EKG', t: 'Usia > 40 th / indikasi' }, { u: 'Thorax AP', t: 'Atas indikasi' }],
-                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi', 'Dokter Anak'],
-                dxMedis: 'Kehamilan dengan indikasi seksio sesarea',
-                dxKep: ['00132 Nyeri akut', '00004 Risiko infeksi', '00085 Hambatan mobilitas fisik'],
-                dxGizi: 'Prediksi suboptimal asupan energi terkait tindakan bedah (N1-1.4)',
+            heg: {
+                nama: 'Hiperemesis Gravidarum (HEG)', icd: 'O21.1', lama: 3,
+                lab: ['Keton urin', 'Elektrolit', 'Darah lengkap', 'Fungsi hati & ginjal (bila berat)'],
+                radiologi: [{ u: 'USG: letak kantung, jumlah janin, usia kehamilan, singkirkan mola', d: 'first' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Tenaga Gizi', 'Penyakit Dalam (bila berat)'],
+                dxMedis: 'Hiperemesis gravidarum (kehamilan 4–16 mgg, muntah hebat + dehidrasi/ketonemia)',
+                dxKep: ['00002 Ketidakseimbangan nutrisi kurang', '00027 Kekurangan volume cairan', '00146 Ansietas'],
+                dxGizi: 'Asupan tidak adekuat akibat mual-muntah',
                 terapi: [
-                    { k: 'Injeksi', u: 'Ceftriaxone 1 g IV / 12 jam', d: 'all' },
-                    { u: 'Analgetik (ketorolac / parasetamol IV)', d: 'all' },
-                    { u: 'Oksitosin drip pasca-plasenta', d: 'first' },
-                    { k: 'Cairan Infus', u: 'RL / NaCl', d: 'all' },
-                    { k: 'Obat Pulang', u: 'Cefadroksil 500 mg, Asam mefenamat 500 mg, SF, Roboransia', d: 'last' }
+                    { k: 'Antiemetik', u: 'Piridoksin ± doksilamin (lini 1); metoklopramid / ondansetron', d: 'all' },
+                    { k: 'Cairan Infus', u: 'NaCl / RL untuk koreksi dehidrasi & elektrolit', d: 'first' },
+                    { u: 'Dekstrose 5–10% setelah dehidrasi teratasi', d: 'all' },
+                    { k: 'Suplemen', u: 'Tiamin (vit B1) pada muntah berkepanjangan', v: 'all' }
                 ],
-                tataMedis: 'Persiapan pra-op (puasa, infus, kateter, informed consent, anestesi RA/GA, sediakan darah, pemantauan DJJ/KTG), seksio sesarea, perawatan luka operasi',
-                outMedis: 'Luka operasi baik, tidak ada perdarahan/infeksi, mobilisasi bertahap, bayi sehat',
-                sumber: 'PPK Obgyn RSHS 2015 — Persalinan dengan Riwayat Seksio Sesarea (hal. 97) & Partus Percobaan (hal. 31; persediaan darah, KTG kontinyu, konsul anestesi & anak). Antibiotik profilaksis sesuai standar. Struktur grid & kode keperawatan = template standar.'
+                tataMedis: 'Koreksi dehidrasi, ketonemia & elektrolit dengan cairan IV; antiemetik bertahap; puasa lalu diet bertahap; rawat bila terapi oral gagal; pulang bila toleransi makan-minum baik',
+                outMedis: 'Mual-muntah terkontrol, hidrasi baik, keton (-), toleransi diet oral',
+                sumber: 'PPK Obgyn RSHS 2015 — Hiperemesis Gravidarum (hal. 3; antiemetik oral lini 1, rehidrasi NaCl/RL, Dekstrose 5–10%). Struktur grid & kode keperawatan = template standar.'
             },
             peb: {
                 nama: 'Preeklampsia Berat (PEB)', icd: 'O14.1', lama: 4,
                 lab: ['Darah lengkap + trombosit', 'Fungsi hati (SGOT/SGPT, LDH)', 'Fungsi ginjal (ureum, kreatinin, asam urat)', 'Protein urin (dipstik / 24 jam)', 'Elektrolit'],
                 radiologi: [{ u: 'EKG', t: 'Atas indikasi' }, { u: 'Thorax AP', t: 'Bila curiga edema paru' }],
                 konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi', 'Dokter Anak', 'Penyakit Dalam / Jantung (bila perlu)'],
-                dxMedis: 'Preeklampsia Berat',
+                dxMedis: 'Preeklampsia Berat (TD ≥160/110 + gejala/tanda berat atau disfungsi organ)',
                 dxKep: ['00035 Risiko cedera (kejang)', '00026 Kelebihan volume cairan', '00146 Ansietas'],
                 dxGizi: 'Diet preeklampsia (cukup protein, rendah garam bila indikasi)',
                 terapi: [
@@ -189,9 +185,116 @@
                     { k: 'Pematangan paru', u: 'Deksametason / betametason', v: 'first', t: 'Bila < 34 minggu' },
                     { k: 'Cairan Infus', u: 'RL terkontrol (pantau balans)', d: 'all' }
                 ],
-                tataMedis: 'Nilai keparahan & usia kehamilan → ekspektatif vs terminasi; kontrol TD & pencegahan kejang (MgSO₄); rujuk fasilitas dengan perawatan intensif maternal-neonatal bila PEB; kortikosteroid pematangan paru bila <34 mgg',
+                tataMedis: 'Nilai keparahan & usia kehamilan → ekspektatif vs terminasi; kontrol TD & pencegahan kejang (MgSO₄); rujuk fasilitas perawatan intensif maternal-neonatal; kortikosteroid pematangan paru bila < 34 mgg',
                 outMedis: 'TD terkontrol <160/110, tidak kejang, tanda impending eklampsia (-), luaran ibu-janin baik',
-                sumber: 'PPK Obgyn RSHS 2015 + PNPK Preeklampsia POGI 2016 — Preeklampsia (MgSO₄ antikejang lini pertama; Nifedipin target <160/110; Ca glukonas antidotum; ekspektatif vs terminasi per usia kehamilan). Struktur grid & kode keperawatan = template standar.'
+                sumber: 'PPK Obgyn RSHS 2015 + PNPK Preeklampsia POGI 2016 — Preeklampsia (MgSO₄ antikejang lini pertama; Nifedipin target <160/110; Ca glukonas antidotum). Struktur grid & kode keperawatan = template standar.'
+            },
+            scmow: {
+                nama: 'Seksio Sesarea + MOW (tubektomi)', icd: 'O82 + Z30.2', lama: 3,
+                lab: ['Darah lengkap', 'Masa perdarahan & pembekuan', 'Gula darah sewaktu', 'Elektrolit', 'Fungsi ginjal', 'Golongan darah & crossmatch'],
+                radiologi: [{ u: 'EKG', t: 'Usia > 40 th / indikasi' }, { u: 'Thorax AP', t: 'Atas indikasi' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi', 'Dokter Anak'],
+                dxMedis: 'Kehamilan dengan indikasi SC + permintaan kontrasepsi mantap wanita (MOW/tubektomi)',
+                dxKep: ['00132 Nyeri akut', '00004 Risiko infeksi', '00085 Hambatan mobilitas fisik'],
+                dxGizi: 'Prediksi suboptimal asupan energi terkait tindakan bedah (N1-1.4)',
+                terapi: [
+                    { k: 'Injeksi', u: 'Ceftriaxone 1 g IV / 12 jam', d: 'all' },
+                    { u: 'Analgetik (ketorolac / parasetamol IV)', d: 'all' },
+                    { u: 'Oksitosin drip pasca-plasenta', d: 'first' },
+                    { k: 'Cairan Infus', u: 'RL / NaCl', d: 'all' },
+                    { k: 'Obat Pulang', u: 'Cefadroksil 500 mg, Asam mefenamat 500 mg, SF, Roboransia', d: 'last' }
+                ],
+                tataMedis: 'Konseling & informed consent kontrasepsi mantap (MOW) — sukarela, sebelum operasi; persiapan pra-op (puasa, infus, kateter, sediakan darah); seksio sesarea; tubektomi (mis. Pomeroy) intra-operatif; perawatan luka',
+                outMedis: 'Luka operasi baik, tidak ada perdarahan/infeksi, tubektomi terlaksana, mobilisasi bertahap, bayi sehat',
+                sumber: 'PPK Obgyn RSHS 2015 — Riwayat SC (hal. 97) & Partus Percobaan (hal. 31) + standar kontrasepsi mantap (MOW/tubektomi Pomeroy; informed consent sukarela). Struktur grid & kode keperawatan = template standar.'
+            },
+            gh: {
+                nama: 'Hipertensi Gestasional (GH)', icd: 'O13', lama: 3,
+                lab: ['Protein urin (menyingkirkan preeklampsia)', 'Darah lengkap + trombosit', 'Fungsi hati & ginjal', 'Asam urat'],
+                radiologi: [{ u: 'USG: kesejahteraan & pertumbuhan janin', d: 'first' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anak (bila terminasi)'],
+                dxMedis: 'Hipertensi gestasional (TD ≥140/90 ≥20 mgg TANPA proteinuria / disfungsi organ)',
+                dxKep: ['00146 Ansietas', '00035 Risiko cedera', '00206 Risiko perdarahan'], dxGizi: 'Diet seimbang',
+                terapi: [
+                    { k: 'Antihipertensi', u: 'Nifedipin / metildopa / labetalol (bila TD ≥150/100–160/110); target terkontrol', d: 'all' },
+                    { k: 'Pencegahan', u: 'Aspirin dosis rendah', v: 'first', t: 'Bila faktor risiko PE' }
+                ],
+                tataMedis: 'Pantau TD, proteinuria, gejala & kesejahteraan janin; antihipertensi bila perlu; waspada perburukan menjadi preeklampsia; rencana persalinan ±37–40 mgg',
+                outMedis: 'TD terkontrol, tidak berkembang menjadi PE berat, luaran ibu-janin baik',
+                sumber: 'PNPK Preeklampsia POGI 2016 / PPK RSHS Preeklampsia (acuan ambang TD & antihipertensi). Hipertensi gestasional = hipertensi ≥20 mgg tanpa proteinuria. Struktur = template standar.'
+            },
+            kista: {
+                nama: 'Kista Ovarium', icd: 'N83.2', lama: 3,
+                lab: ['Darah lengkap', 'CA-125 (bila curiga ganas)', 'Golongan darah', 'Tes kehamilan (singkirkan)'],
+                radiologi: [{ u: 'USG transvaginal: karakter kista (nilai risiko IOTA)', d: 'first' }, { u: 'CT/MRI', t: 'Bila perlu' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi (bila operasi)'],
+                dxMedis: 'Kista ovarium — evaluasi risiko keganasan (IOTA Simple Rules / RMI)',
+                dxKep: ['00132 Nyeri akut', '00004 Risiko infeksi', '00148 Ketakutan'], dxGizi: 'Asupan adekuat',
+                terapi: [
+                    { k: 'Analgetik', u: 'Parasetamol / NSAID', d: 'all' },
+                    { k: 'Injeksi', u: 'Antibiotik profilaksis periop', d: 'first' },
+                    { k: 'Cairan Infus', u: 'RL / NaCl', d: 'first' }
+                ],
+                tataMedis: 'Observasi bila kista fungsional < 5 cm asimtomatik; operatif (kistektomi / salpingo-ooforektomi; laparoskopi atau laparotomi) bila simtomatik / persisten / curiga ganas / torsio; kirim PA',
+                outMedis: 'Kista terangkat/teratasi, nyeri hilang, hasil PA jinak, pemulihan baik',
+                sumber: 'Standar ginekologi + IOTA Simple Rules (lihat tab Kalkulator) untuk stratifikasi jinak/ganas. PPK RSHS extract tidak memuat kista ovarium; struktur = template standar.'
+            },
+            aub: {
+                nama: 'Perdarahan Uterus Abnormal (AUB/PUA)', icd: 'N93.9', lama: 3,
+                lab: ['Darah lengkap (anemia)', 'Tes kehamilan (singkirkan)', 'TSH, prolaktin, FSH/LH/E2/progesteron (bila PUD)', 'Penapisan koagulasi (bila perlu)'],
+                radiologi: [{ u: 'USG transvaginal (miometrium, endometrium, ovulasi)', d: 'first' }, { u: 'SIS / histeroskopi', t: 'Bila curiga polip / mioma submukosa' }, { u: 'Biopsi endometrium', t: 'Usia ≥45 th / faktor risiko' }],
+                konsultasi: ['Dokter Obsgin (DPJP)'],
+                dxMedis: 'Perdarahan uterus abnormal — klasifikasi FIGO PALM-COEIN',
+                dxKep: ['00206 Risiko perdarahan', '00027 Kekurangan volume cairan', '00146 Ansietas'],
+                dxGizi: 'Koreksi anemia (Fe, protein)',
+                terapi: [
+                    { k: 'Hormonal', u: 'Pil KB kombinasi / progesteron (pengaturan siklus)', d: 'all' },
+                    { u: 'Estrogen konjugasi (pada perdarahan berat)', v: 'first' },
+                    { k: 'Antifibrinolitik', u: 'Asam traneksamat', d: 'all' },
+                    { k: 'NSAID', u: 'Asam mefenamat', d: 'all' },
+                    { k: 'Suplemen', u: 'Preparat besi (Fe) untuk anemia', d: 'all' }
+                ],
+                tataMedis: 'Stabilisasi (atasi perdarahan akut & anemia); tata laksana sesuai etiologi PALM-COEIN; medikamentosa hormonal lini pertama; dilatasi-kuret / histeroskopi / ablasi endometrium bila gagal; kirim PA',
+                outMedis: 'Perdarahan terkontrol, Hb membaik, siklus teratur, etiologi teridentifikasi',
+                sumber: 'PPK/Panduan — Perdarahan Uterus Abnormal (PUA, hal. 92) & Perdarahan Uterus Disfungsi (PUD, hal. 91); klasifikasi FIGO PALM-COEIN. Struktur grid & kode keperawatan = template standar.'
+            },
+            ket: {
+                nama: 'Kehamilan Ektopik Terganggu (KET)', icd: 'O00.9', lama: 3,
+                lab: ['β-hCG', 'Darah lengkap (Hb)', 'Golongan darah & crossmatch'],
+                radiologi: [{ u: 'USG transvaginal: kantung di luar uterus, cairan bebas cavum Douglas', d: 'first' }],
+                konsultasi: ['Dokter Obsgin (DPJP)', 'Dokter Anestesi'],
+                dxMedis: 'Kehamilan ektopik terganggu (ruptur / perdarahan intraabdomen)',
+                dxKep: ['00206 Risiko perdarahan', '00132 Nyeri akut', '00028 Risiko syok (hipovolemik)'],
+                dxGizi: 'Prediksi suboptimal asupan terkait tindakan bedah (N1-1.4)',
+                terapi: [
+                    { k: 'Resusitasi', u: 'Cairan kristaloid 2 jalur IV ± transfusi darah', d: 'first' },
+                    { k: 'Injeksi', u: 'Antibiotik profilaksis', d: 'first' },
+                    { u: 'Analgetik', d: 'all' },
+                    { k: 'Imunisasi', u: 'Anti-D bila Rh (-)', v: 'first' }
+                ],
+                tataMedis: 'Stabilisasi hemodinamik (2 jalur IV, resusitasi cairan, siapkan darah); laparotomi / laparoskopi cito → salpingektomi / salpingostomi; evaluasi perdarahan',
+                outMedis: 'Hemodinamik stabil, sumber perdarahan teratasi, tidak ada komplikasi, pemulihan baik',
+                sumber: 'Standar kegawatdaruratan obstetri — KET adalah kedaruratan bedah (stabilisasi + laparotomi/laparoskopi). PPK RSHS extract tidak memuat KET khusus; struktur = template standar.'
+            },
+            abinkomplit: {
+                nama: 'Abortus Inkomplit', icd: 'O03.4', lama: 2,
+                lab: ['Darah lengkap (Hb)', 'Tes kehamilan / β-hCG', 'Golongan darah & Rh'],
+                radiologi: [{ u: 'USG: sisa jaringan konsepsi di kavum uteri', d: 'first' }],
+                konsultasi: ['Dokter Obsgin (DPJP)'],
+                dxMedis: 'Abortus inkomplit (sebagian hasil konsepsi keluar, ostium terbuka, perdarahan)',
+                dxKep: ['00206 Risiko perdarahan', '00132 Nyeri akut', '00004 Risiko infeksi'],
+                dxGizi: 'Koreksi anemia bila perlu',
+                terapi: [
+                    { k: 'Resusitasi', u: 'Cairan kristaloid bila perdarahan banyak', v: 'first' },
+                    { k: 'Uterotonika', u: 'Oksitosin / misoprostol', d: 'first' },
+                    { k: 'Injeksi', u: 'Antibiotik bila tanda infeksi', v: 'all' },
+                    { u: 'Analgetik', d: 'all' },
+                    { k: 'Suplemen', u: 'Preparat besi (Fe)', d: 'all' },
+                    { k: 'Imunisasi', u: 'Anti-D bila Rh (-)', v: 'first' }
+                ],
+                tataMedis: 'Stabilisasi; evakuasi sisa konsepsi — AVM (aspirasi vakum manual) / kuretase, atau misoprostol; evaluasi perdarahan & infeksi; konseling pasca-keguguran & kontrasepsi',
+                outMedis: 'Evakuasi lengkap, perdarahan berhenti, tidak ada infeksi, Hb stabil',
+                sumber: 'Standar (abortus inkomplit → evakuasi AVM/kuretase; WHO). PPK RSHS extract tidak memuat khusus; struktur = template standar.'
             }
         };
 
