@@ -1160,6 +1160,7 @@
                     </select>
                     <label class="text-sm font-semibold text-slate-600">Temuan klinis / gejala</label>
                     <textarea id="triaseInput" oninput="setTriaseInput(this.value)" rows="5" placeholder="Contoh: G3P2A0 hamil 34 mgg, TD 170/115, nyeri kepala hebat, penglihatan kabur, kaki bengkak, proteinuria +3..." class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-red-400 text-sm">${state.triaseInput}</textarea>
+                    <p class="text-[11px] text-slate-400 mt-1"><i class="fa-solid fa-shield-halved mr-1"></i>Jangan tulis identitas pasien (nama, NIK, no. RM). Teks dikirim ke layanan AI pihak ketiga — lihat <a href="kebijakan-privasi.html" class="underline">Kebijakan Privasi</a>.</p>
                     <button onclick="runTriase()" ${state.triaseLoading ? 'disabled' : ''} class="w-full mt-3 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
                         ${state.triaseLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> Asisten AI dr. Bayu menganalisis...' : '<i class="fa-solid fa-bolt"></i> Analisis Triase'}
                     </button>

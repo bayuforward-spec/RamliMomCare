@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dr. Bayu SpOG Personal Momscare · Claude Edition</title>
+    <title>Asesmen Kehamilan Momscare · dr. Bayu Maulana, Sp.O.G</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -37,7 +37,7 @@
 
     <script>
         /* =========================================================
-           dr. Bayu SpOG Personal Momscare — Claude Edition (Single Page)
+           dr. Bayu SpOG Personal Momscare (Single Page)
            - Semua input dalam satu halaman, tanpa langkah/klik next
            - AI "Asisten AI dr. Bayu" ditenagai Claude (Anthropic API)
            - Suara via mesin suara bawaan browser
@@ -67,6 +67,28 @@
             try { const k = safeStorage.get('rshb_anthropic_key'); return k && k.trim() ? k.trim() : ''; }
             catch (e) { return ''; }
         }
+        // ---- Persetujuan pengiriman data ke layanan AI (lihat kebijakan-privasi.html) ----
+        const AI_CONSENT_KEY = 'momscare_ai_consent_v1';
+        function hasAiConsent() { return safeStorage.get(AI_CONSENT_KEY) === 'yes'; }
+        window.setAiConsentChk = (el) => {
+            const btn = document.getElementById('aiConsentBtn');
+            if (btn) btn.disabled = !el.checked;
+        };
+        window.giveAiConsentAndRun = () => {
+            const chk = document.getElementById('aiConsentChk');
+            if (!chk || !chk.checked) return;
+            safeStorage.set(AI_CONSENT_KEY, 'yes');
+            state.aiNeedsConsent = false;
+            const r = state.results;
+            if (r) getAIAnalysis({ bmi: r.bmi, ksprScore: r.kspr, ksprCategory: r.ksprCategory, plan: r.plan });
+        };
+        window.revokeAiConsent = () => {
+            safeStorage.remove(AI_CONSENT_KEY);
+            state.aiAnalysis = null;
+            state.aiError = false;
+            state.aiNeedsConsent = !!state.results;
+            reRenderKeepScroll();
+        };
         function loadHistory() {
             try { return JSON.parse(safeStorage.get('rshb_momscare_history')) || []; }
             catch (e) { return []; }
@@ -107,7 +129,7 @@
                         ${state.results ? `<div id="hasil">${renderResults()}</div>` : ''}
                     `}
                     <footer class="text-center text-[11px] text-gray-400 mt-8 no-print">
-                        dr. Bayu SpOG Personal Momscare · Claude Edition · Alat bantu edukasi, bukan pengganti pemeriksaan dokter.
+                        dr. Bayu SpOG Personal Momscare · Alat bantu edukasi, bukan pengganti pemeriksaan dokter. · <a href="kebijakan-privasi.html" class="underline hover:text-rose-600">Kebijakan Privasi</a> · <a href="kontak.html" class="underline hover:text-rose-600">Kontak</a>
                     </footer>
                 </main>
             `;
@@ -175,6 +197,7 @@
         window.rerunAnalysis = () => {
             const r = state.results;
             if (!r) return;
+            if (!hasAiConsent()) { state.aiNeedsConsent = true; reRenderKeepScroll(); setTimeout(scrollToHasil, 60); return; }
             getAIAnalysis({ bmi: r.bmi, ksprScore: r.kspr, ksprCategory: r.ksprCategory, plan: r.plan });
             setTimeout(scrollToHasil, 60);
         };
@@ -307,10 +330,11 @@
             state.results = { bmi, weightRec, kspr, ksprDetails, ksprCategory, ksprColor, plan };
             state.aiAnalysis = null;
             state.aiError = false;
+            state.aiNeedsConsent = !hasAiConsent();
             renderApp();
             setTimeout(scrollToHasil, 60);
 
-            getAIAnalysis({ bmi, ksprScore: kspr, ksprCategory, plan });
+            if (!state.aiNeedsConsent) getAIAnalysis({ bmi, ksprScore: kspr, ksprCategory, plan });
         };
 
         function extractJSON(text) {
@@ -325,6 +349,8 @@
 
         // ---- Asisten AI dr. Bayu analysis, powered by Claude ----
         async function getAIAnalysis(clinicalData) {
+            if (!hasAiConsent()) { state.aiNeedsConsent = true; reRenderKeepScroll(); return; }
+            state.aiNeedsConsent = false;
             state.isAnalyzing = true;
             state.aiError = false;
             reRenderKeepScroll();
@@ -636,7 +662,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         </div>
                         <div class="min-w-0">
                             <h1 class="text-base md:text-xl font-black text-gray-800 tracking-tight leading-tight">dr. Bayu SpOG <span class="text-rose-500">Personal Momscare</span></h1>
-                            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Asisten AI dr. Bayu · Claude Edition</p>
+                            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Asisten AI dr. Bayu</p>
                         </div>
                     </a>
                     <div class="flex flex-wrap items-center gap-2 md:gap-3 w-full sm:w-auto sm:ml-auto">
@@ -942,10 +968,21 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                                 <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
                                 <span class="font-medium">Asisten AI dr. Bayu sedang menyusun analisis personal Bunda...</span>
                             </div>
+                        ` : state.aiNeedsConsent ? `
+                            <div class="bg-white py-4 px-5 rounded-2xl inline-block mt-2 border border-rose-200 shadow-sm max-w-2xl text-left no-print">
+                                <p class="text-sm font-bold text-slate-800"><i class="fa-solid fa-shield-heart text-rose-500 mr-1"></i> Analisis tambahan oleh Asisten AI (opsional)</p>
+                                <p class="text-xs text-slate-600 mt-1 leading-relaxed">Hasil skoring di bawah sudah lengkap tanpa AI. Bila Bunda ingin analisis tambahan, data asesmen (nama, usia, usia kehamilan, berat badan, tekanan darah, riwayat, dan hasil USG) akan dikirim ke layanan AI pihak ketiga untuk diproses.</p>
+                                <label class="flex items-start gap-2 mt-3 text-xs text-slate-700 cursor-pointer">
+                                    <input id="aiConsentChk" type="checkbox" onchange="setAiConsentChk(this)" class="mt-0.5 w-4 h-4 accent-rose-500">
+                                    <span>Saya sudah membaca <a href="kebijakan-privasi.html" target="_blank" rel="noopener" class="text-rose-600 font-bold underline">Kebijakan Privasi</a> dan setuju data asesmen dikirim ke layanan AI.</span>
+                                </label>
+                                <button id="aiConsentBtn" type="button" disabled onclick="giveAiConsentAndRun()" class="mt-3 inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-xs px-4 py-2 rounded-full shadow hover:bg-rose-600 disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-wand-magic-sparkles"></i> Jalankan Analisis AI</button>
+                            </div>
                         ` : a ? `
                             <div class="bg-rose-50 py-4 px-6 rounded-2xl inline-block mt-2 border border-rose-100 shadow-inner max-w-2xl">
                                 <p class="text-rose-700 font-bold italic">" ${a.summary} "</p>
                             </div>
+                            <p class="text-[11px] text-gray-400 mt-2 no-print">Data dikirim ke layanan AI atas persetujuan Bunda. <button type="button" onclick="revokeAiConsent()" class="underline font-bold hover:text-rose-600">Cabut persetujuan</button> · <a href="kebijakan-privasi.html" class="underline">Kebijakan Privasi</a></p>
                         ` : state.aiError ? `
                             <div class="bg-amber-50 py-3 px-6 rounded-2xl inline-block mt-2 border border-amber-200 max-w-2xl no-print">
                                 <p class="text-amber-700 font-semibold text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Analisis cerdas Asisten AI dr. Bayu belum dimuat (lingkungan tanpa kunci AI). Hasil skoring medis & suara di bawah tetap lengkap dan akurat.</p>

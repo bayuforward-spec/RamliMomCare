@@ -944,6 +944,7 @@
                     </select>
                     <label class="text-sm font-semibold text-slate-600">Pertanyaan Anda</label>
                     <textarea id="tanyaInput" oninput="setTanyaInput(this.value)" rows="4" placeholder="Contoh: Kriteria diagnosis PCOS? Tatalaksana lini pertama anovulasi? Kapan rujuk infertilitas?" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-violet-400 text-sm">${state.tanyaInput}</textarea>
+                    <p class="text-[11px] text-slate-400 mt-1"><i class="fa-solid fa-shield-halved mr-1"></i>Jangan tulis identitas pasien (nama, NIK, no. RM). Teks dikirim ke layanan AI pihak ketiga — lihat <a href="kebijakan-privasi.html" class="underline">Kebijakan Privasi</a>.</p>
                     <button onclick="runTanya()" ${state.tanyaLoading ? 'disabled' : ''} class="w-full mt-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
                         ${state.tanyaLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> Asisten AI dr. Bayu menjawab...' : '<i class="fa-solid fa-paper-plane"></i> Tanyakan'}
                     </button>
