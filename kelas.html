@@ -27,6 +27,7 @@
         .blob { background: radial-gradient(60% 60% at 30% 20%, rgba(255,255,255,.35), transparent), radial-gradient(50% 50% at 90% 80%, rgba(255,255,255,.18), transparent); }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; } }
     </style>
+    <script src="produk.js" defer></script>
 </head>
 <body class="bg-rose-50/40 text-slate-800">
 
@@ -49,7 +50,7 @@
         </section>
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Format</h2>
-            <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-600"><li>Video rekaman yang bisa ditonton kapan saja</li><li>1 sesi tanya-jawab langsung per angkatan (daring)</li><li>Ringkasan PDF untuk setiap sesi</li><li>Jadwal angkatan: [isi: tanggal angkatan]</li></ul>
+            <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-600"><li>Video rekaman yang bisa ditonton kapan saja (tanpa jadwal live)</li><li>Ringkasan PDF untuk setiap sesi</li><li>Masa akses: [isi: masa akses, mis. sekian bulan]</li><li>Pertanyaan pribadi tentang kondisi kesehatan tidak dijawab di kelas — silakan konsultasi langsung di tempat praktik</li></ul>
         </section>
         <section id="paket" class="mb-6">
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Pilihan Paket</h2>
@@ -60,7 +61,7 @@
                     <span class="text-[11px] font-bold bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full">4 sesi</span>
                 </div>
                 <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed mt-3"><li>Kesuburan dasar: siklus, masa subur, kapan perlu periksa</li><li>Pemeriksaan pra-kehamilan: skrining, imunisasi, penyakit kronik (HT, DM, tiroid)</li><li>Gizi &amp; gaya hidup: asam folat, berat badan, rokok, kafein</li><li>Kapan ke dokter: tanda infertilitas, PCOS, keguguran berulang (sesi tanya-jawab)</li></ol>
-                <p class="text-sm text-slate-700 mt-4"><b>Harga:</b> [isi: harga ditentukan dr. Bayu]</p><div class="mt-4"><a href="#" data-checkout="[link Mayar/Lynk]" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> Daftar / Beli</a> <span class="text-[11px] text-slate-400 ml-1">[link Mayar/Lynk]</span></div>
+                <p class="text-sm text-slate-700 mt-4"><b>Harga:</b> <span data-produk-harga="kelas-a">Segera diumumkan</span></p><div class="mt-4"><a href="daftar-tunggu.html?produk=kelas-a" data-produk="kelas-a" data-label-buka="Daftar / Beli" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Daftar / Beli</span></a></div>
             </div>
             <div class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 fade-up">
                 <div class="flex items-start justify-between gap-3 flex-wrap">
@@ -68,7 +69,7 @@
                     <span class="text-[11px] font-bold bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full">6 sesi</span>
                 </div>
                 <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed mt-3"><li>TM1: keluhan wajar vs tanda bahaya, jadwal ANC, USG</li><li>TM2: skrining, gerak janin, gizi, anemia</li><li>TM3: tanda persalinan, kapan ke RS, tas siaga</li><li>Pilihan persalinan: normal vs SC (berdasarkan indikasi medis), manajemen nyeri</li><li>Tanda bahaya: preeklamsia, perdarahan, ketuban pecah, gerak janin berkurang</li><li>Peran suami &amp; persiapan mental</li></ol>
-                <p class="text-sm text-slate-700 mt-4"><b>Harga:</b> [isi: harga ditentukan dr. Bayu]</p><div class="mt-4"><a href="#" data-checkout="[link Mayar/Lynk]" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> Daftar / Beli</a> <span class="text-[11px] text-slate-400 ml-1">[link Mayar/Lynk]</span></div>
+                <p class="text-sm text-slate-700 mt-4"><b>Harga:</b> <span data-produk-harga="kelas-b">Segera diumumkan</span></p><div class="mt-4"><a href="daftar-tunggu.html?produk=kelas-b" data-produk="kelas-b" data-label-buka="Daftar / Beli" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Daftar / Beli</span></a></div>
             </div>
             <div class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 fade-up">
                 <div class="flex items-start justify-between gap-3 flex-wrap">
@@ -76,7 +77,7 @@
                     <span class="text-[11px] font-bold bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full">4 sesi</span>
                 </div>
                 <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed mt-3"><li>IMD &amp; ASI eksklusif: posisi, pelekatan, frekuensi</li><li>Masalah menyusui yang sering: puting lecet, bendungan, ASI "kurang"</li><li>Nifas: perdarahan normal vs tidak, luka jahitan/SC, kontrol tekanan darah pasca-hipertensi kehamilan</li><li>KB pascasalin &amp; kesehatan mental ibu (baby blues vs depresi)</li></ol>
-                <p class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 mt-4"><i class="fa-solid fa-baby mr-1"></i> Kelas ini mendukung ASI eksklusif dan tidak disponsori produsen susu formula, botol, dot, maupun pompa ASI.</p><p class="text-sm text-slate-700 mt-4"><b>Harga:</b> [isi: harga ditentukan dr. Bayu]</p><div class="mt-4"><a href="#" data-checkout="[link Mayar/Lynk]" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> Daftar / Beli</a> <span class="text-[11px] text-slate-400 ml-1">[link Mayar/Lynk]</span></div>
+                <p class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 mt-4"><i class="fa-solid fa-baby mr-1"></i> Kelas ini mendukung ASI eksklusif dan tidak disponsori produsen susu formula, botol, dot, maupun pompa ASI.</p><p class="text-sm text-slate-700 mt-4"><b>Harga:</b> <span data-produk-harga="kelas-c">Segera diumumkan</span></p><div class="mt-4"><a href="daftar-tunggu.html?produk=kelas-c" data-produk="kelas-c" data-label-buka="Daftar / Beli" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Daftar / Beli</span></a></div>
             </div>
             </div>
         </section>
@@ -98,10 +99,7 @@
 
     <script>
         document.getElementById('yr').textContent = new Date().getFullYear();
-        // Link checkout: ganti atribut href pada .checkout-link dengan link Mayar/Lynk. Selama masih "#", tombol hanya menampilkan pemberitahuan.
-        document.querySelectorAll('.checkout-link').forEach(function (a) {
-            if (a.getAttribute('href') === '#') a.addEventListener('click', function (e) { e.preventDefault(); alert('Link pendaftaran belum diisi.'); });
-        });
+        // Tombol produk diatur oleh produk.js (harga/link Mayar null → daftar tunggu).
         (function () {
             var KEY = 'ramli_font_scale', STEPS = [90, 100, 112, 125, 140, 160];
             function idx() { var v; try { v = parseInt(localStorage.getItem(KEY), 10); } catch (e) {} var i = STEPS.indexOf(v); return i < 0 ? 1 : i; }

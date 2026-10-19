@@ -27,6 +27,7 @@
         .blob { background: radial-gradient(60% 60% at 30% 20%, rgba(255,255,255,.35), transparent), radial-gradient(50% 50% at 90% 80%, rgba(255,255,255,.18), transparent); }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; } }
     </style>
+    <script src="produk.js" defer></script>
 </head>
 <body class="bg-rose-50/40 text-slate-800">
 
@@ -58,7 +59,7 @@
             <div class="bg-white rounded-2xl border border-rose-300 ring-2 ring-rose-100 shadow-sm p-5 fade-up flex flex-col">
                 <div class="flex items-center justify-between gap-2"><h3 class="font-black text-slate-800">Langganan</h3><span class="text-[11px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">Berbayar</span></div>
                 <ul class="space-y-2 text-sm text-slate-600 mt-3"><li class="flex gap-2"><i class="fa-solid fa-check text-rose-500 mt-1"></i><span>Clinical pathway siap cetak <b>disusun dr. Bayu sendiri</b> (Word/PDF, kop bisa diedit)</span></li><li class="flex gap-2"><i class="fa-solid fa-check text-rose-500 mt-1"></i><span>Update Ilmu bulanan (PDF + email)</span></li><li class="flex gap-2"><i class="fa-solid fa-check text-rose-500 mt-1"></i><span>1 webinar per bulan + rekaman (non-SKP)</span></li><li class="flex gap-2"><i class="fa-solid fa-check text-rose-500 mt-1"></i><span>Fitur AI lanjutan dengan kuota (akses lewat login [isi: platform membership])</span></li></ul>
-                <div class="mt-auto pt-4"><p class="text-sm text-slate-700 mb-3"><b>Harga:</b> [isi: harga bulanan/tahunan]</p><a href="#" data-checkout="[link Mayar/Lynk]" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> Berlangganan</a> <span class="text-[11px] text-slate-400 ml-1">[link Mayar/Lynk]</span></div>
+                <div class="mt-auto pt-4"><p class="text-sm text-slate-700 mb-3"><b>Harga:</b> <span data-produk-harga="sejawat-langganan">Segera diumumkan</span></p><a href="daftar-tunggu.html?produk=sejawat-langganan" data-produk="sejawat-langganan" data-label-buka="Berlangganan" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Berlangganan</span></a></div>
             </div>
             <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 fade-up flex flex-col">
                 <div class="flex items-center justify-between gap-2"><h3 class="font-black text-slate-800">Institusi</h3><span class="text-[11px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">Opsional</span></div>
@@ -85,10 +86,7 @@
 
     <script>
         document.getElementById('yr').textContent = new Date().getFullYear();
-        // Link checkout: ganti atribut href pada .checkout-link dengan link Mayar/Lynk. Selama masih "#", tombol hanya menampilkan pemberitahuan.
-        document.querySelectorAll('.checkout-link').forEach(function (a) {
-            if (a.getAttribute('href') === '#') a.addEventListener('click', function (e) { e.preventDefault(); alert('Link pendaftaran belum diisi.'); });
-        });
+        // Tombol produk diatur oleh produk.js (harga/link Mayar null → daftar tunggu).
         (function () {
             var KEY = 'ramli_font_scale', STEPS = [90, 100, 112, 125, 140, 160];
             function idx() { var v; try { v = parseInt(localStorage.getItem(KEY), 10); } catch (e) {} var i = STEPS.indexOf(v); return i < 0 ? 1 : i; }
