@@ -16,6 +16,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="ai-quota.js" data-emergency="1"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -1209,6 +1210,7 @@
         }
         window.runTriase = async () => {
             if (!state.triaseInput.trim()) { return; }
+            if (!AIQuota.guard()) return;
             state.triaseLoading = true; state.triaseError = false; state.triaseResult = null; reRender();
             const kondisiRef = state.triaseKondisi ? KONDISI.find(k => k.nama === state.triaseKondisi) : null;
             const konteks = kondisiRef ? `\n\nProtap acuan (${kondisiRef.nama}):\nLangkah: ${kondisiRef.langkah.join(' | ')}\nObat: ${kondisiRef.obat.map(o => o.n + ' ' + o.d).join(' | ')}` : '';
@@ -1230,7 +1232,7 @@ Struktur:
                     const _key = getStoredKey();
                     if (_key) { _headers["x-api-key"] = _key; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; }
                 }
-                const res = await fetch(_endpoint, {
+                const res = await AIQuota.fetch(_endpoint, {
                     method: "POST", headers: _headers,
                     body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1200, system: systemPrompt, messages: [{ role: "user", content: userQuery }] })
                 });
@@ -1240,7 +1242,7 @@ Struktur:
                 const parsed = extractJSON(text);
                 if (parsed) state.triaseResult = parsed; else state.triaseError = true;
             } catch (e) {
-                console.error('Triase gagal:', e); state.triaseError = true;
+                console.error('Triase gagal:', e); state.triaseError = !AIQuota.isQuotaError(e);
             } finally {
                 state.triaseLoading = false; reRender();
             }

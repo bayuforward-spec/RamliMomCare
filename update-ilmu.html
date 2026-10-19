@@ -16,6 +16,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="ai-quota.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -311,6 +312,7 @@
             try { return JSON.parse(text.slice(s, e + 1)); } catch (err) { return null; }
         }
         window.summarize = async (pmid) => {
+            if (!AIQuota.guard()) return;
             state.summaries[pmid] = { loading: true }; reRender();
             try {
                 // 1) ambil abstrak dari PubMed
@@ -332,7 +334,7 @@ Struktur:
                 const _endpoint = _proxy || "https://api.anthropic.com/v1/messages";
                 const _headers = { "Content-Type": "application/json" };
                 if (!_proxy) { const k = getStoredKey(); if (k) { _headers["x-api-key"] = k; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; } }
-                const res = await fetch(_endpoint, { method: "POST", headers: _headers, body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 900, system: systemPrompt, messages: [{ role: "user", content: "Abstrak (PMID " + pmid + "):\n\n" + abstract }] }) });
+                const res = await AIQuota.fetch(_endpoint, { method: "POST", headers: _headers, body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 900, system: systemPrompt, messages: [{ role: "user", content: "Abstrak (PMID " + pmid + "):\n\n" + abstract }] }) });
                 if (!res.ok) throw new Error('AI HTTP ' + res.status);
                 const data = await res.json();
                 const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
@@ -342,7 +344,7 @@ Struktur:
             } catch (e) {
                 console.error('Summarize error:', e);
                 const msg = ('' + e).includes('AI') ? 'AI belum aktif / gagal terhubung. Cek pengaturan ⚙ atau proxy.' : 'Gagal mengambil abstrak dari PubMed.';
-                state.summaries[pmid] = { error: msg };
+                state.summaries[pmid] = AIQuota.isQuotaError(e) ? { error: 'Kuota chat AI gratis sudah terpakai. Coba lagi nanti.' } : { error: msg };
             }
             reRender();
         };
@@ -351,6 +353,7 @@ Struktur:
         window.synthesize = async () => {
             const ids = state.results.slice(0, 8).map(a => a.pmid);
             if (!ids.length) return;
+            if (!AIQuota.guard()) return;
             state.synthLoading = true; state.synthError = ''; reRender();
             try {
                 // 1) ambil abstrak beberapa artikel sekaligus
@@ -374,7 +377,7 @@ Struktur:
                 const _endpoint = _proxy || "https://api.anthropic.com/v1/messages";
                 const _headers = { "Content-Type": "application/json" };
                 if (!_proxy) { const k = getStoredKey(); if (k) { _headers["x-api-key"] = k; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; } }
-                const res = await fetch(_endpoint, { method: "POST", headers: _headers, body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1200, system: systemPrompt, messages: [{ role: "user", content: `Kumpulan abstrak (${ids.length} artikel):\n\n` + corpus }] }) });
+                const res = await AIQuota.fetch(_endpoint, { method: "POST", headers: _headers, body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1200, system: systemPrompt, messages: [{ role: "user", content: `Kumpulan abstrak (${ids.length} artikel):\n\n` + corpus }] }) });
                 if (!res.ok) throw new Error('AI HTTP ' + res.status);
                 const data = await res.json();
                 const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
@@ -383,7 +386,7 @@ Struktur:
                 else state.synthError = 'Kesimpulan AI gagal diproses. Coba lagi.';
             } catch (e) {
                 console.error('Synthesize error:', e);
-                state.synthError = ('' + e).includes('AI') ? 'AI belum aktif / gagal terhubung. Cek pengaturan ⚙ atau proxy.' : 'Gagal mengambil abstrak dari PubMed.';
+                state.synthError = AIQuota.isQuotaError(e) ? 'Kuota chat AI gratis sudah terpakai. Coba lagi nanti.' : ('' + e).includes('AI') ? 'AI belum aktif / gagal terhubung. Cek pengaturan ⚙ atau proxy.' : 'Gagal mengambil abstrak dari PubMed.';
             }
             state.synthLoading = false; reRender();
         };

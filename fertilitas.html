@@ -16,6 +16,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="ai-quota.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -987,6 +988,7 @@
         }
         window.runTanya = async () => {
             if (!state.tanyaInput.trim()) return;
+            if (!AIQuota.guard()) return;
             state.tanyaLoading = true; state.tanyaError = false; state.tanyaResult = null; reRender();
             const ref = state.tanyaKondisi ? KONDISI.find(k => k.nama === state.tanyaKondisi) : null;
             const konteks = ref ? `\n\nProtap acuan (${ref.nama}):\nDefinisi: ${ref.definisi || '-'}\nDiagnosis: ${(ref.diagnosis || []).join(' | ')}\nTatalaksana: ${(ref.langkah || []).join(' | ')}\nObat: ${(ref.obat || []).map(o => o.n + ' ' + (o.d || '')).join(' | ')}` : '';
@@ -1007,7 +1009,7 @@ Struktur:
                     const _key = getStoredKey();
                     if (_key) { _headers["x-api-key"] = _key; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; }
                 }
-                const res = await fetch(_endpoint, {
+                const res = await AIQuota.fetch(_endpoint, {
                     method: "POST", headers: _headers,
                     body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1100, system: systemPrompt, messages: [{ role: "user", content: userQuery }] })
                 });
@@ -1017,7 +1019,7 @@ Struktur:
                 const parsed = extractJSON(text);
                 if (parsed) state.tanyaResult = parsed; else state.tanyaError = true;
             } catch (e) {
-                console.error('Tanya gagal:', e); state.tanyaError = true;
+                console.error('Tanya gagal:', e); state.tanyaError = !AIQuota.isQuotaError(e);
             } finally {
                 state.tanyaLoading = false; reRender();
             }

@@ -16,6 +16,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="ai-quota.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -361,6 +362,7 @@
         // ---- Asisten AI dr. Bayu analysis, powered by Claude ----
         async function getAIAnalysis(clinicalData) {
             if (!hasAiConsent()) { state.aiNeedsConsent = true; reRenderKeepScroll(); return; }
+            if (!AIQuota.guard()) return;
             state.aiNeedsConsent = false;
             state.isAnalyzing = true;
             state.aiError = false;
@@ -399,7 +401,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         _headers["anthropic-dangerous-direct-browser-access"] = "true";
                     }
                 }
-                const response = await fetch(_endpoint, {
+                const response = await AIQuota.fetch(_endpoint, {
                     method: "POST",
                     headers: _headers,
                     body: JSON.stringify({
@@ -418,7 +420,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                 else state.aiError = true;
             } catch (error) {
                 console.error("Asisten AI dr. Bayu analysis failed:", error);
-                state.aiError = true;
+                state.aiError = !AIQuota.isQuotaError(error);
             } finally {
                 state.isAnalyzing = false;
                 reRenderKeepScroll();
