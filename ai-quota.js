@@ -1,6 +1,6 @@
 /* =====================================================================
    ai-quota.js — kuota chat AI gratis per pengunjung (dipakai bersama
-   oleh momscare, panduan-obstetri, gawatdarurat, fertilitas, update-ilmu).
+   oleh momscare, panduan-obstetri, fertilitas, update-ilmu; gawatdarurat tidak lagi memakai AI).
 
    PENTING: penghitungan di file ini berjalan DI BROWSER (localStorage),
    jadi BISA DILEWATI (hapus data browser, mode samaran, ganti perangkat).

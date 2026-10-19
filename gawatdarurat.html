@@ -4,19 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kegawatdaruratan Obstetri · dr. Bayu Maulana, Sp.O.G</title>
-    <meta name="description" content="Protokol kegawatdaruratan obstetri, kalkulator dosis, dan alat bantu triase untuk tenaga kesehatan.">
+    <meta name="description" content="Nomor darurat 119/112, tanda bahaya kehamilan, nifas &amp; ginekologi untuk pasien (Buku KIA Kemenkes, WHO), serta protokol kegawatdaruratan obstetri dan kalkulator dosis untuk tenaga kesehatan.">
     <link rel="canonical" href="https://bayumaulanaspog.com/gawatdarurat.html">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="id_ID">
     <meta property="og:site_name" content="dr. Bayu, Sp.O.G">
     <meta property="og:title" content="Kegawatdaruratan Obstetri · dr. Bayu Maulana, Sp.O.G">
-    <meta property="og:description" content="Protokol kegawatdaruratan obstetri, kalkulator dosis, dan alat bantu triase untuk tenaga kesehatan.">
+    <meta property="og:description" content="Nomor darurat 119/112, tanda bahaya kehamilan, nifas &amp; ginekologi untuk pasien (Buku KIA Kemenkes, WHO), serta protokol kegawatdaruratan obstetri dan kalkulator dosis untuk tenaga kesehatan.">
     <meta property="og:url" content="https://bayumaulanaspog.com/gawatdarurat.html">
     <meta property="og:image" content="https://bayumaulanaspog.com/drbayu.png">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="ai-quota.js" data-emergency="1"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -44,22 +43,27 @@
 <body class="bg-slate-50 text-slate-800">
     <!-- TODO: konten PPK RSHS — butuh izin tertulis atau tulis ulang sebelum dimonetisasi (jangan dimasukkan ke paket berbayar). -->
     <div id="app"></div>
+    <noscript>
+        <div style="max-width:42rem;margin:1rem auto;padding:1rem;border-radius:1rem;background:#dc2626;color:#fff;font-family:sans-serif">
+            <h1 style="font-size:1.25rem;font-weight:800;margin:0 0 .5rem">Segera ke IGD terdekat</h1>
+            <p style="margin:0 0 .75rem">Bila ada tanda bahaya atau kondisi mengancam nyawa, jangan menunggu.</p>
+            <p style="margin:0"><a href="tel:119" style="color:#fff;font-weight:800;font-size:1.5rem">119</a> — layanan darurat medis/ambulans (PSC Kemenkes) &nbsp;·&nbsp; <a href="tel:112" style="color:#fff;font-weight:800;font-size:1.5rem">112</a> — layanan darurat terpadu</p>
+        </div>
+    </noscript>
 
     <script>
         /* =========================================================
-           Asisten AI dr. Bayu EMERGENCY — Kegawatdaruratan Obstetri
+           dr. Bayu EMERGENCY — Kegawatdaruratan Obstetri
            Alat bantu keputusan klinis untuk tenaga kesehatan.
            Konten berbasis: Panduan Praktik Klinis (PPK) Obstetri &
            Ginekologi RSUP Dr. Hasan Sadikin Bandung, 2015.
            - Alur tindakan (protokol) per kondisi darurat
            - Kalkulator dosis & skor
-           - Triase AI "Asisten AI dr. Bayu" (Claude / Anthropic API)
+           - Tanda Bahaya (edukasi pasien, konten statis — TANPA AI)
            - Kontak & checklist rujukan (BAKSOKUDA)
+           Halaman ini sengaja tidak memakai AI: pada kegawatdaruratan,
+           arahkan langsung ke IGD / 119 / 112.
         ========================================================= */
-
-        /* Proxy AI (opsional). Diisi = AI aktif untuk semua pengunjung.
-           Kosong = AI aktif bila pengguna isi API key sendiri via ⚙. */
-        const RAMLI_PROXY_URL = "https://withered-fire-1b27.bayuforward.workers.dev";
 
         // ---------- storage helpers ----------
         const memStore = {};
@@ -68,10 +72,6 @@
             set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } },
             remove(k) { try { localStorage.removeItem(k); } catch (e) { delete memStore[k]; } }
         };
-        function getStoredKey() {
-            try { const k = safeStorage.get('ramli_anthropic_key'); return k && k.trim() ? k.trim() : ''; }
-            catch (e) { return ''; }
-        }
 
         // ==========================================================
         //  DATA KONDISI — transkrip terstruktur dari PPK Obgyn RSHS 2015
@@ -707,15 +707,13 @@
         }
 
         let state = {
-            view: 'home',          // home | kondisi | kalkulator | triase | rujukan
+            view: (location.hash === '#tanda-bahaya') ? 'bahaya' : 'home',  // home | kondisi | kalkulator | bahaya | rujukan
             kondisiId: null,
             search: '',
             checklist: {},         // {kondisiId: {stepIndex: bool}}
             calc: 'mgso4',         // mgso4 | antihipertensi | oksitosin | darah | steroid | tokolitik
             oksTetes: 40,
             eblLoss: 500, eblMode: 'pervaginam',
-            triaseInput: '', triaseKondisi: '', triaseLoading: false, triaseResult: null, triaseError: false,
-            showSettings: false, keyNote: '',
             contacts: loadContacts(), editContacts: false
         };
 
@@ -728,9 +726,9 @@
             if (state.view === 'home') body = renderHome();
             else if (state.view === 'kondisi') body = renderKondisiDetail();
             else if (state.view === 'kalkulator') body = renderKalkulator();
-            else if (state.view === 'triase') body = renderTriase();
+            else if (state.view === 'bahaya') body = renderBahaya();
             else if (state.view === 'rujukan') body = renderRujukan();
-            el.innerHTML = `${renderNavbar()}${state.showSettings ? renderSettings() : ''}
+            el.innerHTML = `${renderNavbar()}
                 <main class="max-w-3xl mx-auto px-4 pb-28 pt-4">${body}</main>${renderBottomNav()}${renderDisclaimer()}`;
         }
         function go(view, kondisiId) {
@@ -763,7 +761,7 @@
                             <i class="fa-solid fa-truck-medical text-lg"></i>
                         </div>
                         <div>
-                            <div class="font-extrabold leading-tight text-[15px]">Asisten AI dr. Bayu</div>
+                            <div class="font-extrabold leading-tight text-[15px]">dr. Bayu, Sp.O.G</div>
                             <div class="text-[11px] text-red-100 leading-tight">Kegawatdaruratan Obstetri</div>
                         </div>
                     </button>
@@ -780,9 +778,6 @@
                     <a href="clinical-pathway.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Clinical Pathway"><i class="fa-solid fa-table-list"></i></a>
                     <a href="kalkulator.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Kalkulator Prediksi Persalinan"><i class="fa-solid fa-calculator"></i></a>
                     <a href="update-ilmu.html" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Update Ilmu (PubMed)"><i class="fa-solid fa-graduation-cap"></i></a>
-                    <button onclick="toggleSettings()" class="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center" title="Pengaturan AI">
-                        <i class="fa-solid fa-gear"></i>
-                    </button>
                 </div>
             </header>`;
         }
@@ -792,7 +787,7 @@
             const items = [
                 { v: 'home', i: 'fa-house', t: 'Kondisi' },
                 { v: 'kalkulator', i: 'fa-calculator', t: 'Kalkulator' },
-                { v: 'triase', i: 'fa-robot', t: 'Triase AI' },
+                { v: 'bahaya', i: 'fa-triangle-exclamation', t: 'Tanda Bahaya' },
                 { v: 'rujukan', i: 'fa-phone-volume', t: 'Rujukan' }
             ];
             const active = (state.view === 'kondisi') ? 'home' : state.view;
@@ -825,6 +820,7 @@
             const totalHit = KONDISI.filter(match).length;
             return `
             <div class="fade-up">
+                ${renderIGD()}
                 <div class="rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-white p-5 mb-4 shadow-lg">
                     <div class="flex items-start gap-3">
                         <i class="fa-solid fa-kit-medical text-2xl mt-0.5"></i>
@@ -836,8 +832,8 @@
                     <div class="grid grid-cols-3 gap-2 mt-4">
                         <button onclick="go('kalkulator')" class="bg-white/15 hover:bg-white/25 rounded-xl py-2.5 text-center">
                             <i class="fa-solid fa-calculator block mb-1"></i><span class="text-[11px] font-semibold">Kalkulator</span></button>
-                        <button onclick="go('triase')" class="bg-white/15 hover:bg-white/25 rounded-xl py-2.5 text-center">
-                            <i class="fa-solid fa-robot block mb-1"></i><span class="text-[11px] font-semibold">Triase AI</span></button>
+                        <button onclick="go('bahaya')" class="bg-white/15 hover:bg-white/25 rounded-xl py-2.5 text-center">
+                            <i class="fa-solid fa-triangle-exclamation block mb-1"></i><span class="text-[11px] font-semibold">Tanda Bahaya</span></button>
                         <button onclick="go('rujukan')" class="bg-white/15 hover:bg-white/25 rounded-xl py-2.5 text-center">
                             <i class="fa-solid fa-phone-volume block mb-1"></i><span class="text-[11px] font-semibold">Rujukan</span></button>
                     </div>
@@ -969,7 +965,7 @@
                 </div>
 
                 <div class="flex gap-2 mt-4 no-print">
-                    <button onclick="startTriaseFrom('${k.id}')" class="flex-1 bg-slate-800 text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-robot"></i> Tanya Asisten AI dr. Bayu</button>
+                    <button onclick="go('bahaya')" class="flex-1 bg-slate-800 text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Tanda Bahaya (edukasi pasien)</button>
                     <button onclick="window.print()" class="px-4 bg-white border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold text-sm"><i class="fa-solid fa-print"></i></button>
                 </div>
             </div>`;
@@ -987,11 +983,6 @@
             reRender();
         };
         window.resetChecklist = (id) => { state.checklist[id] = {}; reRender(); };
-        window.startTriaseFrom = (id) => {
-            const k = KONDISI.find(x => x.id === id);
-            state.triaseKondisi = k ? k.nama : '';
-            go('triase');
-        };
 
         // ---------- Kalkulator ----------
         function renderKalkulator() {
@@ -1157,96 +1148,149 @@
             <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-900"><i class="fa-solid fa-eye mr-1"></i> Awasi ketat: KU, nadi, napas, TD, DJJ, kontraksi. Waspada dekompensasi kordis / edema paru.</div>`;
         }
 
-        // ---------- Triase AI ----------
-        function renderTriase() {
-            const opts = KONDISI.map(k => `<option value="${k.nama}" ${state.triaseKondisi === k.nama ? 'selected' : ''}>${k.nama}</option>`).join('');
+        // ---------- Segera ke IGD (119 / 112) ----------
+        // 119 = layanan darurat medis/ambulans (PSC, Kemenkes; Permenkes 19/2016 SPGDT)
+        // 112 = layanan darurat terpadu (Komdigi; meneruskan ke instansi terkait)
+        function renderIGD() {
+            return `
+                <section aria-labelledby="igdTitle" class="rounded-2xl bg-red-600 text-white p-4 sm:p-5 mb-4 shadow-lg border-4 border-red-200">
+                    <div class="flex items-start gap-3 mb-3">
+                        <div class="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0 pulse-ring"><i class="fa-solid fa-truck-medical text-xl"></i></div>
+                        <div>
+                            <h2 id="igdTitle" class="font-extrabold text-xl leading-tight">Segera ke IGD terdekat</h2>
+                            <p class="text-red-50 text-sm mt-1 leading-snug">Bila ada tanda bahaya atau kondisi yang mengancam nyawa, jangan menunggu. Bila tidak bisa berangkat sendiri, hubungi:</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="tel:119" class="bg-white text-red-700 rounded-xl py-4 px-2 text-center shadow hover:bg-red-50 active:scale-[.98] transition" aria-label="Telepon 119, layanan darurat medis dan ambulans">
+                            <span class="flex items-center justify-center gap-2 text-4xl font-black leading-none"><i class="fa-solid fa-phone text-2xl"></i>119</span>
+                            <span class="block text-xs font-semibold mt-1.5 text-red-800 leading-snug">Darurat medis / ambulans (PSC Kemenkes)</span>
+                        </a>
+                        <a href="tel:112" class="bg-white text-red-700 rounded-xl py-4 px-2 text-center shadow hover:bg-red-50 active:scale-[.98] transition" aria-label="Telepon 112, layanan darurat terpadu">
+                            <span class="flex items-center justify-center gap-2 text-4xl font-black leading-none"><i class="fa-solid fa-phone text-2xl"></i>112</span>
+                            <span class="block text-xs font-semibold mt-1.5 text-red-800 leading-snug">Layanan darurat terpadu (semua jenis darurat)</span>
+                        </a>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mt-3">
+                        <button onclick="go('bahaya')" class="text-sm font-bold bg-white/15 hover:bg-white/25 rounded-lg px-3 py-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Kenali tanda bahaya</button>
+                        <p class="text-[11px] text-red-100">Sumber: <a class="underline" href="https://psc.kemkes.go.id/web/faq" target="_blank" rel="noopener">PSC Kemenkes</a> · <a class="underline" href="https://layanan112.komdigi.go.id/tentang" target="_blank" rel="noopener">Layanan 112 Komdigi</a></p>
+                    </div>
+                </section>`;
+        }
+
+        // ---------- Tanda Bahaya (edukasi pasien, statis) ----------
+        // Setiap butir merujuk sumber di TB_REF (kunci di `s`). Jangan menambah butir tanpa sumber.
+        const TB_REF = {
+            kia:   { t: 'Kementerian Kesehatan RI. Buku Kesehatan Ibu dan Anak (Buku KIA), cetakan 2024 — Tanda Bahaya Trimester 1–3 (hlm. 8, 17, 20), Proses Melahirkan (hlm. 23), Nifas (hlm. 27) & Lembar Pemantauan Ibu Nifas (hlm. 28–31).', u: 'https://kesprimkom.kemkes.go.id/assets/uploads/contents/others/Buku_KIA_2024.pdf' },
+            who:   { t: 'World Health Organization. Pregnancy, Childbirth, Postpartum and Newborn Care: A Guide for Essential Practice, 3rd ed., 2015 — “Advise on danger signs” (C15, kehamilan) & (D28, pascapersalinan).', u: 'https://iris.who.int/handle/10665/249580' },
+            nhsEkt:{ t: 'NHS (UK). Ectopic pregnancy.', u: 'https://www.nhs.uk/conditions/ectopic-pregnancy/' },
+            acogEkt:{ t: 'ACOG. Ectopic Pregnancy (FAQ155).', u: 'https://www.acog.org/womens-health/faqs/ectopic-pregnancy' },
+            nhsMc: { t: 'NHS (UK). Miscarriage.', u: 'https://www.nhs.uk/conditions/miscarriage/' },
+            nhsCyst:{ t: 'NHS (UK). Ovarian cyst.', u: 'https://www.nhs.uk/conditions/ovarian-cyst/' },
+            nhsPid:{ t: 'NHS (UK). Pelvic inflammatory disease.', u: 'https://www.nhs.uk/conditions/pelvic-inflammatory-disease-pid/' },
+            acogHmb:{ t: 'ACOG. Heavy Menstrual Bleeding (FAQ193).', u: 'https://www.acog.org/womens-health/faqs/heavy-menstrual-bleeding' },
+            nhsHp: { t: 'NHS (UK). Heavy periods.', u: 'https://www.nhs.uk/conditions/heavy-periods/' },
+            psc:   { t: 'Kemenkes — PSC 119: FAQ layanan gawat darurat (hubungi 119/112).', u: 'https://psc.kemkes.go.id/web/faq' },
+            l112:  { t: 'Komdigi — Tentang Layanan Panggilan Darurat 112.', u: 'https://layanan112.komdigi.go.id/tentang' }
+        };
+        const TB_ORDER = ['kia', 'who', 'nhsEkt', 'acogEkt', 'nhsMc', 'nhsCyst', 'nhsPid', 'acogHmb', 'nhsHp', 'psc', 'l112'];
+        const TANDA_BAHAYA = [
+            { id: 'hamil', judul: 'Kehamilan', ikon: 'fa-person-pregnant', warna: 'rose',
+              intro: 'Segera ke Puskesmas / Rumah Sakit (IGD) bila ibu hamil mengalami:',
+              items: [
+                { t: 'Perdarahan dari jalan lahir (vagina), sedikit maupun banyak.', s: ['kia', 'who'] },
+                { t: 'Keluar air ketuban (cairan) dari jalan lahir tetapi belum ada kontraksi/mulas; atau keluar cairan yang sangat banyak atau berbau.', s: ['kia'] },
+                { t: 'Gerakan bayi tidak terasa atau kurang dari 10 kali dalam 12 jam (setelah gerakan bayi mulai terasa).', s: ['kia'] },
+                { t: 'Sakit kepala berat / pusing berat, atau pandangan kabur.', s: ['kia', 'who'] },
+                { t: 'Kejang.', s: ['who'] },
+                { t: 'Nyeri perut hebat (pada hamil tua: nyeri hebat di antara kontraksi).', s: ['kia', 'who'] },
+                { t: 'Demam tinggi, terutama bila sangat lemas sampai sulit bangun dari tempat tidur.', s: ['kia', 'who'] },
+                { t: 'Napas pendek/sesak atau napas cepat, jantung berdebar kencang.', s: ['kia', 'who'] },
+                { t: 'Mual dan muntah hebat (terus-menerus), atau muntah darah.', s: ['kia'] }
+              ],
+              cepat: { judul: 'Periksakan secepatnya (hari itu juga) bila:', items: [
+                { t: 'Bengkak di jari/tangan, wajah, atau kaki — terlebih bila disertai sakit kepala atau pandangan kabur.', s: ['who', 'kia'] },
+                { t: 'Sakit saat buang air kecil, atau keputihan/gatal di daerah kemaluan.', s: ['kia'] }
+              ] },
+              sub: { judul: 'Saat proses melahirkan — segera ke RS bila:', items: [
+                { t: 'Air ketuban berwarna hijau dan berbau.', s: ['kia'] },
+                { t: 'Ibu gelisah atau mengalami kesakitan yang hebat.', s: ['kia'] },
+                { t: 'Ibu kejang, atau ibu tidak kuat mengejan.', s: ['kia'] },
+                { t: 'Perdarahan lewat jalan lahir.', s: ['kia', 'who'] },
+                { t: 'Tali pusat atau tangan bayi keluar dari jalan lahir.', s: ['kia'] },
+                { t: 'Ketuban sudah pecah lebih dari 6 jam tetapi belum mulas; atau mulas/kontraksi sudah lebih dari 12 jam.', s: ['who'] }
+              ] } },
+            { id: 'nifas', judul: 'Nifas (setelah melahirkan, s.d. 42 hari)', ikon: 'fa-baby-carriage', warna: 'indigo',
+              intro: 'Segera bawa ibu ke Puskesmas / Rumah Sakit (IGD) bila:',
+              items: [
+                { t: 'Perdarahan lewat jalan lahir yang banyak atau makin banyak (bukan makin berkurang) — misalnya pembalut cepat basah. Buku KIA menyebut lebih dari 2 pembalut dalam 5 menit; WHO menyebut 2–3 pembalut basah dalam 20–30 menit.', s: ['kia', 'who'] },
+                { t: 'Keluar cairan berbau dari jalan lahir, atau darah nifas berbau disertai perut nyeri.', s: ['kia', 'who'] },
+                { t: 'Demam (suhu lebih dari 38 °C), terlebih bila lebih dari 2 hari atau ibu sangat lemas.', s: ['kia', 'who'] },
+                { t: 'Sakit kepala, pandangan kabur, nyeri ulu hati, mual-muntah, atau kejang — dengan atau tanpa bengkak di kaki, tangan, dan wajah.', s: ['kia', 'who'] },
+                { t: 'Napas pendek/terengah-engah, nyeri dada, atau jantung berdebar.', s: ['kia', 'who'] },
+                { t: 'Nyeri, kemerahan, atau bengkak di betis.', s: ['who'] },
+                { t: 'Nyeri perut hebat.', s: ['who'] },
+                { t: 'Ibu tampak sedih, murung, dan menangis tanpa sebab (kemungkinan depresi); atau muncul pikiran/percobaan menyakiti diri sendiri.', s: ['kia', 'who'] }
+              ],
+              cepat: { judul: 'Periksakan secepatnya bila:', items: [
+                { t: 'Payudara bengkak, merah, nyeri, atau ada benjolan; puting lecet.', s: ['kia', 'who'] },
+                { t: 'Gangguan buang air kecil: nyeri saat berkemih atau air kencing menetes tidak tertahan.', s: ['kia', 'who'] },
+                { t: 'Area kelamin/jahitan bengkak, nyeri, luka, atau keluar nanah.', s: ['kia', 'who'] }
+              ] } },
+            { id: 'gin', judul: 'Ginekologi (kandungan, di luar kehamilan lanjut)', ikon: 'fa-venus', warna: 'purple',
+              intro: 'Segera ke IGD atau hubungi 119 bila:',
+              items: [
+                { t: 'Terlambat haid / mungkin hamil (walau tes belum positif), lalu muncul nyeri perut bawah yang tiba-tiba dan hebat, nyeri di ujung bahu, pusing hebat atau pingsan, atau tampak sangat pucat. Ini dapat menjadi tanda kehamilan di luar kandungan (KET) yang pecah.', s: ['nhsEkt', 'acogEkt'] },
+                { t: 'Hamil muda dengan perdarahan, disertai nyeri perut hebat, nyeri bahu, pusing/pingsan, atau perdarahan banyak (pembalut cepat basah setelah dipasang).', s: ['nhsMc'] },
+                { t: 'Nyeri panggul/perut bawah hebat, makin berat, atau sakit bila bergerak/disentuh — terutama bila disertai demam tinggi atau menggigil, mual/muntah, atau badan terasa sangat tidak sehat (dapat menjadi tanda infeksi panggul berat).', s: ['nhsPid'] },
+                { t: 'Nyeri panggul disertai perdarahan banyak dari vagina.', s: ['nhsPid'] },
+                { t: 'Pusing berat atau pingsan yang disertai nyeri perut atau perdarahan.', s: ['nhsPid', 'nhsEkt', 'acogEkt'] }
+              ],
+              cepat: { judul: 'Periksakan ke dokter secepatnya bila:', items: [
+                { t: 'Nyeri panggul yang muncul tiba-tiba dan hebat, atau nyeri perut disertai mual/muntah — kista indung telur yang pecah atau terpuntir dapat menimbulkan keluhan ini.', s: ['nhsCyst'] },
+                { t: 'Haid sangat banyak: pembalut tembus setiap jam selama beberapa jam berturut-turut, haid lebih dari 7 hari, atau keluar gumpalan darah besar.', s: ['acogHmb'] },
+                { t: 'Perdarahan di luar jadwal haid atau setelah berhubungan suami-istri.', s: ['nhsHp', 'nhsPid'] }
+              ] } }
+        ];
+        function tbSrc(keys) {
+            return keys.map(k => `<a href="#ref-${k}" onclick="event.preventDefault();const e=document.getElementById('ref-${k}');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})" class="inline-block text-[10px] font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded px-1.5 py-0.5 ml-1 align-middle">[${TB_ORDER.indexOf(k) + 1}]</a>`).join('');
+        }
+        function tbList(items, dot) {
+            return `<ul class="space-y-2.5">${items.map(it => `<li class="flex gap-2.5 text-[15px] leading-relaxed text-slate-800"><i class="fa-solid ${dot} mt-1.5 shrink-0"></i><span>${it.t}${tbSrc(it.s)}</span></li>`).join('')}</ul>`;
+        }
+        function renderBahaya() {
             return `
             <div class="fade-up">
-                <div class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 mb-4">
-                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-robot"></i><h1 class="font-extrabold text-lg">Triase Asisten AI dr. Bayu</h1></div>
-                    <p class="text-slate-300 text-sm">Masukkan temuan klinis singkat. Asisten AI dr. Bayu memberi kemungkinan diagnosis, tingkat kegawatan, dan langkah segera berbasis protap. <b>Bukan pengganti penilaian klinis.</b></p>
+                ${renderIGD()}
+                <h1 class="font-extrabold text-2xl text-slate-800 mb-1">Tanda Bahaya</h1>
+                <p class="text-[15px] text-slate-600 mb-3 leading-relaxed">Kenali tanda-tanda berikut pada masa kehamilan, nifas, dan gangguan kandungan. Bila mengalami salah satunya, <b>jangan menunggu</b> — segera ke fasilitas kesehatan.</p>
+                <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 mb-4 text-sm text-amber-900 leading-relaxed">
+                    <i class="fa-solid fa-circle-info mr-1"></i> <b>Halaman ini untuk edukasi, bukan pengganti pemeriksaan atau diagnosis dokter/bidan.</b> Daftar ini tidak mencakup semua kondisi. Bila ragu, segera ke fasilitas kesehatan terdekat. Bila nyeri hebat atau pusing, jangan menyetir sendiri — minta diantar atau hubungi 119.
                 </div>
-                <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-4">
-                    <label class="text-sm font-semibold text-slate-600">Dugaan kondisi (opsional)</label>
-                    <select onchange="setTriaseKondisi(this.value)" class="w-full mt-1 mb-3 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-red-400 bg-white">
-                        <option value="">— Biarkan Asisten AI dr. Bayu menilai —</option>${opts}
-                    </select>
-                    <label class="text-sm font-semibold text-slate-600">Temuan klinis / gejala</label>
-                    <textarea id="triaseInput" oninput="setTriaseInput(this.value)" rows="5" placeholder="Contoh: G3P2A0 hamil 34 mgg, TD 170/115, nyeri kepala hebat, penglihatan kabur, kaki bengkak, proteinuria +3..." class="w-full mt-1 px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-red-400 text-sm">${state.triaseInput}</textarea>
-                    <p class="text-[11px] text-slate-400 mt-1"><i class="fa-solid fa-shield-halved mr-1"></i>Jangan tulis identitas pasien (nama, NIK, no. RM). Teks dikirim ke layanan AI pihak ketiga — lihat <a href="kebijakan-privasi.html" class="underline">Kebijakan Privasi</a>.</p>
-                    <button onclick="runTriase()" ${state.triaseLoading ? 'disabled' : ''} class="w-full mt-3 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-xl py-3 font-bold flex items-center justify-center gap-2">
-                        ${state.triaseLoading ? '<i class="fa-solid fa-spinner fa-spin"></i> Asisten AI dr. Bayu menganalisis...' : '<i class="fa-solid fa-bolt"></i> Analisis Triase'}
-                    </button>
-                </div>
-                ${state.triaseError ? `<div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Asisten AI dr. Bayu belum aktif atau gagal terhubung. Anda tetap dapat memakai panduan kondisi & kalkulator secara offline. Untuk mengaktifkan AI, isi API key via ⚙ atau pastikan proxy terhubung.</div>` : ''}
-                ${state.triaseResult ? renderTriaseResult(state.triaseResult) : ''}
+                <nav class="grid grid-cols-3 gap-2 mb-4 no-print" aria-label="Kelompok tanda bahaya">
+                    ${TANDA_BAHAYA.map(g => `<a href="#tb-${g.id}" onclick="event.preventDefault();document.getElementById('tb-${g.id}').scrollIntoView({behavior:'smooth'})" class="bg-white border border-slate-200 rounded-xl py-2.5 text-center hover:border-${g.warna}-300"><i class="fa-solid ${g.ikon} text-${g.warna}-500 block mb-1"></i><span class="text-xs font-semibold text-slate-700">${g.judul.split(' (')[0]}</span></a>`).join('')}
+                </nav>
+                ${TANDA_BAHAYA.map(g => `
+                <section id="tb-${g.id}" class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 mb-4 scroll-mt-20">
+                    <div class="flex items-center gap-2.5 mb-3">
+                        <div class="w-9 h-9 rounded-lg bg-${g.warna}-50 flex items-center justify-center"><i class="fa-solid ${g.ikon} text-${g.warna}-500"></i></div>
+                        <h2 class="font-extrabold text-slate-800 text-lg leading-tight">${g.judul}</h2>
+                    </div>
+                    <p class="text-sm font-bold text-red-700 mb-2"><i class="fa-solid fa-hospital mr-1"></i> ${g.intro}</p>
+                    ${tbList(g.items, 'fa-circle-exclamation text-red-500')}
+                    ${g.sub ? `<div class="mt-4 pt-3 border-t border-slate-100"><p class="text-sm font-bold text-red-700 mb-2"><i class="fa-solid fa-hospital mr-1"></i> ${g.sub.judul}</p>${tbList(g.sub.items, 'fa-circle-exclamation text-red-500')}</div>` : ''}
+                    ${g.cepat ? `<div class="mt-4 pt-3 border-t border-slate-100"><p class="text-sm font-bold text-amber-700 mb-2"><i class="fa-solid fa-user-doctor mr-1"></i> ${g.cepat.judul}</p>${tbList(g.cepat.items, 'fa-circle text-[6px] text-amber-500 mt-2.5')}</div>` : ''}
+                </section>`).join('')}
+                <section id="tb-referensi" class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 mb-4">
+                    <h2 class="font-extrabold text-slate-800 text-lg mb-2"><i class="fa-solid fa-book-open text-slate-400 mr-1.5"></i> Referensi</h2>
+                    <ol class="space-y-2 text-sm text-slate-600 leading-relaxed">
+                        ${TB_ORDER.map((k, i) => `<li id="ref-${k}" class="flex gap-2 scroll-mt-24"><span class="font-bold text-slate-500 shrink-0">[${i + 1}]</span><span>${TB_REF[k].t} <a href="${TB_REF[k].u}" target="_blank" rel="noopener" class="text-red-600 underline break-all">${TB_REF[k].u.replace(/^https?:\/\//, '')}</a></span></li>`).join('')}
+                    </ol>
+                    <p class="text-[11px] text-slate-400 mt-3">Butir disarikan dan disederhanakan ke bahasa awam dari sumber di atas; diakses Oktober 2026.</p>
+                </section>
+                <button onclick="window.print()" class="w-full bg-white border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold text-sm no-print"><i class="fa-solid fa-print mr-1"></i> Cetak Tanda Bahaya</button>
             </div>`;
         }
-        window.setTriaseInput = (v) => { state.triaseInput = v; };
-        window.setTriaseKondisi = (v) => { state.triaseKondisi = v; };
-        function renderTriaseResult(r) {
-            const level = (r.kegawatan || '').toLowerCase();
-            const color = level.includes('sangat') || level.includes('tinggi') ? 'red' : level.includes('sedang') ? 'amber' : 'green';
-            return `
-            <div class="fade-up space-y-3">
-                <div class="rounded-2xl bg-${color}-50 border border-${color}-200 p-4">
-                    <div class="text-xs font-bold text-${color}-600 uppercase tracking-wide">Tingkat Kegawatan</div>
-                    <div class="text-xl font-extrabold text-${color}-700">${r.kegawatan || '-'}</div>
-                    ${r.ringkasan ? `<p class="text-sm text-slate-700 mt-1">${r.ringkasan}</p>` : ''}
-                </div>
-                ${Array.isArray(r.kemungkinan) && r.kemungkinan.length ? sectionCard('fa-stethoscope', 'purple', 'Kemungkinan Diagnosis',
-                    `<ul class="space-y-1.5">${r.kemungkinan.map(d => `<li class="flex gap-2 text-sm text-slate-700"><i class="fa-solid fa-circle text-[5px] mt-2 text-purple-400"></i><span>${d}</span></li>`).join('')}</ul>`) : ''}
-                ${Array.isArray(r.langkahSegera) && r.langkahSegera.length ? sectionCard('fa-list-check', 'red', 'Langkah Segera',
-                    `<ol class="space-y-2">${r.langkahSegera.map((s, i) => `<li class="flex gap-3 text-sm text-slate-700"><span class="w-6 h-6 rounded-md bg-red-100 text-red-600 font-bold text-xs flex items-center justify-center shrink-0">${i + 1}</span><span>${s}</span></li>`).join('')}</ol>`) : ''}
-                ${r.rujukan ? sectionCard('fa-hospital-user', 'red', 'Rujukan', `<p class="text-sm text-slate-700">${r.rujukan}</p>`) : ''}
-                <div class="text-[11px] text-slate-400 px-1">Saran AI berbasis PPK Obgyn RSHS 2015. Selalu konfirmasi dengan DPJP / penilaian klinis langsung.</div>
-            </div>`;
-        }
-        function extractJSON(text) {
-            if (!text) return null;
-            let s = text.indexOf('{'), e = text.lastIndexOf('}');
-            if (s === -1 || e === -1 || e < s) return null;
-            try { return JSON.parse(text.slice(s, e + 1)); } catch (err) { return null; }
-        }
-        window.runTriase = async () => {
-            if (!state.triaseInput.trim()) { return; }
-            if (!AIQuota.guard()) return;
-            state.triaseLoading = true; state.triaseError = false; state.triaseResult = null; reRender();
-            const kondisiRef = state.triaseKondisi ? KONDISI.find(k => k.nama === state.triaseKondisi) : null;
-            const konteks = kondisiRef ? `\n\nProtap acuan (${kondisiRef.nama}):\nLangkah: ${kondisiRef.langkah.join(' | ')}\nObat: ${kondisiRef.obat.map(o => o.n + ' ' + o.d).join(' | ')}` : '';
-            const systemPrompt = `Anda Asisten AI dr. Bayu, asisten triase kegawatdaruratan obstetri untuk TENAGA KESEHATAN. Konten berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. Jawab HANYA dengan satu objek JSON valid tanpa teks lain, tanpa markdown. Bahasa Indonesia, ringkas, aksi-oriented, aman. Selalu tekankan stabilisasi (ABC), panggil bantuan, dan rujukan bila perlu. Jangan mengarang dosis di luar protap.
-Struktur:
-{
-  "kegawatan": "Sangat Tinggi | Tinggi | Sedang | Rendah",
-  "ringkasan": "1-2 kalimat penilaian",
-  "kemungkinan": ["diagnosis banding 1", "diagnosis banding 2"],
-  "langkahSegera": ["langkah 1", "langkah 2", "langkah 3"],
-  "rujukan": "kriteria & tujuan rujukan singkat"
-}`;
-            const userQuery = `Temuan klinis: ${state.triaseInput}${state.triaseKondisi ? `\nDugaan klinisi: ${state.triaseKondisi}` : ''}${konteks}`;
-            try {
-                const _proxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim()) ? RAMLI_PROXY_URL.trim() : '';
-                const _endpoint = _proxy || "https://api.anthropic.com/v1/messages";
-                const _headers = { "Content-Type": "application/json" };
-                if (!_proxy) {
-                    const _key = getStoredKey();
-                    if (_key) { _headers["x-api-key"] = _key; _headers["anthropic-version"] = "2023-06-01"; _headers["anthropic-dangerous-direct-browser-access"] = "true"; }
-                }
-                const res = await AIQuota.fetch(_endpoint, {
-                    method: "POST", headers: _headers,
-                    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1200, system: systemPrompt, messages: [{ role: "user", content: userQuery }] })
-                });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const data = await res.json();
-                const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-                const parsed = extractJSON(text);
-                if (parsed) state.triaseResult = parsed; else state.triaseError = true;
-            } catch (e) {
-                console.error('Triase gagal:', e); state.triaseError = !AIQuota.isQuotaError(e);
-            } finally {
-                state.triaseLoading = false; reRender();
-            }
-        };
 
         // ---------- Rujukan ----------
         const BAKSOKUDA = [
@@ -1325,44 +1369,17 @@ Struktur:
         window.removeContact = (i) => { state.contacts.splice(i, 1); saveContacts(); reRender(); };
         window.toggleBaksokuda = (i) => { state.checklist['baksokuda_' + i] = !state.checklist['baksokuda_' + i]; reRender(); };
 
-        // ---------- Settings (API key) ----------
-        function toggleSettings() { state.showSettings = !state.showSettings; renderApp(); }
-        window.toggleSettings = toggleSettings;
-        function renderSettings() {
-            const hasProxy = (typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim());
-            const key = getStoredKey();
-            return `
-            <div class="fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-4 no-print" onclick="if(event.target===this)toggleSettings()">
-                <div class="bg-white rounded-2xl w-full max-w-md p-5 fade-up">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-robot text-red-500"></i> Pengaturan Asisten AI dr. Bayu</h3>
-                        <button onclick="toggleSettings()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-                    </div>
-                    ${hasProxy ? `<div class="bg-green-50 text-green-800 text-sm rounded-lg p-3 mb-3"><i class="fa-solid fa-circle-check mr-1"></i> AI aktif via proxy — siap dipakai semua pengunjung tanpa API key.</div>` : `
-                    <p class="text-sm text-slate-600 mb-2">Masukkan Anthropic API key (disimpan lokal di perangkat ini saja) untuk mengaktifkan Triase AI.</p>
-                    <input id="apiKeyInput" type="password" value="${key}" placeholder="sk-ant-..." class="w-full px-3 py-2.5 rounded-lg border border-slate-200 outline-none focus:border-red-400 text-sm mb-2">
-                    <div class="flex gap-2">
-                        <button onclick="saveKey()" class="flex-1 bg-red-600 text-white rounded-lg py-2.5 font-semibold text-sm">Simpan</button>
-                        <button onclick="clearKey()" class="px-4 bg-slate-100 text-slate-600 rounded-lg py-2.5 font-semibold text-sm">Hapus</button>
-                    </div>`}
-                    ${state.keyNote ? `<div class="text-xs text-green-600 mt-2">${state.keyNote}</div>` : ''}
-                    <div class="text-[11px] text-slate-400 mt-3 border-t border-slate-100 pt-3">Skoring, kalkulator, dan panduan tetap berfungsi penuh tanpa AI.</div>
-                </div>
-            </div>`;
-        }
-        window.saveKey = () => { const v = document.getElementById('apiKeyInput').value.trim(); if (v) { safeStorage.set('ramli_anthropic_key', v); state.keyNote = 'API key tersimpan.'; renderApp(); } };
-        window.clearKey = () => { safeStorage.remove('ramli_anthropic_key'); state.keyNote = 'API key dihapus.'; renderApp(); };
-
         // ---------- Disclaimer footer ----------
         function renderDisclaimer() {
             return `<div class="max-w-3xl mx-auto px-4 pb-24 -mt-2">
                 <div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
-                    <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Aplikasi ini adalah alat bantu keputusan klinis untuk tenaga kesehatan, berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015. BUKAN pengganti penilaian klinis, pemeriksaan langsung, atau kebijakan/protap institusi Anda. Pada keadaan mengancam jiwa: panggil bantuan, stabilisasi, dan rujuk segera.
+                    <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Protokol &amp; kalkulator di halaman ini adalah alat bantu keputusan klinis untuk tenaga kesehatan, berbasis Panduan Praktik Klinis (PPK) Obstetri & Ginekologi RSUP Dr. Hasan Sadikin Bandung 2015 — BUKAN pengganti penilaian klinis, pemeriksaan langsung, atau kebijakan/protap institusi Anda. Bagian Tanda Bahaya adalah edukasi untuk pasien, bukan diagnosis. Pada keadaan mengancam jiwa: segera ke IGD terdekat atau hubungi 119 / 112.
                 </div>
             </div>`;
         }
 
         // init
+        window.addEventListener('hashchange', () => { if (location.hash === '#tanda-bahaya') go('bahaya'); });
         renderApp();
     </script>
     <!-- Kontrol ukuran huruf (aksesibilitas) -->
