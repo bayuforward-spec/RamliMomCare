@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asesmen Kehamilan Momscare · dr. Bayu Maulana, Sp.O.G</title>
-    <meta name="description" content="Asesmen risiko kehamilan personal: skor risiko, status gizi, jadwal kontrol, dan analisis AI opsional dengan persetujuan. Alat bantu edukasi, bukan pengganti pemeriksaan.">
+    <title>Kesadaran Risiko Kehamilan · dr. Bayu Maulana, Sp.O.G</title>
+    <meta name="description" content="Alat kesadaran risiko kehamilan di perangkat Anda. Bukan resep, bukan diagnosis, dan bukan pengganti pemeriksaan dokter.">
     <link rel="canonical" href="https://bayumaulanaspog.com/momscare.html">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="id_ID">
     <meta property="og:site_name" content="dr. Bayu, Sp.O.G">
-    <meta property="og:title" content="Asesmen Kehamilan Momscare · dr. Bayu Maulana, Sp.O.G">
-    <meta property="og:description" content="Asesmen risiko kehamilan personal: skor risiko, status gizi, jadwal kontrol, dan analisis AI opsional dengan persetujuan. Alat bantu edukasi, bukan pengganti pemeriksaan.">
+    <meta property="og:title" content="Kesadaran Risiko Kehamilan · dr. Bayu Maulana, Sp.O.G">
+    <meta property="og:description" content="Alat kesadaran risiko kehamilan di perangkat Anda. Bukan resep, bukan diagnosis, dan bukan pengganti pemeriksaan dokter.">
     <meta property="og:url" content="https://bayumaulanaspog.com/momscare.html">
     <meta property="og:image" content="https://bayumaulanaspog.com/drbayu.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -101,6 +101,14 @@
             state.aiNeedsConsent = !!state.results;
             reRenderKeepScroll();
         };
+        const DATA_CONSENT_KEY = 'momscare_data_consent_v1';
+        function hasDataConsent() { return safeStorage.get(DATA_CONSENT_KEY) === 'yes'; }
+        window.setDataConsent = (on) => {
+            state.dataConsent = !!on;
+            if (on) safeStorage.set(DATA_CONSENT_KEY, 'yes');
+            else safeStorage.remove(DATA_CONSENT_KEY);
+            reRenderKeepScroll();
+        };
         function loadHistory() {
             try { return JSON.parse(safeStorage.get('rshb_momscare_history')) || []; }
             catch (e) { return []; }
@@ -120,7 +128,8 @@
             showSettings: false,
             keyNote: '',
             saveSuccess: false,
-            results: null
+            results: null,
+            dataConsent: hasDataConsent()
         };
 
         let formData = {
@@ -136,12 +145,15 @@
             appDiv.innerHTML = `
                 ${renderNavbar()}
                 <main class="max-w-4xl mx-auto p-4 md:p-8 print-area">
+                    <div class="rounded-2xl bg-amber-50 border border-amber-300 px-4 py-3 mb-4 text-sm text-amber-950 leading-relaxed">
+                        <b>Bukan pengganti pemeriksaan dokter.</b> Halaman ini hanya membantu mengenali faktor risiko dari data yang Anda ketik sendiri. Tidak ada resep, tidak ada diagnosis, dan tidak ada janji hasil kehamilan.
+                    </div>
                     ${state.showSettings ? renderSettings() : state.showHistory ? renderHistory() : `
                         ${!state.isSharedView ? renderForm() : ''}
                         ${state.results ? `<div id="hasil">${renderResults()}</div>` : ''}
                     `}
                     <footer class="text-center text-[11px] text-gray-400 mt-8 no-print">
-                        dr. Bayu SpOG Personal Momscare · Alat bantu edukasi, bukan pengganti pemeriksaan dokter. · <a href="kebijakan-privasi.html" class="underline hover:text-rose-600">Kebijakan Privasi</a> · <a href="kontak.html" class="underline hover:text-rose-600">Kontak</a>
+                        dr. Bayu Maulana, Sp.O.G · Bukan pengganti pemeriksaan dokter. · <a href="kebijakan-privasi.html" class="underline hover:text-rose-600">Kebijakan Privasi</a>
                     </footer>
                 </main>
             `;
@@ -229,6 +241,7 @@
         }
 
         window.calculatePersonalizedPlan = () => {
+            if (!hasDataConsent()) { state.dataConsent = false; reRenderKeepScroll(); return; }
             if (!formData.nama || !formData.nama.trim()) formData.nama = 'Bunda';
 
             const bmi = calculateBMI();
@@ -278,39 +291,39 @@
             const plan = { vitamins: [], recommendations: [], warnings: [] };
 
             if (formData.mingguKehamilan <= 12) {
-                plan.vitamins.push({ name: 'Asam Folat (400mcg-800mcg)', reason: 'Sangat krusial untuk mencegah kelainan saraf tulang belakang janin di trimester pertama.' });
+                plan.vitamins.push({ name: 'Asam folat — informasi umum', reason: 'Pedoman umumnya menyebut asam folat 400 mikrogram per hari pada awal kehamilan karena berkaitan dengan penurunan risiko kelainan tabung saraf. Sebagian praktik menyebut kisaran 400–800 mikrogram. Halaman ini tidak menentukan dosis untuk Anda dan tidak menjamin pencegahan. Keputusan dibuat saat pemeriksaan.' });
             } else {
-                plan.vitamins.push({ name: 'Kalsium & Vitamin D3', reason: 'Mendukung pembentukan tulang bayi dan mencegah ibu osteoporosis.' });
+                plan.vitamins.push({ name: 'Kalsium dan vitamin D — informasi umum', reason: 'Kalsium dan vitamin D sering dibahas untuk tulang ibu dan janin, terutama bila makanan sehari-hari kurang kalsium. Suplemen tidak menjamin pencegahan osteoporosis. Perlu atau tidaknya dinilai saat pemeriksaan.' });
             }
 
             if (formData.kondisiMedis.includes('Anemia')) {
-                plan.vitamins.push({ name: 'Tablet Tambah Darah (Fe)', reason: 'Cegah risiko perdarahan persalinan dengan suplemen zat besi untuk mengatasi anemia.' });
+                plan.vitamins.push({ name: 'Zat besi — informasi umum', reason: 'Bila anemia sudah dicatat dari pemeriksaan, tablet tambah darah biasanya dibahas oleh tenaga kesehatan. Halaman ini tidak menentukan dosis dan tidak menjanjikan pencegahan perdarahan.' });
             } else {
-                plan.vitamins.push({ name: 'Multivitamin Prenatal', reason: 'Nutrisi pendukung keseimbangan gizi harian.' });
+                plan.vitamins.push({ name: 'Multivitamin kehamilan — informasi umum', reason: 'Multivitamin kadang dipakai bila asupan makanan belum mencukupi. Tidak ada merek yang dianjurkan di sini. Pilihan, jika memang perlu, dibuat saat pemeriksaan.' });
             }
 
             if (formData.riwayatKeluarga.includes('Kelainan Bawaan Keluarga')) {
-                plan.recommendations.push('Disarankan melakukan skrining genetik/NIPT lanjutan karena ada riwayat kelainan bawaan pada keluarga.');
+                plan.recommendations.push('Riwayat kelainan bawaan dalam keluarga perlu diceritakan ke dokter yang memeriksa, termasuk apakah skrining kromosom relevan. Keputusan dibuat setelah konseling, bukan dari halaman ini.');
             }
 
             const activities = [];
             if (kspr > 2 || formData.kondisiMedis.includes('Perdarahan') || formData.kondisiMedis.includes('Kejang / Preeklamsia Berat')) {
-                activities.push('Bed rest parsial atau kurangi aktivitas fisik berat. Hindari senam hamil untuk sementara waktu sampai mendapat izin dokter.');
+                activities.push('Aktivitas berat sebaiknya ditunda sampai diperiksa dokter atau bidan. Halaman ini tidak memerintahkan tirah baring.');
             } else {
                 if (formData.mingguKehamilan <= 12) {
-                    activities.push('Jalan santai 15-20 menit sehari. Hindari aktivitas yang memicu detak jantung terlalu cepat.');
-                    activities.push('Latihan pernapasan dan relaksasi ringan di rumah.');
+                    activities.push('Jalan santai dapat dilanjutkan bila tenaga kesehatan tidak membatasi aktivitas.');
+                    activities.push('Latihan napas dan relaksasi ringan boleh dicoba di rumah bila tidak ada keluhan bahaya.');
                 } else if (formData.mingguKehamilan > 12 && formData.mingguKehamilan <= 28) {
-                    activities.push('Senam hamil ringan atau yoga prenatal 2-3 kali seminggu untuk kelenturan panggul.');
-                    activities.push('Berenang santai untuk mengurangi beban punggung (opsional jika fasilitas tersedia).');
+                    activities.push('Gerak ringan, seperti senam hamil atau yoga prenatal, hanya bila dokter atau bidan tidak melarang.');
+                    activities.push('Berenang santai kadang dipilih untuk punggung yang pegal, bila fasilitas ada dan tidak ada larangan aktivitas.');
                 } else {
-                    activities.push('Jalan pagi teratur untuk mengoptimalkan posisi masuknya kepala janin ke panggul.');
-                    activities.push('Senam kegel rutin untuk memperkuat otot dasar panggul persiapan persalinan.');
+                    activities.push('Jalan santai dapat dilanjutkan bila tidak ada larangan aktivitas. Posisi janin dinilai saat pemeriksaan, bukan dari halaman ini.');
+                    activities.push('Latihan otot dasar panggul (Kegel) sering diperkenalkan sebagai edukasi, bukan kewajiban yang menjamin persalinan tertentu.');
                 }
             }
             plan.activities = activities;
 
-            let usgConclusion = 'Hasil indikator USG menunjukkan perkembangan janin dalam batas normal sesuai usia kehamilan.';
+            let usgConclusion = 'Angka yang diisi berada pada rentang yang sering dipakai sebagai acuan. Ini bukan kesimpulan USG dan bukan diagnosis.';
             let isUsgAbnormal = false;
             let usgDetails = [];
 
@@ -322,19 +335,19 @@
             if (formData.mingguKehamilan <= 14 && (formData.usgNT || formData.usgDJJ)) {
                 if (formData.usgNT && parseFloat(formData.usgNT) > 3.0) {
                     isUsgAbnormal = true;
-                    usgDetails.push(`Penebalan Nuchal Translucency (NT: ${formData.usgNT} mm). Risiko kelainan bawaan/kromosom meningkat.`);
+                    usgDetails.push(`NT yang diisi (${formData.usgNT} mm) berada di atas 3,0 mm, rentang yang sering dipakai sebagai batas skrining. Ini bukan diagnosis kelainan kromosom.`);
                 }
                 if (formData.usgDJJ) {
                     const djj = parseInt(formData.usgDJJ);
                     if (djj < 110 || djj > 160) {
                         isUsgAbnormal = true;
-                        usgDetails.push(`Detak Jantung Janin (DJJ: ${djj} bpm) terdeteksi di luar batas normal (110-160 bpm).`);
+                        usgDetails.push(`DJJ yang diisi (${djj} bpm) berada di luar rentang 110–160 yang sering dipakai sebagai acuan. Ini bukan diagnosis.`);
                     }
                 }
             }
 
             if (isUsgAbnormal) {
-                usgConclusion = `⚠️ Ditemukan Catatan Medis pada USG: ${usgDetails.join(' ')} Disarankan untuk segera melakukan pemeriksaan lanjutan atau konsultasi dengan Dokter Spesialis Fetomaternal.`;
+                usgConclusion = `Ada isian di luar rentang acuan umum: ${usgDetails.join(' ')} Segera diskusikan dengan dokter yang memeriksa. Rujukan fetomaternal, bila perlu, diputuskan oleh dokter tersebut. Ini bukan catatan medis resmi.`;
             }
             plan.usgConclusion = usgConclusion;
             plan.isUsgAbnormal = isUsgAbnormal;
@@ -368,17 +381,24 @@
             state.aiError = false;
             reRenderKeepScroll();
 
-            const systemPrompt = `Anda adalah Asisten AI dr. Bayu, asisten medis cerdas di dr. Bayu SpOG Personal Momscare yang ramah, empatik, dan paham obstetri.
-Tugas Anda menganalisis data ibu hamil (BMI, skor risiko KSPR, hasil USG, kondisi klinis) dan memberi panduan yang menenangkan namun akurat.
-Jawab HANYA dengan satu objek JSON valid, tanpa teks lain dan tanpa pembungkus markdown. Gunakan Bahasa Indonesia yang hangat dan ringkas.
+            const systemPrompt = `Anda menulis catatan edukasi pada situs dr. Bayu Maulana, Sp.O.G. Anda tidak memeriksa orang ini dan bukan pengganti dokter atau bidan.
+Tugas: menjelaskan skor dan isian dengan hati-hati, dalam Bahasa Indonesia yang tenang.
+Batas wajib:
+- Jangan menulis resep, nama merek obat, dosis, atau ajakan membeli suplemen, obat, atau susu formula.
+- Jangan menjanjikan pencegahan, kesembuhan, atau hasil kehamilan.
+- Jangan menyebut rumah sakit, klinik, atau dokter tertentu.
+- Jangan memakai superlatif seperti terbaik, paling aman, paling lengkap, atau satu-satunya.
+- Sebutkan bahwa ini bukan diagnosis dan bukan pengganti pemeriksaan.
+- Jangan mengaku sudah memeriksa pasien.
+Jawab HANYA dengan satu objek JSON valid, tanpa teks lain dan tanpa pembungkus markdown.
 Struktur:
 {
-  "summary": "Sapaan hangat 1-2 kalimat, perkenalkan diri sebagai Asisten AI dr. Bayu",
-  "deepDive": "Analisis singkat (3-4 kalimat) tentang risiko, BMI, penyulit, dan makna hasil USG",
-  "usgAnalysis": "Kesimpulan singkat khusus hasil USG (1-2 kalimat)",
-  "mealPlan": ["Saran menu 1", "Saran menu 2", "Saran menu 3"],
-  "mentalHealth": "Saran manajemen stres yang spesifik untuk pekerjaan & kondisinya (2-3 kalimat)",
-  "activityPlan": ["Saran aktivitas/senam 1", "Saran aktivitas/senam 2"]
+  "summary": "1-2 kalimat. Perkenalkan diri sebagai catatan edukasi, bukan hasil pemeriksaan.",
+  "deepDive": "3-4 kalimat tentang skor, BMI, dan isian. Tanpa diagnosis pasti.",
+  "usgAnalysis": "1-2 kalimat: angka yang diisi dibanding rentang acuan, bukan kesimpulan USG resmi.",
+  "mealPlan": ["Ide makanan biasa 1", "Ide makanan biasa 2", "Ide makanan biasa 3"],
+  "mentalHealth": "2-3 kalimat tentang istirahat dan menceritakan keluhan ke tenaga kesehatan. Tanpa terapi obat.",
+  "activityPlan": ["Aktivitas ringan yang tetap perlu izin tenaga kesehatan 1", "Aktivitas ringan 2"]
 }`;
 
             const userQuery = `Data Pasien:
@@ -458,7 +478,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                 p += `Hasil USG Bunda berada dalam batas normal sesuai usia kehamilan. `;
             }
             if (r.kspr > 2 || r.plan.isUsgAbnormal) {
-                p += `Sebaiknya Bunda segera menjadwalkan kontrol dengan dokter spesialis kandungan di RS Harapan Bunda. `;
+                p += `Sebaiknya Bunda memeriksakan diri ke bidan atau dokter kandungan. Halaman ini bukan pengganti pemeriksaan. `;
             }
             p += `Tetap sehat dan semangat ya Bunda!`;
             return p;
@@ -609,11 +629,6 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
             scrollToTop();
         };
 
-        window.openWa = () => {
-            const message = encodeURIComponent(`Halo RS Harapan Bunda, saya Bunda ${formData.nama} mau kontrol kehamilan.`);
-            window.open(`https://wa.me/6282280144548?text=${message}`, '_blank');
-        };
-
         // ================= UI =================
 
         function renderSettings() {
@@ -674,8 +689,8 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             <i class="fa-solid fa-heart text-white text-xl"></i>
                         </div>
                         <div class="min-w-0">
-                            <h1 class="text-base md:text-xl font-black text-gray-800 tracking-tight leading-tight">dr. Bayu SpOG <span class="text-rose-500">Personal Momscare</span></h1>
-                            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Asisten AI dr. Bayu</p>
+                            <h1 class="text-base md:text-xl font-black text-gray-800 tracking-tight leading-tight">Kesadaran risiko kehamilan</h1>
+                            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">dr. Bayu Maulana, Sp.O.G · bukan pemeriksaan</p>
                         </div>
                     </a>
                     <div class="flex flex-wrap items-center gap-2 md:gap-3 w-full sm:w-auto sm:ml-auto">
@@ -732,8 +747,8 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         <div class="flex items-center gap-3">
                             <div class="bg-indigo-100 p-3 rounded-2xl"><i class="fa-solid fa-clock-rotate-left text-xl text-indigo-600"></i></div>
                             <div>
-                                <h2 class="text-2xl font-black text-gray-800">Riwayat Pemeriksaan</h2>
-                                <p class="text-gray-500 mt-1 text-sm">Pantau perkembangan data medis Bunda dari waktu ke waktu.</p>
+                                <h2 class="text-2xl font-black text-gray-800">Riwayat isian di perangkat ini</h2>
+                                <p class="text-gray-500 mt-1 text-sm">Tersimpan hanya di peramban ini, sampai Anda menghapusnya. Bukan rekam medis rumah sakit.</p>
                             </div>
                         </div>
                         <button onclick="toggleHistory(false)" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
@@ -743,7 +758,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     ${state.history.length === 0 ? `
                         <div class="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                             <i class="fa-solid fa-clock-rotate-left text-4xl text-gray-300 mb-3"></i>
-                            <p class="text-gray-500 font-medium">Belum ada riwayat tersimpan. Selesaikan satu asesmen lalu tekan "Simpan ke Riwayat".</p>
+                            <p class="text-gray-500 font-medium">Belum ada riwayat di perangkat ini. Selesaikan satu ringkasan lalu tekan "Simpan ke Riwayat".</p>
                         </div>
                     ` : `
                         <div class="space-y-4">
@@ -785,20 +800,35 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
 
         function renderForm() {
             return `
-                <div class="text-center mb-8 fade-up no-print">
-                    <h2 class="text-2xl md:text-3xl font-black text-gray-800">Asesmen Kehamilan Personal</h2>
-                    <p class="text-gray-500 mt-2 max-w-xl mx-auto">Isi seluruh data di bawah dalam satu halaman, lalu tekan tombol proses di bagian akhir. Asisten AI dr. Bayu akan menyusun analisis dan rekomendasi untuk Bunda.</p>
+                <div class="text-center mb-6 fade-up no-print">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-800">Isian kesadaran risiko</h2>
+                    <p class="text-gray-500 mt-2 max-w-xl mx-auto">Skor dihitung di perangkat Anda. Analisis AI terpisah dan tidak berjalan tanpa persetujuan kedua. Ini bukan resep dan bukan pengganti pemeriksaan dokter.</p>
                 </div>
 
-                <div class="space-y-6 no-print">
+                <div class="bg-white border border-rose-200 rounded-2xl p-4 md:p-5 mb-6 text-sm text-slate-700 leading-relaxed no-print">
+                    <p class="font-black text-slate-900">Persetujuan data sebelum diisi (UU No. 27 Tahun 2022)</p>
+                    <p class="mt-2">Data yang dapat Anda ketik: nama atau nama panggilan, usia, usia kehamilan, tinggi dan berat badan, pekerjaan, tingkat stres, riwayat kehamilan dan kesehatan, tekanan darah, serta angka USG yang sudah Anda ketahui. Sebagian di antaranya adalah <b>data pribadi spesifik (data kesehatan)</b>.</p>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li><b>Tujuan:</b> edukasi kesadaran risiko di perangkat ini. Bukan diagnosis, bukan resep, dan bukan untuk ditawarkan ke rumah sakit tertentu.</li>
+                        <li><b>Di mana diolah:</b> di peramban Anda. Situs ini tidak menyimpan isian di server. Riwayat baru tersimpan di perangkat bila Anda menekan simpan. Tautan bagikan memuat data di alamat URL; siapa pun yang memegang tautan itu dapat membacanya.</li>
+                        <li><b>AI:</b> tidak dijalankan oleh persetujuan ini. Pengiriman ke layanan AI meminta centang terpisah.</li>
+                        <li><b>Hak Anda:</b> centang dapat dicabut, riwayat dapat dihapus, dan data situs dapat dihapus di pengaturan peramban. Selengkapnya di <a href="kebijakan-privasi.html" class="text-rose-600 font-bold underline">Kebijakan Privasi</a>.</li>
+                    </ul>
+                    <label class="flex items-start gap-2 mt-3 cursor-pointer">
+                        <input type="checkbox" class="mt-1 w-4 h-4 accent-rose-500" ${state.dataConsent ? 'checked' : ''} onchange="setDataConsent(this.checked)">
+                        <span>Saya memahami penjelasan di atas dan setuju data yang saya isi diolah di perangkat ini untuk edukasi kesadaran risiko.</span>
+                    </label>
+                </div>
+
+                <fieldset ${state.dataConsent ? '' : 'disabled'} class="space-y-6 no-print border-0 p-0 m-0 min-w-0 ${state.dataConsent ? '' : 'opacity-50'}">
 
                     <!-- 1. Fisik & Demografi -->
                     <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 border border-gray-50">
-                        ${sectionHeader(1, 'fa-weight-scale', 'Fisik & Demografi', 'Data dasar untuk mengukur status gizi dan potensi panggul sempit.')}
+                        ${sectionHeader(1, 'fa-weight-scale', 'Fisik & Demografi', 'Data dasar untuk perkiraan status gizi. Bukan penilaian panggul.')}
                         <div class="grid md:grid-cols-2 gap-5">
                             <div class="md:col-span-2">
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Nama Lengkap Bunda</label>
-                                <input type="text" placeholder="Mis. Siti Rahmawati" class="${inputClass}" value="${formData.nama}" oninput="updateField('nama', this.value, 'text')" />
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Nama atau nama panggilan</label>
+                                <input type="text" placeholder="Boleh bukan nama lengkap" class="${inputClass}" value="${formData.nama}" oninput="updateField('nama', this.value, 'text')" />
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Usia (Thn)</label>
@@ -827,7 +857,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
 
                     <!-- 2. Riwayat -->
                     <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 border border-gray-50">
-                        ${sectionHeader(2, 'fa-baby', 'Riwayat Obstetri & Keluarga', 'Menentukan penanganan kehamilan saat ini (paritas, komplikasi, genetika).')}
+                        ${sectionHeader(2, 'fa-baby', 'Riwayat Obstetri & Keluarga', 'Faktor yang sering dicatat pada kartu skor risiko. Bukan penentuan penanganan.')}
                         <div class="grid md:grid-cols-2 gap-5 mb-6 bg-gray-50 p-4 rounded-2xl">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Ini Kehamilan Ke-</label>
@@ -909,7 +939,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
 
                     <!-- 4. Lab & USG -->
                     <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 border border-gray-50">
-                        ${sectionHeader(4, 'fa-stethoscope', 'Hasil Penunjang Lab & USG', 'Data objektif medis untuk meramu kebutuhan nutrisi.')}
+                        ${sectionHeader(4, 'fa-stethoscope', 'Hasil Penunjang Lab & USG', 'Angka yang sudah Anda ketahui dari pemeriksaan. Halaman ini tidak mengubahnya menjadi resep.')}
                         <div class="grid md:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Tekanan Darah Terakhir</label>
@@ -949,10 +979,13 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     </div>
 
                     <!-- Process -->
-                    <button onclick="calculatePersonalizedPlan()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white px-8 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-rose-200 hover:scale-[1.01] active:scale-95 transition-all">
-                        ✨ Proses Data dengan Asisten AI dr. Bayu <i class="fa-solid fa-arrow-right"></i>
+                </fieldset>
+                <div class="mt-6 space-y-3 no-print">
+                    <button type="button" onclick="calculatePersonalizedPlan()" ${state.dataConsent ? '' : 'disabled'} class="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white px-8 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-rose-200 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100">
+                        Lihat ringkasan kesadaran risiko <i class="fa-solid fa-arrow-right"></i>
                     </button>
-                    ${state.results ? '<p class="text-center text-xs text-gray-400 -mt-2">Hasil terbaru ada di bawah. Ubah data lalu tekan tombol ini lagi untuk memperbarui.</p>' : ''}
+                    ${state.dataConsent ? '' : '<p class="text-center text-xs text-rose-700">Centang persetujuan di atas sebelum melanjutkan.</p>'}
+                    ${state.results ? '<p class="text-center text-xs text-gray-400">Hasil terbaru ada di bawah. Ubah data lalu tekan tombol ini lagi untuk memperbarui.</p>' : ''}
                 </div>
             `;
         }
@@ -973,9 +1006,9 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                                 <i class="fa-solid ${state.isSpeaking ? 'fa-stop' : 'fa-volume-high'}"></i> ${state.isSpeaking ? 'Hentikan Suara' : '✨ Dengar Pesan Asisten AI dr. Bayu'}
                             </button>
                         </div>
-                        <p class="text-[11px] text-gray-400 max-w-xl mx-auto no-print">Suara memakai mesin bawaan perangkat — paling lancar saat file dibuka langsung di browser.</p>
+                        <p class="text-[11px] text-gray-400 max-w-xl mx-auto no-print">Suara memakai mesin bawaan perangkat dan berjalan saat berkas dibuka langsung di peramban.</p>
                         ${state.voiceNote ? `<p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 max-w-xl mx-auto no-print">${state.voiceNote}</p>` : ''}
-                        <h2 class="text-2xl md:text-3xl font-black text-gray-800">Analisis Komprehensif Bunda ${formData.nama}</h2>
+                        <h2 class="text-2xl md:text-3xl font-black text-gray-800">Ringkasan kesadaran risiko${formData.nama && formData.nama !== 'Bunda' ? ' · ' + formData.nama : ''}</h2>
                         ${state.isAnalyzing ? `
                             <div class="flex flex-col items-center justify-center gap-3 text-rose-500 mt-4 no-print">
                                 <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
@@ -998,7 +1031,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             <p class="text-[11px] text-gray-400 mt-2 no-print">Data dikirim ke layanan AI atas persetujuan Bunda. <button type="button" onclick="revokeAiConsent()" class="underline font-bold hover:text-rose-600">Cabut persetujuan</button> · <a href="kebijakan-privasi.html" class="underline">Kebijakan Privasi</a></p>
                         ` : state.aiError ? `
                             <div class="bg-amber-50 py-3 px-6 rounded-2xl inline-block mt-2 border border-amber-200 max-w-2xl no-print">
-                                <p class="text-amber-700 font-semibold text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Analisis cerdas Asisten AI dr. Bayu belum dimuat (lingkungan tanpa kunci AI). Hasil skoring medis & suara di bawah tetap lengkap dan akurat.</p>
+                                <p class="text-amber-700 font-semibold text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Catatan AI belum dimuat. Skor di bawah tetap bisa dibaca sebagai alat edukasi, bukan diagnosis.</p>
                                 <button onclick="toggleSettings(true)" class="mt-2 text-xs font-bold text-amber-800 underline hover:text-amber-900">Aktifkan Asisten AI dr. Bayu dengan API key sendiri →</button>
                             </div>
                         ` : ''}
@@ -1023,7 +1056,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                                 <span class="text-lg font-bold pb-1">BMI</span>
                             </div>
                             <div class="bg-white/50 p-4 rounded-xl mt-4">
-                                <p class="text-xs font-bold uppercase opacity-70 mb-1">Target Kenaikan BB Selama Hamil</p>
+                                <p class="text-xs font-bold uppercase opacity-70 mb-1">Kisaran kenaikan BB yang sering dipakai sebagai acuan</p>
                                 <p class="font-bold text-lg">${res.weightRec}</p>
                                 <p class="text-sm mt-2 opacity-80">Progres saat ini: <span class="font-bold">${formData.beratBadanSekarang - formData.beratBadanSebelum} kg</span></p>
                             </div>
@@ -1033,12 +1066,12 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     ${(!state.isAnalyzing && a) ? `
                         <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 md:p-8 rounded-3xl border border-indigo-100 shadow-md">
                             <div class="flex items-center gap-3 text-indigo-700 font-black text-xl mb-4">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Rekomendasi Pakar Asisten AI dr. Bayu</span>
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Catatan tambahan dari Asisten AI (bukan nasihat dokter)</span>
                             </div>
                             <p class="text-sm text-indigo-900 leading-relaxed mb-6 font-medium">${a.deepDive || ''}</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="bg-white/70 p-5 rounded-2xl shadow-sm">
-                                    <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">🍽️ Menu Khusus Asisten AI dr. Bayu</p>
+                                    <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">Ide makan umum</p>
                                     <ul class="text-sm text-indigo-900 space-y-2 font-medium">
                                         ${meals.map(m => `<li class="flex gap-2 items-start"><span class="text-rose-400 font-bold">•</span> ${m}</li>`).join('') || '<li class="opacity-60">Tidak ada saran menu khusus.</li>'}
                                     </ul>
@@ -1072,10 +1105,10 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     </div>
 
                     <div class="space-y-4">
-                        <h3 class="font-black text-xl flex items-center gap-3"><div class="w-2 h-8 bg-rose-500 rounded-full"></div> Resep Vitamin & Catatan Medis dr. Bayu SpOG</h3>
+                        <h3 class="font-black text-xl flex items-center gap-3"><div class="w-2 h-8 bg-rose-500 rounded-full"></div> Informasi umum nutrisi (bukan resep)</h3>
                         ${res.plan.warnings.length > 0 ? `
                             <div class="bg-red-50 border-2 border-red-200 p-4 rounded-2xl mb-4">
-                                <div class="flex items-center gap-2 text-red-700 font-bold mb-2"><i class="fa-solid fa-circle-exclamation"></i> <span>Peringatan Klinis dr. Bayu SpOG</span></div>
+                                <div class="flex items-center gap-2 text-red-700 font-bold mb-2"><i class="fa-solid fa-circle-exclamation"></i> <span>Catatan yang perlu dibawa saat pemeriksaan</span></div>
                                 <ul class="list-disc list-inside text-sm text-red-800 space-y-1 font-medium">
                                     ${res.plan.warnings.map(w => `<li>${w}</li>`).join('')}
                                 </ul>
@@ -1101,26 +1134,26 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         </div>
                     </div>
 
-                    <div class="bg-gradient-to-r from-rose-500 to-pink-600 p-6 md:p-8 rounded-3xl mt-8 text-white shadow-xl shadow-rose-200 print-area">
-                        <div class="flex items-center gap-3 mb-5">
-                            <div class="bg-white/20 p-3 rounded-2xl backdrop-blur-sm"><i class="fa-solid fa-calendar text-3xl"></i></div>
+                    <div class="bg-slate-800 p-6 md:p-8 rounded-3xl mt-8 text-white shadow-sm print-area">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-white/10 p-3 rounded-2xl"><i class="fa-solid fa-calendar text-2xl"></i></div>
                             <div>
-                                <h3 class="font-black text-xl md:text-2xl">Jadwal Kontrol RS Harapan Bunda</h3>
-                                <p class="text-rose-100 text-sm font-medium mt-1">Rekomendasi Pemantauan Medis Bunda</p>
+                                <h3 class="font-black text-xl md:text-2xl">Kapan biasanya periksa</h3>
+                                <p class="text-slate-300 text-sm font-medium mt-1">Informasi umum, bukan janji temu</p>
                             </div>
                         </div>
-                        <div class="bg-black/10 p-5 rounded-2xl border border-white/20 backdrop-blur-sm">
+                        <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
                             <p class="font-medium leading-relaxed text-sm md:text-base">
-                                ${res.kspr > 2 || res.plan.isUsgAbnormal ? "⚠️ Berdasarkan hasil asesmen (Indeks Risiko/Temuan USG), Bunda disarankan untuk SEGERA menjadwalkan konsultasi dengan Dokter Spesialis Kandungan (Obgyn) di RS Harapan Bunda untuk pemantauan lebih intensif di luar jadwal rutin." : formData.mingguKehamilan < 28 ? "Lakukan kontrol rutin ke RS Harapan Bunda setiap 4 MINGGU sekali. Pastikan USG dan vitamin Bunda selalu dievaluasi oleh Dokter Spesialis kami." : formData.mingguKehamilan >= 28 && formData.mingguKehamilan < 36 ? "Lakukan kontrol rutin ke RS Harapan Bunda setiap 2 MINGGU sekali. Mulai persiapkan fisik dan mental Bunda menjelang persalinan bersama tim medis kami." : "Bunda sudah berada di akhir kehamilan! Lakukan kontrol rutin ke RS Harapan Bunda setiap 1 MINGGU sekali. Pantau gerakan janin dan segera ke IGD RS Harapan Bunda (24 Jam) jika ada tanda persalinan (kontraksi teratur, keluar flek darah, atau ketuban pecah)."}
+                                ${res.kspr > 2 || res.plan.isUsgAbnormal ? "Ada isian di luar pola risiko rendah atau di luar rentang acuan yang umum. Periksakan diri ke bidan atau dokter kandungan tanpa menunggu jadwal berikutnya. Bila ada perdarahan, nyeri hebat, kejang, atau sesak, pergi ke IGD terdekat atau hubungi 119." : "Jarak kontrol ditentukan oleh bidan atau dokter yang memeriksa. Sebagai gambaran umum, kunjungan sering lebih jarang di awal kehamilan dan lebih sering mendekati persalinan. Ini bukan jadwal pribadi dan tidak menunjuk ke rumah sakit tertentu. Bila ada tanda bahaya, pergi ke IGD terdekat atau hubungi 119."}
                             </p>
                         </div>
-                        <button onclick="openWa()" class="mt-6 w-full bg-white text-rose-600 font-black py-4 rounded-xl hover:bg-rose-50 transition-colors shadow-sm active:scale-95 flex justify-center items-center gap-2 no-print">
-                            <i class="fa-brands fa-whatsapp text-lg"></i> Buat Janji Temu via WhatsApp
-                        </button>
+                        <a href="gawatdarurat.html#tanda-bahaya" class="mt-5 w-full bg-white text-slate-800 font-bold py-3 rounded-xl hover:bg-slate-100 transition-colors flex justify-center items-center gap-2 no-print">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Baca tanda bahaya
+                        </a>
                     </div>
 
                     <div class="bg-gray-900 text-white p-6 rounded-3xl mt-8 print-area">
-                        <p class="text-xs text-gray-400 italic leading-relaxed">*Disclaimer dr. Bayu SpOG: Sistem Asisten AI dr. Bayu dirancang menggunakan protokol Kartu Skor Poedji Rochjati (KSPR) dan parameter medis obstetri dasar sebagai alat bantu edukasi interaktif. Skor dan rekomendasi tidak menggantikan diagnosis resmi. Selalu konsultasikan cetak biru ini dengan Dokter Spesialis Kandungan Bunda.</p>
+                        <p class="text-sm text-white leading-relaxed"><b>Bukan pengganti pemeriksaan dokter.</b> Skor memakai pola Kartu Skor Poedji Rochjati sebagai edukasi. Skor, catatan nutrisi, dan teks AI bukan diagnosis, bukan resep, dan tidak menjanjikan hasil. Bawa pertanyaan Anda ke bidan atau dokter yang memeriksa.</p>
                     </div>
 
                     ${!state.isSharedView ? `
@@ -1129,12 +1162,12 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                                 <i class="fa-solid ${state.saveSuccess ? 'fa-circle-check' : 'fa-clock-rotate-left'}"></i> ${state.saveSuccess ? 'Tersimpan di Riwayat' : 'Simpan ke Riwayat'}
                             </button>
                             <button onclick="handleShareLink()" class="w-full py-4 bg-indigo-50 text-indigo-600 border-2 border-indigo-200 hover:bg-indigo-100 font-bold rounded-xl transition-colors flex justify-center items-center gap-2">
-                                <i class="fa-solid fa-link"></i> ${state.copySuccess ? state.copySuccess : 'Salin Link Hasil untuk Pasien'}
+                                <i class="fa-solid fa-link"></i> ${state.copySuccess ? state.copySuccess : 'Salin tautan hasil'}
                             </button>
                             ${state.generatedLink ? `
                                 <div class="p-4 bg-white border border-gray-200 rounded-xl flex flex-col gap-2">
-                                    <label class="text-xs font-bold text-gray-500 uppercase">Link Pasien (Salin Manual):</label>
-                                    <p class="text-xs text-gray-500 mb-1">Jika salin otomatis diblokir, klik kotak di bawah lalu salin (Ctrl/Cmd + C):</p>
+                                    <label class="text-xs font-bold text-gray-500 uppercase">Tautan hasil</label>
+                                    <p class="text-xs text-rose-700 mb-1">Tautan ini memuat data kesehatan yang diisi. Bagikan hanya kepada orang yang Anda percaya. Jika salin otomatis diblokir, pilih teks di kotak lalu salin.</p>
                                     <textarea readonly class="w-full bg-gray-50 p-3 rounded-lg text-xs outline-none border border-gray-200 text-gray-600 font-mono h-24 resize-none cursor-text" onfocus="this.select()">${state.generatedLink}</textarea>
                                 </div>
                             ` : ''}
@@ -1151,7 +1184,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             <p class="text-sm font-bold text-rose-500 bg-rose-50 py-3 px-6 rounded-full inline-block border border-rose-100">Bunda sedang melihat mode rekam hasil personal.</p>
                             <div class="flex flex-col gap-1 mt-4">
                                 <button onclick="window.print()" class="w-full py-4 bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100 font-bold rounded-xl transition-colors flex justify-center items-center gap-2">
-                                    <i class="fa-solid fa-print"></i> Cetak / Simpan PDF Rekam Medis
+                                    <i class="fa-solid fa-print"></i> Cetak / Simpan PDF
                                 </button>
                                 <p class="text-[11px] text-center text-gray-400 italic">*Tekan <b>Ctrl + P</b> (Windows) atau <b>Cmd + P</b> (Mac) jika tombol tidak merespon.</p>
                             </div>
@@ -1194,8 +1227,6 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
         apply(idx());
     })();
     </script>
-    <!-- Analytics (NONAKTIF): Cloudflare Web Analytics. Untuk mengaktifkan, ganti [isi: token analytics] dengan token Anda lalu hapus tanda komentar di bawah.
-    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "[isi: token analytics]"}'></script>
-    -->
+    <script src="/analytics.js" data-ga4="G-R8GPD1TV67" defer></script>
 </body>
 </html>

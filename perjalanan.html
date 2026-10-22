@@ -43,7 +43,17 @@
         //  PERJALANAN PASIEN — roadmap + hitung tanggal (detail untuk nakes)
         //  Draf standar (alur fertilitas + ANC POGI/WHO). Silakan direvisi.
         // =====================================================================
-        const state = { mode: 'program', base: '' };
+        function modeFromToken(token) {
+            const t = String(token || '').toLowerCase();
+            if (['anc', 'kehamilan', 'hamil', 'kehamilan-anc'].indexOf(t) !== -1) return 'anc';
+            if (['program', 'program-hamil', 'promil'].indexOf(t) !== -1) return 'program';
+            return null;
+        }
+        function initialMode() {
+            const q = new URLSearchParams(location.search).get('mode');
+            return modeFromToken(q) || modeFromToken((location.hash || '').replace(/^#/, '')) || 'anc';
+        }
+        const state = { mode: initialMode(), base: '' };
 
         const $ = (id) => document.getElementById(id);
         const BLN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -109,7 +119,7 @@
             {
                 w: [11, 13.857], label: '11–13⁺⁶ mgg', tri: 1, ikon: 'fa-dna', warna: 'sky',
                 judul: 'USG penentuan usia + skrining aneuploidi',
-                periksa: ['USG: <b>CRL</b> untuk penentuan usia paling akurat; <b>nuchal translucency (NT)</b>.'],
+                periksa: ['USG: <b>CRL</b> untuk menetapkan usia kehamilan pada jendela ini; <b>nuchal translucency (NT)</b>.'],
                 obat: [],
                 catatan: ['Skrining risiko aneuploidi (buka <a href="kalkulator.html" class="text-sky-600 underline">Kalkulator → Risiko Aneuploidi</a>). Tawarkan NIPT/diagnostik bila berisiko.']
             },
@@ -162,7 +172,10 @@
             if (!items || !items.length) return '';
             return `<div class="mt-2"><div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-${color}-600 mb-1"><i class="fa-solid ${icon}"></i>${label}</div><ul class="space-y-1">${items.map(t => `<li class="flex gap-2 text-sm text-slate-700 leading-snug"><i class="fa-solid fa-circle text-[5px] mt-2 text-slate-300"></i><span>${t}</span></li>`).join('')}</ul></div>`;
         }
-        function timelineItem(dateBadge, m, color) {
+        function timelineItem(dateBadge, m, color, audience) {
+            const obatLabel = audience === 'nakes'
+                ? 'Obat · dosis untuk tenaga kesehatan'
+                : 'Obat · ringkasan pedoman, bukan resep';
             return `<div class="relative pl-8 pb-5">
                 <div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-${color}-100 border-2 border-${color}-500 flex items-center justify-center"><i class="fa-solid ${m.ikon} text-${color}-600 text-[10px]"></i></div>
                 <div class="absolute left-[11px] top-7 bottom-0 w-0.5 bg-slate-200"></div>
@@ -174,7 +187,7 @@
                     ${dateBadge ? `<div class="text-xs font-semibold text-${color}-600 mb-1"><i class="fa-regular fa-calendar mr-1"></i>${dateBadge}</div>` : ''}
                     ${sect('fa-magnifying-glass', 'Periksa / USG', m.periksa, color)}
                     ${sect('fa-vial', 'Lab', m.lab, color)}
-                    ${sect('fa-pills', 'Obat', m.obat, color)}
+                    ${sect('fa-pills', obatLabel, m.obat, color)}
                     ${sect('fa-utensils', 'Nutrisi / gaya hidup', m.nutrisi, color)}
                     ${sect('fa-lightbulb', 'Catatan', m.catatan, color)}
                 </div>
@@ -188,10 +201,13 @@
                     const d0 = addDays(base, m.cd[0] - 1), d1 = addDays(base, m.cd[1] - 1);
                     dateBadge = m.cd[0] === m.cd[1] ? fmt(d0) : `${fmtShort(d0)} – ${fmt(d1)}`;
                 }
-                return timelineItem(dateBadge, m, m.warna);
+                return timelineItem(dateBadge, m, m.warna, 'nakes');
             }).join('');
             return `<div class="fade-up">
-                ${base ? `<div class="rounded-2xl bg-sky-50 border border-sky-200 p-3 mb-4 text-sm text-sky-800"><i class="fa-solid fa-circle-info mr-1"></i>Tanggal dihitung dari <b>hari haid pertama</b> yang Anda masukkan. Jadwal folikulometri & trigger menyesuaikan hasil USG aktual.</div>` : `<div class="rounded-2xl bg-slate-100 border border-slate-200 p-3 mb-4 text-sm text-slate-500"><i class="fa-solid fa-calendar-day mr-1"></i>Masukkan tanggal <b>hari haid pertama</b> di atas untuk mendapat tanggal tiap langkah.</div>`}
+                <div class="rounded-2xl bg-amber-50 border border-amber-300 p-3 mb-4 text-sm text-amber-950 leading-relaxed">
+                    <b><i class="fa-solid fa-user-doctor mr-1"></i>Khusus tenaga kesehatan.</b> Bagian Program Hamil memuat dosis obat (induksi ovulasi, trigger, dan dukungan fase luteal). Ini bukan resep untuk pasien dan tidak untuk diminum atau dibagikan tanpa pemeriksaan serta wewenang meresepkan. Awam: kembali ke tab <button type="button" onclick="setJourney('anc')" class="underline font-bold">Kehamilan (ANC)</button>.
+                </div>
+                ${base ? `<div class="rounded-2xl bg-sky-50 border border-sky-200 p-3 mb-4 text-sm text-sky-800"><i class="fa-solid fa-circle-info mr-1"></i>Tanggal dihitung dari <b>hari haid pertama</b> yang Anda masukkan. Jadwal folikulometri dan trigger menyesuaikan hasil USG aktual.</div>` : `<div class="rounded-2xl bg-slate-100 border border-slate-200 p-3 mb-4 text-sm text-slate-500"><i class="fa-solid fa-calendar-day mr-1"></i>Masukkan tanggal <b>hari haid pertama</b> di atas untuk mendapat tanggal tiap langkah.</div>`}
                 ${items}
             </div>`;
         }
@@ -219,9 +235,14 @@
                     const d0 = addDays(base, Math.round(m.w[0] * 7)), d1 = addDays(base, Math.round(m.w[1] * 7));
                     dateBadge = m.w[0] === m.w[1] ? `mulai ${fmt(d0)}` : `${fmtShort(d0)} – ${fmt(d1)}`;
                 }
-                out += timelineItem(dateBadge, m, m.warna);
+                out += timelineItem(dateBadge, m, m.warna, 'awam');
             });
-            return `<div class="fade-up">${head}${out}</div>`;
+            return `<div class="fade-up">
+                <div class="rounded-2xl bg-sky-50 border border-sky-200 p-3 mb-4 text-sm text-sky-900 leading-relaxed">
+                    <b>Untuk Bunda.</b> Ini perkiraan jadwal pemeriksaan kehamilan dan hari perkiraan lahir. Penyebutan obat adalah ringkasan pedoman, <b>bukan resep</b>. Dosis hanya diputuskan oleh tenaga kesehatan yang memeriksa. Bukan pengganti pemeriksaan dokter atau bidan.
+                </div>
+                ${head}${out}
+            </div>`;
         }
 
         function recompute() {
@@ -231,7 +252,14 @@
         }
         window.recompute = recompute;
         window.setBase = (v) => { state.base = v; recompute(); };
-        window.setJourney = (m) => { state.mode = m; renderApp(); };
+        window.setJourney = (m) => {
+            state.mode = (m === 'program') ? 'program' : 'anc';
+            const url = new URL(location.href);
+            url.searchParams.set('mode', state.mode);
+            url.hash = state.mode === 'program' ? 'program' : 'anc';
+            history.replaceState(null, '', url.pathname + url.search + url.hash);
+            renderApp();
+        };
 
         // ---------------------------------------------------------------------
         //  SHELL
@@ -243,12 +271,12 @@
                 <main class="max-w-3xl mx-auto px-4 pb-28 pt-4">
                     <div class="rounded-2xl bg-gradient-to-br from-sky-600 to-cyan-700 text-white p-5 mb-4 shadow-lg">
                         <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-route"></i><span class="text-xs font-bold uppercase tracking-widest text-sky-100">Perjalanan Pasien</span></div>
-                        <h1 class="text-xl font-black leading-tight">Roadmap + kalkulator tanggal</h1>
-                        <p class="text-sm text-sky-50/90 mt-1 leading-snug">Alur langkah demi langkah dengan perkiraan tanggal tiap pemeriksaan.</p>
+                        <h1 class="text-xl font-black leading-tight">${state.mode === 'anc' ? 'Jadwal kehamilan & hari perkiraan lahir' : 'Roadmap program hamil'}</h1>
+                        <p class="text-sm text-sky-50/90 mt-1 leading-snug">${state.mode === 'anc' ? 'Perkiraan tanggal pemeriksaan kehamilan. Bukan resep dan bukan pengganti pemeriksaan.' : 'Alur untuk tenaga kesehatan, termasuk dosis obat. Bukan untuk dipakai sendiri.'}</p>
                     </div>
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <button onclick="setJourney('program')" class="py-2.5 rounded-xl text-sm font-bold border transition-colors ${state.mode === 'program' ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-seedling mr-1.5"></i>Program Hamil</button>
-                        <button onclick="setJourney('anc')" class="py-2.5 rounded-xl text-sm font-bold border transition-colors ${state.mode === 'anc' ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-person-pregnant mr-1.5"></i>Kehamilan (ANC)</button>
+                        <button onclick="setJourney('program')" class="py-2.5 px-2 rounded-xl text-sm font-bold border transition-colors ${state.mode === 'program' ? 'bg-amber-700 text-white border-amber-700' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-user-doctor mr-1"></i>Program Hamil <span class="block text-[10px] font-semibold ${state.mode === 'program' ? 'text-amber-100' : 'text-amber-700'}">Nakes · ada dosis obat</span></button>
+                        <button onclick="setJourney('anc')" class="py-2.5 px-2 rounded-xl text-sm font-bold border transition-colors ${state.mode === 'anc' ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-500 border-slate-200'}"><i class="fa-solid fa-person-pregnant mr-1"></i>Kehamilan (ANC) <span class="block text-[10px] font-semibold ${state.mode === 'anc' ? 'text-sky-100' : 'text-sky-600'}">Untuk Bunda</span></button>
                     </div>
                     <label class="block rounded-2xl bg-white border border-slate-100 shadow-sm p-4 mb-4">
                         <span class="text-xs font-semibold text-slate-600">${label}</span>
@@ -279,7 +307,7 @@
             </header>`;
         }
         function renderBottomNav() {
-            const items = [{ v: 'program', i: 'fa-seedling', t: 'Program Hamil' }, { v: 'anc', i: 'fa-person-pregnant', t: 'Kehamilan (ANC)' }];
+            const items = [{ v: 'program', i: 'fa-user-doctor', t: 'Program Hamil · nakes' }, { v: 'anc', i: 'fa-person-pregnant', t: 'Kehamilan (ANC)' }];
             return `<nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 no-print">
                 <div class="max-w-3xl mx-auto grid grid-cols-2">
                     ${items.map(it => `<button onclick="setJourney('${it.v}')" class="py-2.5 flex flex-col items-center gap-1 ${state.mode === it.v ? 'text-sky-600' : 'text-slate-400'}"><i class="fa-solid ${it.i} text-lg"></i><span class="text-[11px] font-semibold">${it.t}</span></button>`).join('')}
@@ -288,9 +316,13 @@
         }
         function renderDisclaimer() {
             return `<div class="mt-4"><div class="rounded-xl bg-slate-100 border border-slate-200 p-3 text-[11px] text-slate-500 leading-relaxed">
-                <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Draf alur standar (fertilitas + ANC berbasis POGI/WHO) untuk tenaga kesehatan — <b>perlu disesuaikan</b> dengan kondisi pasien, hasil pemeriksaan aktual, dan protap institusi. Tanggal bersifat perkiraan (siklus 28 hari / HPHT). Bukan pengganti penilaian klinis.
+                <b class="text-slate-600"><i class="fa-solid fa-circle-info"></i> Disclaimer:</b> Tab <b>Kehamilan (ANC)</b> adalah edukasi jadwal untuk awam. Tab <b>Program Hamil</b> memuat dosis obat dan <b>hanya untuk tenaga kesehatan</b>. Keduanya perlu disesuaikan dengan pemeriksaan, hasil aktual, dan protap institusi. Tanggal bersifat perkiraan (siklus 28 hari / HPHT). Bukan pengganti penilaian klinis dan bukan resep.
             </div></div>`;
         }
+        window.addEventListener('hashchange', () => {
+            const m = modeFromToken((location.hash || '').replace(/^#/, ''));
+            if (m && m !== state.mode) { state.mode = m; renderApp(); }
+        });
         renderApp();
     </script>
 
@@ -310,8 +342,6 @@
     })();
     </script>
     <footer class="no-print print:hidden text-center text-[11px] text-slate-400 pt-6 pb-24 px-4">© dr. Bayu, Sp.O.G · <a href="index.html" class="underline hover:text-rose-600">Beranda</a> · <a href="kontak.html" class="underline hover:text-rose-600">Kontak</a> · <a href="kebijakan-privasi.html" class="underline hover:text-rose-600">Kebijakan Privasi</a></footer>
-    <!-- Analytics (NONAKTIF): Cloudflare Web Analytics. Untuk mengaktifkan, ganti [isi: token analytics] dengan token Anda lalu hapus tanda komentar di bawah.
-    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "[isi: token analytics]"}'></script>
-    -->
+    <script src="/analytics.js" data-ga4="G-R8GPD1TV67" defer></script>
 </body>
 </html>
