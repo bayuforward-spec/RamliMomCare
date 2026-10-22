@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kebijakan Privasi · dr. Bayu Maulana, Sp.O.G</title>
-    <meta name="description" content="Kebijakan privasi bayumaulanaspog.com: data apa yang diolah, disimpan di perangkat Anda, dan kapan dikirim ke layanan AI dengan persetujuan.">
+    <meta name="description" content="Kebijakan privasi bayumaulanaspog.com: data asesmen, Google Analytics 4, Cloudflare Web Analytics, retensi, cara menolak, dan kontak pengendali.">
     <link rel="canonical" href="https://bayumaulanaspog.com/kebijakan-privasi.html">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="id_ID">
     <meta property="og:site_name" content="dr. Bayu, Sp.O.G">
     <meta property="og:title" content="Kebijakan Privasi · dr. Bayu Maulana, Sp.O.G">
-    <meta property="og:description" content="Kebijakan privasi bayumaulanaspog.com: data apa yang diolah, disimpan di perangkat Anda, dan kapan dikirim ke layanan AI dengan persetujuan.">
+    <meta property="og:description" content="Kebijakan privasi bayumaulanaspog.com: data asesmen, Google Analytics 4, Cloudflare Web Analytics, retensi, cara menolak, dan kontak pengendali.">
     <meta property="og:url" content="https://bayumaulanaspog.com/kebijakan-privasi.html">
     <meta property="og:image" content="https://bayumaulanaspog.com/drbayu.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -37,7 +37,7 @@
             <div class="fade-up">
                 <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur px-3 py-1 rounded-full text-xs font-bold tracking-wide mb-3"><i class="fa-solid fa-shield-heart"></i> Privasi</div>
                 <h1 class="text-2xl sm:text-4xl font-black leading-tight">Kebijakan Privasi</h1>
-                <p class="text-rose-50/90 mt-2 leading-relaxed max-w-2xl">Bagaimana data Anda diolah di situs ini, termasuk saat memakai Asisten AI.</p>
+                <p class="text-rose-50/90 mt-2 leading-relaxed max-w-2xl">Bagaimana data Anda diolah di situs ini, termasuk analitik kunjungan dan saat memakai Asisten AI.</p>
             </div>
         </div>
     </header>
@@ -80,9 +80,28 @@
                 <li>Riwayat dapat dihapus satu per satu dari menu Riwayat, atau seluruhnya dengan menghapus data situs di pengaturan browser.</li>
             </ul>
         </section>
+        <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up" id="analitik">
+            <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Google Analytics 4 (aktif setelah persetujuan)</h2>
+            <p class="text-sm text-slate-600 leading-relaxed mb-3">Pengendali memakai <b>Google Analytics 4</b> (ID pengukuran <b>G-R8GPD1TV67</b>, penyedia: Google Ireland/Google LLC) untuk memahami halaman mana yang dibuka dan dari kampanye mana pengunjung datang, termasuk parameter <b>utm_source, utm_medium, utm_campaign, utm_content,</b> dan <b>utm_term</b> pada tautan media sosial. Tujuannya memperbaiki susunan edukasi. Analitik ini <b>tidak dipakai untuk iklan</b> dan <b>tidak mengaktifkan sinyal personalisasi Google</b> (<span class="whitespace-nowrap">allow_google_signals</span> dan sinyal personalisasi iklan dimatikan; <span class="whitespace-nowrap">ads_data_redaction</span> dinyalakan).</p>
+            <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
+                <li><b>Apa yang dikumpulkan bila Anda setuju:</b> halaman yang dibuka, perkiraan judul halaman, perujuk, parameter kampanye (UTM), jenis perangkat/peramban, bahasa, perkiraan wilayah yang diturunkan Google dari alamat IP, serta pengenal kuki pihak pertama (<code>_ga</code> dan <code>_ga_R8GPD1TV67</code>). Isi formulir kesehatan, nama, dan teks yang Anda ketik <b>tidak</b> dikirim ke Google Analytics.</li>
+                <li><b>Alamat IP:</b> situs mengirim penanda <b>anonymize_ip</b>. Google menyatakan GA4 tidak menyimpan alamat IP lengkap; IP dipakai sesaat untuk menurunkan lokasi perkiraan lalu tidak disimpan sebagai IP.</li>
+                <li><b>Dasar dan saat mulai:</b> skrip Google <b>tidak dimuat</b> sebelum Anda menekan <b>Setuju</b> pada pemberitahuan. Dasar pemrosesan adalah persetujuan (UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi). Menolak tidak mengurangi isi edukasi.</li>
+                <li><b>Retensi:</b> kuki <code>_ga</code> bawaan Google bertahan sampai sekitar 2 tahun di perangkat Anda. Retensi data peristiwa di properti GA4 yang dimaksudkan pengelola adalah <b>2 bulan</b> (bawaan GA4 untuk data tingkat pengguna). Pengelola tidak memperpanjang retensi lewat kode situs. Salinan di server Google mengikuti pengaturan properti dan ketentuan Google.</li>
+                <li><b>UTM di perangkat Anda:</b> bila alamat halaman memuat UTM, nilai itu disimpan sementara di <b>sessionStorage</b> (kunci <code>bms_utm_v1</code>) agar kampanye tetap teratribusi jika Anda menyetujui analitik setelah berpindah halaman. Nilai itu tidak dikirim ke Google sebelum Anda setuju, dan hilang saat tab ditutup.</li>
+                <li><b>Cara menolak atau menarik persetujuan:</b> tekan <b>Tidak setuju</b> pada pemberitahuan, atau <button type="button" onclick="window.bmsOpenAnalyticsConsent &amp;&amp; window.bmsOpenAnalyticsConsent()" class="text-rose-600 font-bold underline">ubah persetujuan analitik</button>. Pilihan tersimpan di localStorage (<code>bms_analytics_consent</code>). Menolak menghentikan hit berikutnya dan mencoba menghapus kuki <code>_ga</code>. Anda juga dapat memasang <a href="https://tools.google.com/dlpage/gaoptout" class="text-rose-600 font-bold underline" target="_blank" rel="noopener">pengaya opt-out Google Analytics</a>, memblokir domain <span class="whitespace-nowrap">googletagmanager.com</span>, atau menghapus data situs di peramban. Hit yang sudah terkirim sebelum penarikan tidak dapat ditarik kembali oleh situs ini dari server Google.</li>
+            </ul>
+        </section>
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
-            <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Analitik</h2>
-            <p class="text-sm text-slate-600 leading-relaxed">Bila nanti diaktifkan, situs ini memakai analitik ringan yang tidak menampilkan iklan: [isi: nama layanan analitik, mis. Cloudflare Web Analytics]. Saat ini analitik belum aktif.</p>
+            <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Cloudflare Web Analytics</h2>
+            <p class="text-sm text-slate-600 leading-relaxed mb-3">Berkas lama situs memuat <b>beacon Cloudflare Web Analytics</b> yang belum pernah diaktifkan: token di dalamnya masih placeholder dan telah <b>dihapus</b>. Tidak ada token situs Cloudflare di repositori ini, jadi <b>skrip beacon tidak dimuat</b> dan Cloudflare <b>tidak menerima</b> data kunjungan dari halaman ini. Google Analytics tidak membutuhkan beacon tersebut; keduanya tidak dipasang bersamaan.</p>
+            <p class="text-sm text-slate-600 leading-relaxed mb-3">Agar pengunjung tahu apa yang biasanya dilakukan produk itu bila suatu saat dipasang dengan token sungguhan, berikut ringkasannya menurut dokumentasi Cloudflare Web Analytics (bukan praktik yang sedang berjalan):</p>
+            <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
+                <li><b>Apa yang dikumpulkan:</b> URL halaman, perujuk, jenis peramban, sistem operasi, jenis perangkat, negara perkiraan, dan metrik kinerja halaman. Produk ini dirancang <b>tanpa kuki</b> dan tanpa iklan.</li>
+                <li><b>Mengapa:</b> hitungan kunjungan yang tidak memakai kuki, terpisah dari iklan.</li>
+                <li><b>Retensi:</b> dokumentasi Cloudflare menyebut data Web Analytics disimpan sekitar <b>6 bulan</b>. Alamat IP tidak disimpan sebagai data analitik menurut penjelasan Cloudflare.</li>
+                <li><b>Cara menolak:</b> selama beacon tidak dipasang, tidak ada data untuk ditolak. Jika nanti diaktifkan, kebijakan ini akan diperbarui sebelum skrip dipasang. Pada mode aktif, pengunjung dapat memblokir domain <span class="whitespace-nowrap">cloudflareinsights.com</span> karena tidak ada kuki analitik yang bisa dihapus.</li>
+            </ul>
         </section>
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Bukan pengganti pemeriksaan</h2>
@@ -90,7 +109,9 @@
         </section>
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Kontak</h2>
-            <p class="text-sm text-slate-600 leading-relaxed">Pertanyaan terkait privasi: [isi: email/WA privasi].<br>Kebijakan ini berlaku sejak: [isi: tanggal berlaku].<br><span class="text-[11px] text-slate-400">[isi: tinjauan hukum UU PDP bila diperlukan]</span></p>
+            <p class="text-sm text-slate-600 leading-relaxed"><b>Pengendali data pribadi:</b> dr. Bayu Maulana, Sp.O.G, melalui situs bayumaulanaspog.com (praktik di Lampung, sebagaimana diperkenalkan di beranda).</p>
+            <p class="text-sm text-slate-600 leading-relaxed mt-2">Permintaan hak subjek data menurut UU No. 27 Tahun 2022 — termasuk akses, koreksi, penghapusan, dan penarikan persetujuan — serta pertanyaan privasi dapat disampaikan dengan menyebut <b>“privasi data”</b> melalui kanal resmi dr. Bayu Maulana, Sp.O.G yang membagikan tautan situs ini, atau saat pemeriksaan langsung. <b>Alamat surel dan nomor WhatsApp khusus privasi belum dicantumkan</b> di situs karena halaman kontak masih belum selesai diisi. Jangan mengirim isi rekam medis lewat kanal yang tidak Anda yakini resmi.</p>
+            <p class="text-sm text-slate-600 leading-relaxed mt-2">Kebijakan ini berlaku sejak <b>22 Oktober 2026</b>. Teks disusun agar selaras dengan UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi. Teks ini penjelasan pengendali, bukan opini hukum formal.</p>
         </section>
 
         <p class="text-center text-[11px] text-slate-400 mt-8">© <span id="yr"></span> dr. Bayu, Sp.O.G · bayumaulanaspog.com · Dibuat untuk edukasi &amp; alat bantu klinis.</p>
@@ -115,8 +136,6 @@
             apply(idx());
         })();
     </script>
-    <!-- Analytics (NONAKTIF): Cloudflare Web Analytics. Untuk mengaktifkan, ganti [isi: token analytics] dengan token Anda lalu hapus tanda komentar di bawah.
-    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "[isi: token analytics]"}'></script>
-    -->
+    <script src="/analytics.js" data-ga4="G-R8GPD1TV67" defer></script>
 </body>
 </html>

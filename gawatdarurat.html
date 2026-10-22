@@ -707,7 +707,7 @@
         }
 
         let state = {
-            view: (location.hash === '#tanda-bahaya') ? 'bahaya' : 'home',  // home | kondisi | kalkulator | bahaya | rujukan
+            view: (location.hash === '#tanda-bahaya' || location.hash === '#tb-mental' || location.hash === '#kesehatan-jiwa') ? 'bahaya' : 'home',  // home | kondisi | kalkulator | bahaya | rujukan
             kondisiId: null,
             search: '',
             checklist: {},         // {kondisiId: {stepIndex: bool}}
@@ -1191,9 +1191,13 @@
             acogHmb:{ t: 'ACOG. Heavy Menstrual Bleeding (FAQ193).', u: 'https://www.acog.org/womens-health/faqs/heavy-menstrual-bleeding' },
             nhsHp: { t: 'NHS (UK). Heavy periods.', u: 'https://www.nhs.uk/conditions/heavy-periods/' },
             psc:   { t: 'Kemenkes — PSC 119: FAQ layanan gawat darurat (hubungi 119/112).', u: 'https://psc.kemkes.go.id/web/faq' },
-            l112:  { t: 'Komdigi — Tentang Layanan Panggilan Darurat 112.', u: 'https://layanan112.komdigi.go.id/tentang' }
+            l112:  { t: 'Komdigi — Tentang Layanan Panggilan Darurat 112.', u: 'https://layanan112.komdigi.go.id/tentang' },
+            acogPpd: { t: 'ACOG. Postpartum Depression (FAQ091). Diterbitkan April 2024, ditinjau Desember 2025. Depresi pascapersalinan dapat terjadi sampai 1 tahun setelah melahirkan (paling sering mulai sekitar 1–3 minggu). Baby blues biasanya mulai 2–3 hari setelah lahir dan membaik dalam beberapa hari atau 1–2 minggu.', u: 'https://www.acog.org/womens-health/faqs/postpartum-depression' },
+            whoPmh: { t: 'World Health Organization. Guide for integration of perinatal mental health in maternal and child health services. Geneva: WHO; 2022. Periode perinatal = kehamilan dan satu tahun setelah lahir. Gejala dapat mencakup pikiran menyakiti diri sendiri atau bunuh diri, pikiran negatif tentang bayi, serta pada keadaan berat halusinasi atau psikosis.', u: 'https://www.who.int/publications/i/item/9789240057142' },
+            whoLife: { t: 'World Health Organization. Keeping well during pregnancy and after childbirth. Anjuran mencari pertolongan bila ada pikiran menyakiti diri sendiri atau bayi.', u: 'https://www.who.int/tools/your-life-your-health/life-phase/pregnancy--birth-and-after-childbirth/keeping-well-during-pregnancy-and-after-childbirth' },
+            heal119: { t: 'Kementerian Kesehatan RI. Healing 119 — layanan hotline kesehatan mental dan bunuh diri: telepon 119 ekstensi 8. Situs healing119.id diperiksa pada 20 Oktober 2026.', u: 'https://healing119.id/' }
         };
-        const TB_ORDER = ['kia', 'who', 'nhsEkt', 'acogEkt', 'nhsMc', 'nhsCyst', 'nhsPid', 'acogHmb', 'nhsHp', 'psc', 'l112'];
+        const TB_ORDER = ['kia', 'who', 'nhsEkt', 'acogEkt', 'nhsMc', 'nhsCyst', 'nhsPid', 'acogHmb', 'nhsHp', 'psc', 'l112', 'acogPpd', 'whoPmh', 'whoLife', 'heal119'];
         const TANDA_BAHAYA = [
             { id: 'hamil', judul: 'Kehamilan', ikon: 'fa-person-pregnant', warna: 'rose',
               intro: 'Segera ke Puskesmas / Rumah Sakit (IGD) bila ibu hamil mengalami:',
@@ -1230,7 +1234,7 @@
                 { t: 'Napas pendek/terengah-engah, nyeri dada, atau jantung berdebar.', s: ['kia', 'who'] },
                 { t: 'Nyeri, kemerahan, atau bengkak di betis.', s: ['who'] },
                 { t: 'Nyeri perut hebat.', s: ['who'] },
-                { t: 'Ibu tampak sedih, murung, dan menangis tanpa sebab (kemungkinan depresi); atau muncul pikiran/percobaan menyakiti diri sendiri.', s: ['kia', 'who'] }
+                { t: 'Ibu tampak sedih, murung, dan menangis tanpa sebab, atau muncul pikiran maupun percobaan menyakiti diri sendiri. Buku KIA memasukkan tanda ini pada pemantauan nifas (sampai 42 hari). Keluhan jiwa tidak berhenti di hari ke-42: depresi pascapersalinan dapat muncul sejak kehamilan dan sampai sekitar 1 tahun setelah bayi lahir, termasuk pikiran menyakiti bayi. Baca bagian Kesehatan Jiwa Ibu.', s: ['kia', 'acogPpd', 'whoPmh', 'whoLife'] }
               ],
               cepat: { judul: 'Periksakan secepatnya bila:', items: [
                 { t: 'Payudara bengkak, merah, nyeri, atau ada benjolan; puting lecet.', s: ['kia', 'who'] },
@@ -1258,12 +1262,61 @@
         function tbList(items, dot) {
             return `<ul class="space-y-2.5">${items.map(it => `<li class="flex gap-2.5 text-[15px] leading-relaxed text-slate-800"><i class="fa-solid ${dot} mt-1.5 shrink-0"></i><span>${it.t}${tbSrc(it.s)}</span></li>`).join('')}</ul>`;
         }
+        function renderKesehatanJiwa() {
+            return `
+            <section id="tb-mental" class="rounded-2xl bg-white border border-indigo-200 shadow-sm p-4 sm:p-5 mb-4 scroll-mt-20">
+                <div class="flex items-center gap-2.5 mb-2">
+                    <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center"><i class="fa-solid fa-heart-pulse text-indigo-600"></i></div>
+                    <h2 class="font-extrabold text-slate-800 text-lg leading-tight">Kesehatan jiwa ibu</h2>
+                </div>
+                <p class="text-[15px] text-slate-700 leading-relaxed mb-3">Keluhan suasana hati <b>tidak hanya terjadi pada nifas sampai 42 hari</b>. WHO memakai periode perinatal sebagai masa <b>kehamilan dan satu tahun setelah bayi lahir</b>. ACOG (FAQ091) menyatakan depresi pascapersalinan dapat terjadi <b>sampai 1 tahun</b> setelah melahirkan, dan paling sering mulai sekitar 1–3 minggu setelah persalinan.${tbSrc(['whoPmh', 'acogPpd'])}</p>
+
+                <h3 class="font-bold text-slate-800 text-sm mb-1">Baby blues dan depresi, secara umum</h3>
+                <p class="text-[15px] text-slate-700 leading-relaxed mb-2">Menurut ACOG FAQ091, sekitar 2–3 hari setelah melahirkan sebagian orang merasa sedih, cemas, atau kesal, mudah menangis tanpa sebab yang jelas, sulit tidur atau makan, dan bertanya-tanya apakah mampu merawat bayi. Perasaan yang sering disebut baby blues biasanya membaik dalam beberapa hari atau 1–2 minggu tanpa pengobatan. Tetap ceritakan kepada bidan atau dokter pada kontrol.</p>
+                <p class="text-[15px] text-slate-700 leading-relaxed mb-3">Depresi pascapersalinan, masih menurut ACOG, adalah kesedihan, kecemasan, atau rasa putus asa yang kuat sampai kegiatan sehari-hari terganggu. Jangan menunggu jadwal kontrol nifas bila keluhan terasa berat atau berlangsung lebih lama dari sekitar 2 minggu. Halaman ini <b>tidak menegakkan diagnosis</b>.${tbSrc(['acogPpd'])}</p>
+
+                <h3 class="font-bold text-slate-800 text-sm mb-1">Yang perlu diceritakan ke tenaga kesehatan</h3>
+                <p class="text-sm text-slate-600 mb-2">WHO menggambarkan gejala kesehatan jiwa pada periode perinatal, antara lain:</p>
+                ${tbList([
+                    { t: 'Sedih, mudah menangis, atau tidak lagi menikmati hal yang dulu disukai; kurang tenaga atau motivasi.', s: ['whoPmh'] },
+                    { t: 'Khawatir berlebihan, tidur atau makan berubah, sulit berkonsentrasi, merasa bersalah, tidak berharga, atau putus asa.', s: ['whoPmh'] },
+                    { t: 'Pikiran menyakiti diri sendiri atau bunuh diri.', s: ['whoPmh', 'kia'] },
+                    { t: 'Tidak bisa berhenti khawatir tentang bayi, merasa tidak mampu merawat bayi, atau pikiran negatif tentang bayi.', s: ['whoPmh'] },
+                    { t: 'Pikiran untuk menyakiti diri sendiri atau bayi — cari pertolongan, jangan menunggu.', s: ['whoLife', 'kia'] }
+                ], 'fa-circle text-[6px] text-indigo-500 mt-2.5')}
+                <p class="text-[15px] text-slate-700 leading-relaxed mt-3">Pada keadaan berat, WHO mencatat dapat muncul halusinasi atau psikosis, pikiran bunuh diri, atau depresi yang berat. Keadaan itu membutuhkan pertolongan yang lebih intensif.${tbSrc(['whoPmh'])}</p>
+
+                <div class="mt-4 rounded-2xl bg-red-600 text-white p-4">
+                    <h3 class="font-extrabold text-base leading-tight mb-2"><i class="fa-solid fa-truck-medical mr-1"></i> Segera ke IGD terdekat atau hubungi 119 bila</h3>
+                    <ul class="space-y-2 text-sm leading-relaxed">
+                        <li class="flex gap-2"><i class="fa-solid fa-circle-exclamation mt-1 shrink-0"></i><span>Ada pikiran atau rencana menyakiti diri sendiri atau bayi, atau ada percobaan menyakiti diri sendiri.</span></li>
+                        <li class="flex gap-2"><i class="fa-solid fa-circle-exclamation mt-1 shrink-0"></i><span>Bingung berat, melihat atau mendengar sesuatu yang orang lain tidak alami, atau perilaku berubah mendadak sehingga ibu atau bayi tidak aman.</span></li>
+                    </ul>
+                    <p class="text-sm text-red-50 mt-3 leading-relaxed">Jangan meninggalkan ibu seorang diri. Minta orang dewasa lain tetap bersama ibu dan bayi, serta menjauhkan benda yang dapat melukai. Bila tidak bisa berangkat sendiri, telepon darurat medis.</p>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <a href="tel:119" class="bg-white text-red-700 rounded-xl py-3 text-center font-black">119<span class="block text-[11px] font-semibold">Darurat medis / ambulans</span></a>
+                        <a href="tel:112" class="bg-white text-red-700 rounded-xl py-3 text-center font-black">112<span class="block text-[11px] font-semibold">Darurat terpadu</span></a>
+                    </div>
+                </div>
+
+                <div class="mt-3 rounded-2xl bg-indigo-50 border border-indigo-200 p-4">
+                    <h3 class="font-extrabold text-indigo-950 text-base leading-tight">Healing 119 — kesehatan jiwa</h3>
+                    <p class="text-sm text-indigo-950 leading-relaxed mt-1">Layanan hotline kesehatan mental dan bunuh diri Kementerian Kesehatan: telepon <a href="tel:119" class="font-black underline">119</a> lalu pilih <b>ekstensi 8</b>. Situs <a href="https://healing119.id/" class="font-bold underline" target="_blank" rel="noopener">healing119.id</a> diperiksa pada 20 Oktober 2026.${tbSrc(['heal119'])}</p>
+                    <p class="text-sm text-indigo-900 leading-relaxed mt-2">Ekstensi 8 adalah jalur dukungan kesehatan jiwa pada nomor yang sama. Bila ada bahaya yang sedang terjadi pada ibu atau bayi, utamakan <b>IGD terdekat atau 119 sebagai darurat medis</b>, jangan hanya menunggu konseling.</p>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-3 leading-relaxed">Bagian ini edukasi agar tanda dikenali lebih awal. Bukan diagnosis, bukan penilaian risiko bunuh diri, dan bukan pengganti pemeriksaan dokter, bidan, atau tenaga kesehatan jiwa. Buku KIA 2024 memantau suasana hati pada masa nifas; ACOG FAQ091 dan panduan WHO memperluas jendela kewaspadaan sampai sekitar satu tahun setelah lahir.</p>
+            </section>`;
+        }
         function renderBahaya() {
             return `
             <div class="fade-up">
                 ${renderIGD()}
                 <h1 class="font-extrabold text-2xl text-slate-800 mb-1">Tanda Bahaya</h1>
-                <p class="text-[15px] text-slate-600 mb-3 leading-relaxed">Kenali tanda-tanda berikut pada masa kehamilan, nifas, dan gangguan kandungan. Bila mengalami salah satunya, <b>jangan menunggu</b> — segera ke fasilitas kesehatan.</p>
+                <p class="text-[15px] text-slate-600 mb-3 leading-relaxed">Kenali tanda-tanda berikut pada masa kehamilan, nifas, gangguan kandungan, dan kesehatan jiwa ibu sampai sekitar satu tahun setelah melahirkan. Bila mengalami salah satunya, <b>jangan menunggu</b> — segera ke fasilitas kesehatan.</p>
+                <a href="#tb-mental" onclick="event.preventDefault();document.getElementById('tb-mental').scrollIntoView({behavior:'smooth',block:'start'})" class="mb-4 flex items-start gap-3 rounded-2xl bg-indigo-600 text-white p-4 shadow-sm">
+                    <i class="fa-solid fa-heart-pulse text-xl mt-0.5"></i>
+                    <span><span class="block font-extrabold leading-tight">Kesehatan jiwa ibu</span><span class="block text-sm text-indigo-100 mt-1 leading-snug">Bukan hanya nifas 42 hari. Pikiran menyakiti diri sendiri atau bayi: IGD atau 119. Dukungan jiwa Kemenkes: 119 ekstensi 8 (Healing 119).</span></span>
+                </a>
                 <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 mb-4 text-sm text-amber-900 leading-relaxed">
                     <i class="fa-solid fa-circle-info mr-1"></i> <b>Halaman ini untuk edukasi, bukan pengganti pemeriksaan atau diagnosis dokter/bidan.</b> Daftar ini tidak mencakup semua kondisi. Bila ragu, segera ke fasilitas kesehatan terdekat. Bila nyeri hebat atau pusing, jangan menyetir sendiri — minta diantar atau hubungi 119.
                 </div>
@@ -1281,6 +1334,7 @@
                     ${g.sub ? `<div class="mt-4 pt-3 border-t border-slate-100"><p class="text-sm font-bold text-red-700 mb-2"><i class="fa-solid fa-hospital mr-1"></i> ${g.sub.judul}</p>${tbList(g.sub.items, 'fa-circle-exclamation text-red-500')}</div>` : ''}
                     ${g.cepat ? `<div class="mt-4 pt-3 border-t border-slate-100"><p class="text-sm font-bold text-amber-700 mb-2"><i class="fa-solid fa-user-doctor mr-1"></i> ${g.cepat.judul}</p>${tbList(g.cepat.items, 'fa-circle text-[6px] text-amber-500 mt-2.5')}</div>` : ''}
                 </section>`).join('')}
+                ${renderKesehatanJiwa()}
                 <section id="tb-referensi" class="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 sm:p-5 mb-4">
                     <h2 class="font-extrabold text-slate-800 text-lg mb-2"><i class="fa-solid fa-book-open text-slate-400 mr-1.5"></i> Referensi</h2>
                     <ol class="space-y-2 text-sm text-slate-600 leading-relaxed">
@@ -1379,8 +1433,23 @@
         }
 
         // init
-        window.addEventListener('hashchange', () => { if (location.hash === '#tanda-bahaya') go('bahaya'); });
+        window.addEventListener('hashchange', () => {
+            const h = location.hash;
+            if (h !== '#tanda-bahaya' && h !== '#tb-mental' && h !== '#kesehatan-jiwa') return;
+            const already = state.view === 'bahaya';
+            if (!already) go('bahaya');
+            if (h === '#tb-mental' || h === '#kesehatan-jiwa') {
+                setTimeout(() => {
+                    const el = document.getElementById('tb-mental');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, already ? 0 : 80);
+            }
+        });
         renderApp();
+        if (location.hash === '#tb-mental' || location.hash === '#kesehatan-jiwa') {
+            const mentalEl = document.getElementById('tb-mental');
+            if (mentalEl) mentalEl.scrollIntoView();
+        }
     </script>
     <!-- Kontrol ukuran huruf (aksesibilitas) -->
     <div id="fontCtl" class="fixed z-50 bottom-20 right-3 flex items-center gap-0.5 bg-white/95 backdrop-blur border border-slate-200 shadow-lg rounded-full p-1 no-print" role="group" aria-label="Ukuran huruf">
@@ -1397,8 +1466,6 @@
         apply(idx());
     })();
     </script>
-    <!-- Analytics (NONAKTIF): Cloudflare Web Analytics. Untuk mengaktifkan, ganti [isi: token analytics] dengan token Anda lalu hapus tanda komentar di bawah.
-    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "[isi: token analytics]"}'></script>
-    -->
+    <script src="/analytics.js" data-ga4="G-R8GPD1TV67" defer></script>
 </body>
 </html>
