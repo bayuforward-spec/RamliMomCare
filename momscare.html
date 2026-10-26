@@ -80,7 +80,7 @@
             catch (e) { return ''; }
         }
         // ---- Persetujuan pengiriman data ke layanan AI (lihat kebijakan-privasi.html) ----
-        const AI_CONSENT_KEY = 'momscare_ai_consent_v1';
+        const AI_CONSENT_KEY = 'momscare_ai_consent_v2'; // v2: teks menyebut Anthropic & transfer ke luar Indonesia; persetujuan v1 tidak dipakai lagi
         function hasAiConsent() { return safeStorage.get(AI_CONSENT_KEY) === 'yes'; }
         window.setAiConsentChk = (el) => {
             const btn = document.getElementById('aiConsentBtn');
@@ -401,8 +401,8 @@ Struktur:
   "activityPlan": ["Aktivitas ringan yang tetap perlu izin tenaga kesehatan 1", "Aktivitas ringan 2"]
 }`;
 
-            const userQuery = `Data Pasien:
-Nama: ${formData.nama}, Usia Kehamilan: ${formData.mingguKehamilan} minggu.
+            const userQuery = `Data isian (anonim, tanpa nama):
+Usia Kehamilan: ${formData.mingguKehamilan} minggu.
 Fisik: Usia ${formData.usia} th, BMI Pra-hamil: ${clinicalData.bmi}, Kenaikan BB: ${formData.beratBadanSekarang - formData.beratBadanSebelum} kg.
 Pekerjaan: ${formData.pekerjaan}, Stres: ${formData.stresPekerjaan}.
 Skor Risiko KSPR: ${clinicalData.ksprScore} (Kategori: ${clinicalData.ksprCategory}).
@@ -466,16 +466,16 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
             const r = state.results;
             const a = state.aiAnalysis;
             if (a) {
-                return `Halo Bunda ${formData.nama}. Saya Asisten AI dr. Bayu dari dr. Bayu SpOG Personal Momscare. ${a.summary || ''} ${a.mentalHealth ? 'Untuk menjaga kesehatan Bunda dan si kecil, ' + a.mentalHealth : ''} Tetap sehat dan semangat ya Bunda!`;
+                return `Halo Bunda ${formData.nama}. Ini ringkasan edukasi dari situs dr. Bayu Maulana, Sp.O.G, bukan hasil pemeriksaan. ${a.summary || ''} ${a.mentalHealth ? 'Untuk menjaga kesehatan Bunda dan si kecil, ' + a.mentalHealth : ''} Tetap sehat dan semangat ya Bunda!`;
             }
             if (!r) return '';
-            let p = `Halo Bunda ${formData.nama}. Saya Asisten AI dr. Bayu dari dr. Bayu SpOG Personal Momscare. `;
+            let p = `Halo Bunda ${formData.nama}. Ini ringkasan edukasi dari situs dr. Bayu Maulana, Sp.O.G, bukan hasil pemeriksaan. `;
             p += `Berdasarkan data Bunda, indeks risiko kehamilan saat ini ${r.kspr}, termasuk kategori ${r.ksprCategory}. `;
             p += `Status gizi pra-hamil Bunda dengan nilai BMI ${r.bmi}, dengan target kenaikan berat badan ${r.weightRec}. `;
             if (r.plan.isUsgAbnormal) {
                 p += `Ada catatan pada hasil USG yang sebaiknya Bunda konsultasikan lebih lanjut dengan dokter spesialis. `;
             } else {
-                p += `Hasil USG Bunda berada dalam batas normal sesuai usia kehamilan. `;
+                p += `Angka USG yang Bunda isi berada pada rentang acuan umum. Ini bukan kesimpulan USG. `;
             }
             if (r.kspr > 2 || r.plan.isUsgAbnormal) {
                 p += `Sebaiknya Bunda memeriksakan diri ke bidan atau dokter kandungan. Halaman ini bukan pengganti pemeriksaan. `;
@@ -505,7 +505,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
 
         window.playVoiceBriefing = () => {
             if (!('speechSynthesis' in window)) {
-                state.voiceNote = 'Perangkat/browser ini tidak mendukung suara otomatis. Silakan baca pesan Asisten AI dr. Bayu di layar ya, Bunda.';
+                state.voiceNote = 'Perangkat/browser ini tidak mendukung suara otomatis. Silakan baca ringkasan di layar ya, Bunda.';
                 reRenderKeepScroll();
                 return;
             }
@@ -541,7 +541,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                 if (!flags.started && !window.speechSynthesis.speaking && state.isSpeaking) {
                     window.speechSynthesis.cancel();
                     state.isSpeaking = false;
-                    state.voiceNote = 'Suara tidak bisa diputar di tampilan ini (umumnya karena pratinjau di dalam chat). Buka atau host file HTML-nya langsung di browser HP/laptop agar suara Asisten AI dr. Bayu berfungsi.';
+                    state.voiceNote = 'Suara tidak bisa diputar di tampilan ini (umumnya karena pratinjau di dalam chat). Buka atau host file HTML-nya langsung di browser HP/laptop agar suara berfungsi.';
                     reRenderKeepScroll();
                 }
             }, 900);
@@ -583,10 +583,10 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
 
         // ---- Share link ----
         window.handleShareLink = async () => {
-            const payload = { f: formData, r: state.results, a: state.aiAnalysis };
+            const payload = { f: Object.assign({}, formData, { nama: 'Bunda' }), r: state.results, a: state.aiAnalysis }; // nama tidak ikut dibagikan
             const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
             const base = window.location.href.split('?')[0];
-            const shareUrl = `${base}?share=${encoded}`;
+            const shareUrl = `${base}#share=${encodeURIComponent(encoded)}`; // fragmen (#) tidak dikirim ke server maupun Google Analytics
             state.generatedLink = shareUrl;
             reRenderKeepScroll();
             try {
@@ -644,7 +644,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         <div class="flex items-center gap-3">
                             <div class="bg-indigo-100 p-3 rounded-2xl"><i class="fa-solid fa-robot text-xl text-indigo-600"></i></div>
                             <div>
-                                <h2 class="text-2xl font-black text-gray-800">Asisten AI dr. Bayu AI (Opsional)</h2>
+                                <h2 class="text-2xl font-black text-gray-800">Asisten AI (Opsional)</h2>
                                 <p class="text-gray-500 mt-1 text-sm">Aktifkan analisis cerdas saat aplikasi di-host statis (mis. GitHub Pages).</p>
                             </div>
                         </div>
@@ -654,7 +654,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                     <div class="space-y-4">
                         ${(typeof RAMLI_PROXY_URL === 'string' && RAMLI_PROXY_URL.trim()) ? `
                             <div class="p-4 rounded-2xl bg-green-50 border border-green-200 text-sm text-green-800">
-                                <i class="fa-solid fa-circle-check mr-1"></i> <b>Proxy Cloudflare aktif.</b> Asisten AI dr. Bayu sudah menyala untuk semua pengunjung tanpa API key di browser. Bagian di bawah hanya cadangan dan tidak diperlukan.
+                                <i class="fa-solid fa-circle-check mr-1"></i> <b>Proxy Cloudflare aktif.</b> Asisten AI sudah menyala untuk semua pengunjung tanpa API key di browser. Bagian di bawah hanya cadangan dan tidak diperlukan.
                             </div>` : ''}
                         <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 text-sm text-gray-600">Status kunci saat ini: ${status}</div>
                         <div>
@@ -722,7 +722,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             <i class="fa-solid fa-table-list"></i>
                             <span class="hidden sm:inline">Clinical Pathway</span>
                         </a>
-                        <button onclick="toggleSettings(true)" title="Pengaturan Asisten AI dr. Bayu AI" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 text-gray-500 bg-gray-50 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
+                        <button onclick="toggleSettings(true)" title="Pengaturan Asisten AI" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 text-gray-500 bg-gray-50 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors">
                             <i class="fa-solid fa-gear"></i>
                         </button>
                         <button onclick="toggleHistory(true)" class="flex items-center gap-2 text-sm font-bold text-indigo-600 bg-indigo-50 px-3 md:px-4 py-2 rounded-full border border-indigo-100 hover:bg-indigo-100 transition-colors shadow-sm">
@@ -1003,7 +1003,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         <div class="flex justify-center flex-wrap gap-3">
                             <div class="inline-flex items-center p-4 bg-rose-100 text-rose-600 rounded-full shadow-sm"><i class="fa-solid fa-wand-magic-sparkles text-2xl"></i></div>
                             <button onclick="playVoiceBriefing()" class="flex items-center gap-2 px-6 py-2 rounded-full border-2 border-rose-500 text-rose-600 font-bold transition-all hover:bg-rose-50 shadow-md ${state.isSpeaking ? 'animate-pulse bg-rose-50' : ''} no-print">
-                                <i class="fa-solid ${state.isSpeaking ? 'fa-stop' : 'fa-volume-high'}"></i> ${state.isSpeaking ? 'Hentikan Suara' : '✨ Dengar Pesan Asisten AI dr. Bayu'}
+                                <i class="fa-solid ${state.isSpeaking ? 'fa-stop' : 'fa-volume-high'}"></i> ${state.isSpeaking ? 'Hentikan Suara' : 'Dengar ringkasan (suara)'}
                             </button>
                         </div>
                         <p class="text-[11px] text-gray-400 max-w-xl mx-auto no-print">Suara memakai mesin bawaan perangkat dan berjalan saat berkas dibuka langsung di peramban.</p>
@@ -1012,15 +1012,15 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         ${state.isAnalyzing ? `
                             <div class="flex flex-col items-center justify-center gap-3 text-rose-500 mt-4 no-print">
                                 <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
-                                <span class="font-medium">Asisten AI dr. Bayu sedang menyusun analisis personal Bunda...</span>
+                                <span class="font-medium">Catatan AI sedang disusun...</span>
                             </div>
                         ` : state.aiNeedsConsent ? `
                             <div class="bg-white py-4 px-5 rounded-2xl inline-block mt-2 border border-rose-200 shadow-sm max-w-2xl text-left no-print">
                                 <p class="text-sm font-bold text-slate-800"><i class="fa-solid fa-shield-heart text-rose-500 mr-1"></i> Analisis tambahan oleh Asisten AI (opsional)</p>
-                                <p class="text-xs text-slate-600 mt-1 leading-relaxed">Hasil skoring di bawah sudah lengkap tanpa AI. Bila Bunda ingin analisis tambahan, data asesmen (nama, usia, usia kehamilan, berat badan, tekanan darah, riwayat, dan hasil USG) akan dikirim ke layanan AI pihak ketiga untuk diproses.</p>
+                                <p class="text-xs text-slate-600 mt-1 leading-relaxed">Hasil skoring di bawah sudah lengkap tanpa AI. Bila Bunda ingin analisis tambahan, data asesmen (usia, usia kehamilan, berat badan, pekerjaan, tingkat stres, tekanan darah, riwayat, dan angka USG) dikirim melalui proxy situs ke <b>Anthropic</b> (penyedia model AI Claude, perusahaan di Amerika Serikat). Artinya data kesehatan Bunda <b>ditransfer dan diproses di luar wilayah Indonesia</b>. <b>Nama tidak dikirim.</b> Persetujuan ini dapat dicabut kapan saja; pencabutan menghentikan pengiriman berikutnya, tetapi tidak menarik data yang sudah terkirim.</p>
                                 <label class="flex items-start gap-2 mt-3 text-xs text-slate-700 cursor-pointer">
                                     <input id="aiConsentChk" type="checkbox" onchange="setAiConsentChk(this)" class="mt-0.5 w-4 h-4 accent-rose-500">
-                                    <span>Saya sudah membaca <a href="kebijakan-privasi.html" target="_blank" rel="noopener" class="text-rose-600 font-bold underline">Kebijakan Privasi</a> dan setuju data asesmen dikirim ke layanan AI.</span>
+                                    <span>Saya sudah membaca <a href="kebijakan-privasi.html" target="_blank" rel="noopener" class="text-rose-600 font-bold underline">Kebijakan Privasi</a> dan setuju data asesmen (tanpa nama) dikirim ke Anthropic dan diproses di luar Indonesia.</span>
                                 </label>
                                 <button id="aiConsentBtn" type="button" disabled onclick="giveAiConsentAndRun()" class="mt-3 inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-xs px-4 py-2 rounded-full shadow hover:bg-rose-600 disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-wand-magic-sparkles"></i> Jalankan Analisis AI</button>
                             </div>
@@ -1028,11 +1028,11 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                             <div class="bg-rose-50 py-4 px-6 rounded-2xl inline-block mt-2 border border-rose-100 shadow-inner max-w-2xl">
                                 <p class="text-rose-700 font-bold italic">" ${a.summary} "</p>
                             </div>
-                            <p class="text-[11px] text-gray-400 mt-2 no-print">Data dikirim ke layanan AI atas persetujuan Bunda. <button type="button" onclick="revokeAiConsent()" class="underline font-bold hover:text-rose-600">Cabut persetujuan</button> · <a href="kebijakan-privasi.html" class="underline">Kebijakan Privasi</a></p>
+                            <p class="text-[11px] text-gray-400 mt-2 no-print">Data asesmen (tanpa nama) dikirim ke Anthropic, di luar Indonesia, atas persetujuan Bunda. <button type="button" onclick="revokeAiConsent()" class="underline font-bold hover:text-rose-600">Cabut persetujuan</button> · <a href="kebijakan-privasi.html" class="underline">Kebijakan Privasi</a></p>
                         ` : state.aiError ? `
                             <div class="bg-amber-50 py-3 px-6 rounded-2xl inline-block mt-2 border border-amber-200 max-w-2xl no-print">
                                 <p class="text-amber-700 font-semibold text-sm"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Catatan AI belum dimuat. Skor di bawah tetap bisa dibaca sebagai alat edukasi, bukan diagnosis.</p>
-                                <button onclick="toggleSettings(true)" class="mt-2 text-xs font-bold text-amber-800 underline hover:text-amber-900">Aktifkan Asisten AI dr. Bayu dengan API key sendiri →</button>
+                                <button onclick="toggleSettings(true)" class="mt-2 text-xs font-bold text-amber-800 underline hover:text-amber-900">Aktifkan Asisten AI dengan API key sendiri →</button>
                             </div>
                         ` : ''}
                     </div>
@@ -1080,7 +1080,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                                     <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">🧘‍♀️ Strategi Mental</p>
                                     <p class="text-sm text-indigo-900 font-medium">${a.mentalHealth || ''}</p>
                                     ${acts.length ? `
-                                        <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mt-4 mb-2">🤸‍♀️ Aktivitas Asisten AI dr. Bayu</p>
+                                        <p class="text-xs font-black text-indigo-500 uppercase tracking-wider mt-4 mb-2">Ide aktivitas umum (perlu izin tenaga kesehatan)</p>
                                         <ul class="text-sm text-indigo-900 space-y-1 font-medium">
                                             ${acts.map(x => `<li class="flex gap-2 items-start"><span class="text-rose-400 font-bold">•</span> ${x}</li>`).join('')}
                                         </ul>
@@ -1098,7 +1098,7 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
                         <p class="text-sm font-medium leading-relaxed ${res.plan.isUsgAbnormal ? 'text-orange-900' : 'text-blue-900'}">${res.plan.usgConclusion}</p>
                         ${(!state.isAnalyzing && a && a.usgAnalysis) ? `
                             <div class="mt-4 p-4 bg-white/60 rounded-xl">
-                                <p class="text-xs font-bold uppercase mb-1 text-gray-500">Catatan Asisten AI dr. Bayu:</p>
+                                <p class="text-xs font-bold uppercase mb-1 text-gray-500">Catatan Asisten AI (bukan nasihat dokter):</p>
                                 <p class="text-sm font-medium text-gray-800">${a.usgAnalysis}</p>
                             </div>
                         ` : ''}
@@ -1195,9 +1195,15 @@ Klinis: Tekanan Darah ${formData.tekananDarah}, USG Umum: ${formData.hasilUsg}, 
             `;
         }
 
+        // Baca data bagikan SEGERA (sebelum skrip analitik defer berjalan), lalu bersihkan bilah alamat.
+        const __shareParams = new URLSearchParams(window.location.search);
+        const __hashParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+        const __shareData = __hashParams.get('share') || __shareParams.get('share'); // ?share= lama tetap terbaca
+        if (__shareData && window.history && history.replaceState) {
+            history.replaceState(null, '', window.location.pathname);
+        }
         window.onload = () => {
-            const params = new URLSearchParams(window.location.search);
-            const shareData = params.get('share');
+            const shareData = __shareData;
             if (shareData) {
                 try {
                     const decoded = JSON.parse(decodeURIComponent(atob(shareData)));

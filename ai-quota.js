@@ -81,7 +81,7 @@
         var emergency = EMERGENCY ?
             '<div class="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-900 mb-4">' +
             '<p class="font-black"><i class="fa-solid fa-truck-medical mr-1"></i> Kegawatdaruratan?</p>' +
-            '<p class="mt-1 leading-relaxed">Jangan menunggu jawaban AI. Segera bawa pasien ke <b>IGD terdekat</b>, atau hubungi <a href="tel:119" class="font-black underline">119</a> (layanan darurat medis/ambulans) atau <a href="tel:112" class="font-black underline">112</a> (layanan panggilan darurat terpadu).</p>' +
+            '<p class="mt-1 leading-relaxed">Jangan menunggu jawaban AI. Segera bawa pasien ke <b>IGD terdekat</b>, atau hubungi <a href="tel:119" class="font-black underline">119</a> (layanan darurat medis/ambulans).</p>' +
             '<p class="mt-2 text-xs text-red-800">Protokol kondisi, kalkulator dosis, dan alur rujukan di halaman ini tetap bisa dipakai tanpa AI.</p></div>' : '';
         return '' +
             '<div class="text-center mb-4">' +

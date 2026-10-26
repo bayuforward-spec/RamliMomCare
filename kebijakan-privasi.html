@@ -60,15 +60,15 @@
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Di mana data disimpan</h2>
             <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
                 <li>Riwayat asesmen yang Anda simpan disimpan di <b>penyimpanan lokal (localStorage) perangkat Anda sendiri</b>, tidak dikirim ke server situs ini.</li>
-                <li>Fitur <b>"bagikan link"</b> di Momscare memasukkan data asesmen ke dalam alamat link. Siapa pun yang menerima link tersebut dapat melihat datanya, jadi bagikan hanya kepada orang yang Anda percayai.</li>
+                <li>Fitur <b>"bagikan link"</b> di Momscare memasukkan data asesmen (tanpa nama) ke dalam bagian <code>#</code> alamat link, yang tidak dikirim ke server maupun ke Google Analytics. Siapa pun yang menerima link tersebut dapat melihat datanya, jadi bagikan hanya kepada orang yang Anda percayai.</li>
                 <li>Situs ini di-host sebagai situs statis (GitHub Pages) dan tidak memiliki database pengguna.</li>
             </ul>
         </section>
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Pengiriman ke layanan AI</h2>
             <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-                <li>Saat fitur AI dipakai, teks/data terkait dikirim melalui proxy milik pengelola situs ke penyedia model AI pihak ketiga (Anthropic) untuk diproses, lalu hasilnya ditampilkan kepada Anda.</li>
-                <li>Pada Momscare, analisis AI <b>tidak dijalankan</b> sebelum Anda mencentang persetujuan. Hasil skoring medis tetap tersedia tanpa AI.</li>
+                <li>Saat fitur AI dipakai, teks/data terkait dikirim melalui proxy milik pengelola situs ke penyedia model AI pihak ketiga (Anthropic, perusahaan di Amerika Serikat) untuk diproses, lalu hasilnya ditampilkan kepada Anda. Artinya data tersebut <b>ditransfer dan diproses di luar wilayah Indonesia</b>; transfer ini hanya terjadi atas persetujuan Anda (UU No. 27 Tahun 2022).</li>
+                <li>Pada Momscare, analisis AI <b>tidak dijalankan</b> sebelum Anda mencentang persetujuan. <b>Nama tidak ikut dikirim</b> ke layanan AI. Hasil skoring tetap tersedia tanpa AI.</li>
                 <li>Proxy tidak menyimpan isi pesan dalam log. Kebijakan penyimpanan data di sisi penyedia AI mengikuti ketentuan penyedia tersebut.</li>
                 <li>Untuk fitur tanya AI, <b>jangan menuliskan identitas pasien</b> (nama, NIK, nomor rekam medis).</li>
             </ul>
@@ -76,7 +76,7 @@
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Mencabut persetujuan &amp; menghapus data</h2>
             <ul class="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-                <li>Persetujuan AI di Momscare dapat dicabut melalui tautan "Cabut persetujuan" di halaman hasil.</li>
+                <li>Persetujuan AI di Momscare dapat dicabut kapan saja melalui tautan "Cabut persetujuan" di halaman hasil. Pencabutan menghentikan pengiriman berikutnya, tetapi tidak dapat menarik data yang sudah terkirim.</li>
                 <li>Riwayat dapat dihapus satu per satu dari menu Riwayat, atau seluruhnya dengan menghapus data situs di pengaturan browser.</li>
             </ul>
         </section>
