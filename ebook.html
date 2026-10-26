@@ -27,6 +27,7 @@
         .blob { background: radial-gradient(60% 60% at 30% 20%, rgba(255,255,255,.35), transparent), radial-gradient(50% 50% at 90% 80%, rgba(255,255,255,.18), transparent); }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; } }
     </style>
+    <script src="produk.js" defer></script>
 </head>
 <body class="bg-rose-50/40 text-slate-800">
 
@@ -57,7 +58,7 @@
                     <p class="text-sm text-slate-500 mt-1">Panduan Program Hamil untuk Pasangan</p>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mt-3">Daftar bab</p>
                     <ol class="list-decimal pl-5 space-y-1 text-sm text-slate-600 mt-2"><li>Memahami kesuburan &amp; siklus haid</li><li>Masa subur dan cara menghitungnya</li><li>Pemeriksaan sebelum hamil (untuk istri &amp; suami)</li><li>Gizi, berat badan &amp; gaya hidup</li><li>Kondisi yang memengaruhi kesuburan: PCOS, gangguan tiroid, endometriosis</li><li>Kapan disebut infertil &amp; kapan ke dokter</li><li>Mitos dan fakta seputar promil</li><li>Lembar kerja: kalender siklus &amp; daftar pertanyaan untuk dokter</li></ol>
-                    <p class="text-sm text-slate-700 mt-3"><b>Format:</b> PDF/EPUB · <b>Harga:</b> [isi: harga ditentukan dr. Bayu]</p><div class="mt-4"><a href="#" data-checkout="[link Mayar/Lynk]" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> Beli E-book</a> <span class="text-[11px] text-slate-400 ml-1">[link Mayar/Lynk]</span></div>
+                    <p class="text-sm text-slate-700 mt-3"><b>Format:</b> PDF/EPUB · <b>Harga:</b> <span data-produk-harga="ebook-siap-hamil">Segera diumumkan</span></p><div class="mt-4"><a href="daftar-tunggu.html?produk=ebook-siap-hamil" data-produk="ebook-siap-hamil" data-label-buka="Beli E-book" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Beli E-book</span></a></div>
                 </div>
             </div>
             <div class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 fade-up flex flex-col sm:flex-row gap-5">
@@ -67,7 +68,7 @@
                     <p class="text-sm text-slate-500 mt-1">Panduan Kehamilan Sehat dari Trimester ke Trimester</p>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mt-3">Daftar bab</p>
                     <ol class="list-decimal pl-5 space-y-1 text-sm text-slate-600 mt-2"><li>Tanda hamil &amp; kunjungan pertama</li><li>Jadwal ANC &amp; pemeriksaan per trimester</li><li>Gizi &amp; keluhan umum per trimester</li><li>Tanda bahaya yang tidak boleh ditunda</li><li>Preeklamsia, anemia, diabetes kehamilan: kenali &amp; cegah</li><li>Persiapan persalinan &amp; tas siaga</li><li>Menyusui &amp; masa nifas</li><li>Lampiran: checklist ANC, kalender HPL (lihat juga <a href="kalkulator.html" class="text-rose-600 underline">Kalkulator</a>)</li></ol>
-                    <p class="text-sm text-slate-700 mt-3"><b>Format:</b> PDF/EPUB · <b>Harga:</b> [isi: harga ditentukan dr. Bayu]</p>
+                    <p class="text-sm text-slate-700 mt-3"><b>Format:</b> PDF/EPUB · <b>Harga:</b> <span data-produk-harga="ebook-40-minggu">Segera diumumkan</span></p><div class="mt-4"><a href="daftar-tunggu.html?produk=ebook-40-minggu" data-produk="ebook-40-minggu" data-label-buka="Beli E-book" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Beli E-book</span></a></div>
                 </div>
             </div>
             <div class="bg-white rounded-2xl border border-dashed border-rose-200 p-5 sm:p-6"><div class="flex items-start justify-between gap-2 flex-wrap"><h3 class="font-black text-slate-800 text-base">Hamil &amp; Ibadah</h3><span class="text-[11px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">Rencana</span></div><p class="text-sm text-slate-500 mt-1">Panduan Kesehatan untuk Muslimah. Bagian fikih ditinjau oleh [isi: nama peninjau].</p></div>
@@ -87,10 +88,7 @@
 
     <script>
         document.getElementById('yr').textContent = new Date().getFullYear();
-        // Link checkout: ganti atribut href pada .checkout-link dengan link Mayar/Lynk. Selama masih "#", tombol hanya menampilkan pemberitahuan.
-        document.querySelectorAll('.checkout-link').forEach(function (a) {
-            if (a.getAttribute('href') === '#') a.addEventListener('click', function (e) { e.preventDefault(); alert('Link pendaftaran belum diisi.'); });
-        });
+        // Tombol produk diatur oleh produk.js (harga/link Mayar null → daftar tunggu).
         (function () {
             var KEY = 'ramli_font_scale', STEPS = [90, 100, 112, 125, 140, 160];
             function idx() { var v; try { v = parseInt(localStorage.getItem(KEY), 10); } catch (e) {} var i = STEPS.indexOf(v); return i < 0 ? 1 : i; }

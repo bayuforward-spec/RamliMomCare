@@ -22,7 +22,8 @@
         BOOKING_WA: '[nomor WA booking]',       // isi format 62xxxxxxxxxx; selama placeholder, tombol WA disembunyikan
         KONTAK_URL: 'kontak.html',
         KELAS_URL: 'kelas.html',
-        EBOOK_URL: 'ebook.html'
+        EBOOK_URL: 'ebook.html',
+        PREMIUM_URL: 'daftar-tunggu.html?produk=ai-premium'   // tier Premium AI — selama belum dibuka, ke daftar tunggu
     };
 
     var scriptEl = document.currentScript;
@@ -95,6 +96,7 @@
             option(CONFIG.KELAS_URL, 'fa-chalkboard-user', 'pink', 'Kelas Online', 'Persiapan hamil, kehamilan sehat &amp; persalinan, nifas &amp; menyusui.') +
             option(CONFIG.EBOOK_URL, 'fa-book-open', 'amber', 'E-book', 'Panduan program hamil dan kehamilan sehat.') +
             '</div>' +
+            '<a href="' + CONFIG.PREMIUM_URL + '" class="mt-3 flex items-center justify-center gap-2 text-sm font-bold text-rose-700 bg-white border border-rose-200 hover:bg-rose-100 rounded-full px-4 py-2.5 text-center"><i class="fa-solid fa-bell"></i> Premium AI · segera dibuka — daftar tunggu</a>' +
             '<p class="text-[11px] text-slate-400 mt-4 text-center">Jawaban AI bersifat edukasi dan tidak menggantikan pemeriksaan langsung.</p>' +
             '<button type="button" onclick="AIQuota.hideLock()" class="mt-3 w-full text-sm font-bold text-slate-600 hover:text-slate-800 py-2 rounded-full border border-slate-200 hover:bg-slate-50">Tutup</button>';
     }
