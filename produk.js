@@ -21,7 +21,7 @@
 
     var PRODUK = {
         'ebook-siap-hamil':   { nama: 'E-book Siap Hamil',                                  kategori: 'ebook',   akad: 'bai',    status: 'waitlist', harga: null, mayarUrl: null },
-        'ebook-40-minggu':    { nama: 'E-book 40 Minggu dengan Tenang',                     kategori: 'ebook',   akad: 'bai',    status: 'waitlist', harga: null, mayarUrl: null },
+        'ebook-40-minggu':    { nama: 'E-book 40 Minggu dengan Tenang',                     kategori: 'ebook',   akad: 'bai',    status: 'waitlist', harga: 150000, mayarUrl: null },
         'kelas-a':            { nama: 'Kelas Rekaman A — Siap Hamil',                       kategori: 'kelas',   akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
         'kelas-b':            { nama: 'Kelas Rekaman B — Kehamilan Sehat & Persiapan Persalinan', kategori: 'kelas', akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
         'kelas-c':            { nama: 'Kelas Rekaman C — Nifas & Menyusui',                 kategori: 'kelas',   akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
