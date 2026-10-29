@@ -1,21 +1,32 @@
 <!DOCTYPE html>
-<!-- TEMPLATE ARTIKEL: salin file ini, ganti semua [isi: ...], hapus meta robots noindex, lalu tambahkan ke artikel/index.html dan sitemap.xml. -->
+<!-- TEMPLATE ARTIKEL: jangan disalin manual. Tulis markdown di /workspace/bayu-site/artikel-draf lalu jalankan /workspace/src/build/build_artikel.py (lihat artikel-pedoman.md). Head, JSON-LD, kartu, dan sitemap dibuat otomatis. -->
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>[isi: Judul Artikel] · dr. Bayu Maulana, Sp.O.G</title>
-    <meta name="description" content="[isi: ringkasan 120–160 karakter, tanpa superlatif]">
+    <title>[isi: Judul SEO] · dr. Bayu, Sp.O.G</title>
+    <meta name="description" content="[isi: deskripsi 120–155 karakter, tanpa superlatif]">
     <meta name="robots" content="noindex, nofollow">
     <link rel="canonical" href="https://bayumaulanaspog.com/artikel/_template.html">
+    <meta name="author" content="dr. Bayu Maulana, Sp.O.G">
     <meta property="og:type" content="article">
     <meta property="og:locale" content="id_ID">
     <meta property="og:site_name" content="dr. Bayu, Sp.O.G">
-    <meta property="og:title" content="[isi: Judul Artikel] · dr. Bayu Maulana, Sp.O.G">
-    <meta property="og:description" content="[isi: ringkasan 120–160 karakter, tanpa superlatif]">
+    <meta property="og:title" content="[isi: Judul Artikel]">
+    <meta property="og:description" content="[isi: deskripsi 120–155 karakter, tanpa superlatif]">
     <meta property="og:url" content="https://bayumaulanaspog.com/artikel/_template.html">
-    <meta property="og:image" content="https://bayumaulanaspog.com/drbayu.png">
+    <meta property="og:image" content="https://bayumaulanaspog.com/og-share.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="dr. Bayu Maulana, Sp.O.G · Edukasi kehamilan &amp; kesehatan reproduksi">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="[isi: Judul Artikel]">
+    <meta name="twitter:description" content="[isi: deskripsi 120–155 karakter, tanpa superlatif]">
+    <meta name="twitter:image" content="https://bayumaulanaspog.com/og-share.png">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="icon" href="../favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -29,10 +40,6 @@
         .blob { background: radial-gradient(60% 60% at 30% 20%, rgba(255,255,255,.35), transparent), radial-gradient(50% 50% at 90% 80%, rgba(255,255,255,.18), transparent); }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; } }
     </style>
-    <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"MedicalWebPage","headline":"[isi: Judul Artikel]","description":"[isi: ringkasan 120–160 karakter, tanpa superlatif]","inLanguage":"id","datePublished":"[isi: YYYY-MM-DD]","lastReviewed":"[isi: YYYY-MM-DD]","author":{"@type":"Person","name":"dr. Bayu Maulana, Sp.O.G"},"url":"https://bayumaulanaspog.com/artikel/_template.html"}
-    </script>
-    <meta property="article:published_time" content="[isi: YYYY-MM-DD]">
 </head>
 <body class="bg-rose-50/40 text-slate-800">
 

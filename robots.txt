@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+# File unduhan pembeli: jangan dirayapi (PDF tidak bisa diberi meta noindex)
+Disallow: /unduhan/
 
 Sitemap: https://bayumaulanaspog.com/sitemap.xml
