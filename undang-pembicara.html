@@ -63,10 +63,10 @@
                 dr. Bayu Maulana, Sp.O.G adalah dokter spesialis Obstetri &amp; Ginekologi yang berpraktik di Lampung, termasuk di RS Harapan Bunda. Beliau mengelola situs ini sebagai kumpulan alat bantu klinis dan edukasi kehamilan yang mengacu pada Panduan Praktik Klinis serta rekomendasi POGI, WHO, ACOG, dan RCOG.
             </p>
             <ul class="mt-4 space-y-2 text-sm text-slate-600">
-                <li class="flex gap-2"><i class="fa-solid fa-graduation-cap text-rose-500 mt-0.5"></i><span>Pendidikan: [isi: pendidikan dokter &amp; spesialis]</span></li>
-                <li class="flex gap-2"><i class="fa-solid fa-hospital text-rose-500 mt-0.5"></i><span>Tempat praktik: RS Harapan Bunda, [isi: tempat praktik lain bila ada]</span></li>
-                <li class="flex gap-2"><i class="fa-solid fa-calendar-check text-rose-500 mt-0.5"></i><span>Pengalaman sebagai narasumber: [isi: contoh acara/penyelenggara yang pernah mengundang, bila ingin dicantumkan]</span></li>
-                <li class="flex gap-2"><i class="fa-solid fa-mosque text-rose-500 mt-0.5"></i><span>Kegiatan dakwah/kajian: [isi: bila ingin dicantumkan]</span></li>
+                <!-- DISEMBUNYIKAN sampai ada isi: pendidikan | <li class="flex gap-2"><i class="fa-solid fa-graduation-cap text-rose-500 mt-0.5"></i><span>Pendidikan: [isi: pendidikan dokter &amp; spesialis]</span></li> -->
+                <li class="flex gap-2"><i class="fa-solid fa-hospital text-rose-500 mt-0.5"></i><span>Tempat praktik: RS Harapan Bunda dan RS Bhayangkara Lampung</span></li>
+                <!-- DISEMBUNYIKAN sampai ada isi: pengalaman narasumber | <li class="flex gap-2"><i class="fa-solid fa-calendar-check text-rose-500 mt-0.5"></i><span>Pengalaman sebagai narasumber: [isi: contoh acara/penyelenggara yang pernah mengundang, bila ingin dicantumkan]</span></li> -->
+                <!-- DISEMBUNYIKAN sampai ada isi: kegiatan dakwah/kajian | <li class="flex gap-2"><i class="fa-solid fa-mosque text-rose-500 mt-0.5"></i><span>Kegiatan dakwah/kajian: [isi: bila ingin dicantumkan]</span></li> -->
             </ul>
         </section>
 
@@ -128,9 +128,10 @@
             <div class="blob absolute inset-0"></div>
             <div class="relative">
                 <h2 class="font-black text-xl sm:text-2xl">Ajukan Undangan</h2>
-                <p class="text-rose-50/90 text-sm mt-2 max-w-md mx-auto">Hubungi melalui WhatsApp untuk menanyakan ketersediaan jadwal.</p>
-                <a id="waBtn" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-white text-rose-600 font-bold text-sm px-6 py-3 rounded-full shadow-lg hover:bg-rose-50 transition-colors mt-5"><i class="fa-brands fa-whatsapp text-lg"></i> Chat WhatsApp</a>
-                <p class="text-[11px] text-rose-50/80 mt-3">Email: [isi: email undangan, opsional]</p>
+                <!-- DISEMBUNYIKAN sampai ada isi: nomor WA pembicara (isi WA_PEMBICARA di skrip bawah, lalu kembalikan paragraf + tombol ini) | <p class="text-rose-50/90 text-sm mt-2 max-w-md mx-auto">Hubungi melalui WhatsApp untuk menanyakan ketersediaan jadwal.</p> <a id="waBtn" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-white text-rose-600 font-bold text-sm px-6 py-3 rounded-full shadow-lg hover:bg-rose-50 transition-colors mt-5"><i class="fa-brands fa-whatsapp text-lg"></i> Chat WhatsApp</a> -->
+                <!-- DISEMBUNYIKAN sampai ada isi: email undangan | <p class="text-[11px] text-rose-50/80 mt-3">Email: [isi: email undangan, opsional]</p> -->
+                <p class="text-rose-50/90 text-sm mt-2 max-w-md mx-auto">Untuk menanyakan ketersediaan jadwal, kirim DM Instagram dengan menyebut “undangan narasumber”.</p>
+                <a href="https://www.instagram.com/bayumaulanaspog/" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-white text-rose-600 font-bold text-sm px-6 py-3 rounded-full shadow-lg hover:bg-rose-50 transition-colors mt-5"><i class="fa-brands fa-instagram text-lg"></i> DM @bayumaulanaspog</a>
             </div>
         </section>
 
@@ -150,7 +151,8 @@
         var WA_PEMBICARA = '[nomor WA pembicara]';
         var waText = encodeURIComponent('Assalamu\'alaikum dr. Bayu, saya [nama] dari [penyelenggara]. Kami ingin mengundang dokter sebagai narasumber.\nTopik: \nTanggal/waktu: \nLokasi/platform: \nPerkiraan peserta: ');
         var waBtn = document.getElementById('waBtn');
-        if (/^\d{9,15}$/.test(WA_PEMBICARA)) {
+        if (!waBtn) { /* tombol WA disembunyikan sampai nomor diisi */ }
+        else if (/^\d{9,15}$/.test(WA_PEMBICARA)) {
             waBtn.href = 'https://wa.me/' + WA_PEMBICARA + '?text=' + waText;
         } else {
             waBtn.removeAttribute('target');
