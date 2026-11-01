@@ -126,8 +126,8 @@
                     var v = incoming.get(k);
                     if (v && !url.searchParams.has(k)) url.searchParams.set(k, v);
                 });
-                var file = url.pathname.split('/').pop() || 'index.html';
-                a.setAttribute('href', file + url.search + url.hash);
+                var path = url.pathname.replace(/^\//, '') || 'index.html';
+                a.setAttribute('href', path + url.search + url.hash);
             });
         })();
     </script>
