@@ -30,6 +30,17 @@
             any = true;
         });
         if (!any) return null;
+        // Halaman masuk kampanye (path + judul saja) disimpan sekali per sesi tab,
+        // agar tayangannya bisa dicatat bila persetujuan baru diberikan di halaman berikutnya.
+        var prev = storedUtm();
+        if (prev && prev._lp) {
+            found._lp = prev._lp;
+            found._lt = prev._lt;
+            if (prev._sent) found._sent = true;
+        } else {
+            found._lp = String(location.pathname || '/').slice(0, 200);
+            found._lt = String(document.title || '').slice(0, 120);
+        }
         writeStore(sessionStorage, UTM_KEY, JSON.stringify(found));
         return found;
     }
@@ -75,7 +86,7 @@
         });
     }
 
-    function loadGa() {
+    function loadGa(fromGrant) {
         if (window.__bmsGaLoaded) return;
         window.__bmsGaLoaded = true;
         window['ga-disable-' + ID] = false;
@@ -112,6 +123,22 @@
             if (utm.utm_term) cfg.campaign_term = utm.utm_term;
         }
         window.gtag('config', ID, cfg);
+
+        // Persetujuan baru diberikan di halaman lanjutan: catat juga halaman masuk kampanye
+        // (mis. /link.html dari bio Instagram) satu kali, tanpa data tambahan.
+        if (utm && utm._lp && !utm._sent) {
+            if (fromGrant && utm._lp !== location.pathname) {
+                var q = new URLSearchParams();
+                UTM_KEYS.forEach(function (k) { if (utm[k]) q.set(k, utm[k]); });
+                window.gtag('event', 'page_view', {
+                    page_location: location.origin + utm._lp + '?' + q.toString(),
+                    page_title: utm._lt || undefined,
+                    bms_tayangan_tertunda: 1
+                });
+            }
+            utm._sent = true;
+            writeStore(sessionStorage, UTM_KEY, JSON.stringify(utm));
+        }
 
         var s = document.createElement('script');
         s.async = true;
@@ -162,7 +189,7 @@
     function grant() {
         writeStore(localStorage, CONSENT_KEY, 'granted');
         removeBanner();
-        loadGa();
+        loadGa(true);
     }
     function deny() {
         writeStore(localStorage, CONSENT_KEY, 'denied');
