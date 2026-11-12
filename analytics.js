@@ -9,6 +9,11 @@
     var CONSENT_KEY = 'bms_analytics_consent';
     var UTM_KEY = 'bms_utm_v1';
     var UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    // Penanda klik "Beli" (hanya ditulis SETELAH persetujuan): id produk, nama, harga,
+    // nomor acak transaksi, waktu. Tanpa nama/email/HP pembeli. Kedaluwarsa 7 hari.
+    var CHECKOUT_KEY = 'bms_checkout_v1';
+    var CHECKOUT_TTL = 7 * 24 * 60 * 60 * 1000;
+    var CURRENCY = 'IDR';
 
     window['ga-disable-' + ID] = true;
 
@@ -122,12 +127,16 @@
             if (utm.utm_content) cfg.campaign_content = utm.utm_content;
             if (utm.utm_term) cfg.campaign_term = utm.utm_term;
         }
-        window.gtag('config', ID, cfg);
-
         // Persetujuan baru diberikan di halaman lanjutan: catat juga halaman masuk kampanye
         // (mis. /link.html dari bio Instagram) satu kali, tanpa data tambahan.
+        // Tayangan halaman masuk dikirim LEBIH DULU agar dimensi "Landing page" dan
+        // sumber sesi GA4 menunjuk ke halaman masuk (bukan halaman tempat menekan Setuju).
+        var deferLanding = !!(utm && utm._lp && !utm._sent && fromGrant && utm._lp !== location.pathname);
+        if (deferLanding) cfg.send_page_view = false;
+        window.gtag('config', ID, cfg);
+
         if (utm && utm._lp && !utm._sent) {
-            if (fromGrant && utm._lp !== location.pathname) {
+            if (deferLanding) {
                 var q = new URLSearchParams();
                 UTM_KEYS.forEach(function (k) { if (utm[k]) q.set(k, utm[k]); });
                 window.gtag('event', 'page_view', {
@@ -135,15 +144,143 @@
                     page_title: utm._lt || undefined,
                     bms_tayangan_tertunda: 1
                 });
+                window.gtag('event', 'page_view', {
+                    page_location: location.href,
+                    page_title: document.title || undefined
+                });
             }
             utm._sent = true;
             writeStore(sessionStorage, UTM_KEY, JSON.stringify(utm));
         }
 
+        trackCommerce();
+
         var s = document.createElement('script');
         s.async = true;
         s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ID);
         document.head.appendChild(s);
+    }
+
+    /* ---------- Peristiwa e-commerce (hanya setelah persetujuan) ----------
+       view_item      : tombol produk yang sudah 'buka' terlihat di layar (sekali per produk per muatan halaman)
+       add_to_cart    : klik tombol Beli (tidak ada keranjang; checkout Mayar langsung) — sama dengan begin_checkout
+       begin_checkout : klik tombol Beli yang membuka checkout Mayar  → tandai sebagai key event
+       purchase       : halaman terima kasih (data-bms-purchase) dibuka di peramban yang sama
+                        dalam 7 hari setelah begin_checkout; sekali per penanda.
+       Parameter: id/nama produk, harga, mata uang, nomor acak. Tanpa data pribadi. */
+    function gaReady() { return !!window.__bmsGaLoaded && window['ga-disable-' + ID] !== true && typeof window.gtag === 'function'; }
+
+    function produkInfo(id) {
+        var P = window.Produk;
+        if (!P || !P.PRODUK || !P.PRODUK[id]) return null;
+        var p = P.PRODUK[id];
+        if (typeof P.isOpen === 'function' && !P.isOpen(p)) return null;
+        return { id: id, nama: String(p.nama || id).slice(0, 100), kategori: p.kategori || '', harga: p.harga };
+    }
+
+    function itemsOf(info) {
+        return [{ item_id: info.id, item_name: info.nama, item_category: info.kategori || undefined, price: info.harga, quantity: 1 }];
+    }
+
+    function randomId() {
+        try {
+            var a = new Uint32Array(2);
+            crypto.getRandomValues(a);
+            return 'bms-' + a[0].toString(36) + a[1].toString(36);
+        } catch (e) {
+            return 'bms-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+        }
+    }
+
+    function readCheckout() {
+        var raw = readStore(localStorage, CHECKOUT_KEY);
+        if (!raw) return null;
+        try {
+            var o = JSON.parse(raw);
+            if (!o || typeof o !== 'object' || !o.t || Date.now() - o.t > CHECKOUT_TTL) {
+                try { localStorage.removeItem(CHECKOUT_KEY); } catch (e) {}
+                return null;
+            }
+            return o;
+        } catch (e) { return null; }
+    }
+
+    function decorateCheckoutUrl(href) {
+        // Teruskan UTM sesi ke URL checkout Mayar (berguna bila "Track → URL Param" di Mayar diisi).
+        var utm = storedUtm();
+        if (!utm) return href;
+        var url;
+        try { url = new URL(href, location.href); } catch (e) { return href; }
+        if (url.origin === location.origin) return href;
+        UTM_KEYS.forEach(function (k) {
+            if (utm[k] && !url.searchParams.has(k)) url.searchParams.set(k, utm[k]);
+        });
+        return url.toString();
+    }
+
+    var commerceBound = false;
+    function trackCommerce() {
+        if (commerceBound) return;
+        commerceBound = true;
+
+        // Klik tombol Beli
+        document.addEventListener('click', function (ev) {
+            if (!gaReady()) return;
+            var a = ev.target && ev.target.closest ? ev.target.closest('a[data-produk]') : null;
+            if (!a) return;
+            var info = produkInfo(a.getAttribute('data-produk'));
+            if (!info) return; // masih daftar tunggu: bukan checkout
+            var tx = randomId();
+            var params = { currency: CURRENCY, value: info.harga, items: itemsOf(info) };
+            window.gtag('event', 'add_to_cart', params);
+            window.gtag('event', 'begin_checkout', params);
+            writeStore(localStorage, CHECKOUT_KEY, JSON.stringify({ id: info.id, nama: info.nama, kategori: info.kategori, harga: info.harga, tx: tx, t: Date.now() }));
+            var href = a.getAttribute('href');
+            if (href) a.href = decorateCheckoutUrl(href);
+        }, true);
+
+        // Produk terlihat
+        var seen = {};
+        function view(el) {
+            var info = produkInfo(el.getAttribute('data-produk'));
+            if (!info || seen[info.id]) return;
+            seen[info.id] = true;
+            window.gtag('event', 'view_item', { currency: CURRENCY, value: info.harga, items: itemsOf(info) });
+        }
+        function watch() {
+            var els = document.querySelectorAll('a[data-produk]');
+            if (!els.length) return;
+            if (typeof IntersectionObserver !== 'function') { els.forEach(view); return; }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) { if (e.isIntersecting) { view(e.target); io.unobserve(e.target); } });
+            }, { threshold: 0.5 });
+            els.forEach(function (el) { io.observe(el); });
+        }
+
+        // Pembelian (halaman terima kasih)
+        function purchase() {
+            var marker = document.querySelector('[data-bms-purchase]');
+            if (!marker) return;
+            var c = readCheckout();
+            var want = marker.getAttribute('data-bms-purchase');
+            if (!c || !c.tx || (want && c.id !== want)) return; // tanpa klik Beli di peramban ini: hanya page_view
+            window.gtag('event', 'purchase', {
+                transaction_id: c.tx,
+                currency: CURRENCY,
+                value: c.harga,
+                items: [{ item_id: c.id, item_name: c.nama, item_category: c.kategori || undefined, price: c.harga, quantity: 1 }]
+            });
+            try { localStorage.removeItem(CHECKOUT_KEY); } catch (e) {}
+        }
+
+        function start() {
+            // produk.js dimuat dengan defer; tunggu sampai window.Produk tersedia
+            if (window.Produk || !document.querySelector('a[data-produk]') || tries > 20) { watch(); purchase(); }
+            else { tries++; setTimeout(start, 300); }
+        }
+        var tries = 0;
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+        else start();
     }
 
     function privacyHref() {
@@ -193,6 +330,7 @@
     }
     function deny() {
         writeStore(localStorage, CONSENT_KEY, 'denied');
+        try { localStorage.removeItem(CHECKOUT_KEY); } catch (e) {}
         window['ga-disable-' + ID] = true;
         clearGaCookies();
         removeBanner();
