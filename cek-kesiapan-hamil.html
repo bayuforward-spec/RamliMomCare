@@ -87,7 +87,7 @@
                 <li>ASRM Practice Committee: <i>Fertility evaluation of infertile women</i> (2021) dan <i>Evaluation and treatment of recurrent pregnancy loss</i> (2012).</li>
                 <li>WHO: <i>Periconceptional folic acid supplementation</i>. Asam folat 400 µg/hari sejak sebelum hamil.</li>
                 <li>CDC: <i>Planning for Pregnancy</i> dan rekomendasi vaksin MMR (menunda kehamilan 4 minggu setelah vaksin).</li>
-                <li>WHO Expert Consultation (2004): ambang IMT untuk populasi Asia.</li>
+                <li>Kemenkes RI (P2PTM): klasifikasi indeks massa tubuh untuk orang dewasa Indonesia.</li>
                 <li>Kemenkes RI: Pedoman pelayanan kesehatan masa sebelum hamil (Permenkes 21/2021).</li>
             </ul>
         </section>
@@ -264,12 +264,12 @@
                 if (k.length) add(dokter, 'Ada penyakit kronik atau obat rutin', 'Konsultasi sebelum hamil sangat disarankan. Penyakit sebaiknya terkontrol dulu dan beberapa obat mungkin perlu diganti dengan yang aman untuk kehamilan. <b>Jangan menghentikan atau mengganti obat sendiri.</b>');
                 else if (vals('kronik').length) add(baik, 'Tidak ada penyakit kronik atau obat rutin', 'Tetap periksa tekanan darah dan gula darah saat cek sebelum hamil.');
 
-                // --- IMT (ambang Asia, WHO 2004)
+                // --- IMT (klasifikasi Kemenkes RI: kurus <18,5; normal 18,5–25,0; gemuk >25,0–27,0; obesitas >27,0)
                 var b = imt();
                 if (b !== null) {
-                    if (b < 18.5) add(siapkan, 'IMT ' + b + ': berat badan kurang', 'Berat badan yang terlalu rendah dapat mengganggu ovulasi. Perbaiki asupan gizi bersama tenaga kesehatan.');
-                    else if (b < 23) add(baik, 'IMT ' + b + ': dalam rentang normal', 'Pertahankan pola makan seimbang dan aktivitas fisik rutin.');
-                    else add(siapkan, 'IMT ' + b + ': di atas rentang normal', 'Menurunkan berat badan sekitar 5–10% saja sudah dapat membantu siklus haid dan kesehatan kehamilan nanti. Lakukan bertahap, bukan diet ketat.');
+                    if (b < 18.5) add(siapkan, 'IMT ' + b + ': kurus', 'Berat badan yang terlalu rendah dapat mengganggu ovulasi. Perbaiki asupan gizi bersama tenaga kesehatan.');
+                    else if (b <= 25) add(baik, 'IMT ' + b + ': normal', 'Pertahankan pola makan seimbang dan aktivitas fisik rutin.');
+                    else add(siapkan, 'IMT ' + b + (b > 27 ? ': obesitas' : ': gemuk (berat badan lebih)'), 'Menurunkan berat badan sekitar 5–10% saja sudah dapat membantu siklus haid dan kesehatan kehamilan nanti. Lakukan bertahap, bukan diet ketat.');
                 }
 
                 // --- Suami
