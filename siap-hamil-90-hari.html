@@ -107,6 +107,7 @@
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Yang Anda dapatkan</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-play text-rose-600"></i></div><div><p class="font-bold text-slate-800 text-sm">Video penjelasan tiap minggu</p><p class="text-xs text-slate-500 mt-0.5">Video singkat dari dr. Bayu untuk setiap topik mingguan, bisa ditonton kapan saja dan diulang.</p></div></div>
                 <div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-list-check text-rose-600"></i></div><div><p class="font-bold text-slate-800 text-sm">Checklist mingguan</p><p class="text-xs text-slate-500 mt-0.5">12 minggu tugas kecil untuk istri dan suami, bisa dicentang dari ponsel.</p></div></div>
                 <div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-calendar-days text-rose-600"></i></div><div><p class="font-bold text-slate-800 text-sm">Kalender siklus &amp; masa subur</p><p class="text-xs text-slate-500 mt-0.5">Catatan haid yang hanya tersimpan di perangkat Anda.</p></div></div>
                 <div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-mars text-rose-600"></i></div><div><p class="font-bold text-slate-800 text-sm">Panduan khusus suami</p><p class="text-xs text-slate-500 mt-0.5">Gaya hidup untuk kualitas sperma dan cara memahami hasil analisis sperma.</p></div></div>
@@ -114,7 +115,7 @@
                 <div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-file-pdf text-rose-600"></i></div><div><p class="font-bold text-slate-800 text-sm">Ringkasan PDF per fase</p><p class="text-xs text-slate-500 mt-0.5">Bisa dibaca ulang atau dicetak, lengkap dengan sumber rujukan.</p></div></div>
                 <div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-flask-vial text-rose-600"></i></div><div><p class="font-bold text-slate-800 text-sm">Daftar cek sebelum hamil</p><p class="text-xs text-slate-500 mt-0.5">Pemeriksaan untuk istri dan suami, beserta alasannya.</p></div></div>
             </div>
-            <p class="text-sm text-slate-700 mt-5"><b>Format:</b> aplikasi web + PDF · <b>Harga:</b> <span data-produk-harga="program-90-hari">Segera diumumkan</span></p>
+            <p class="text-sm text-slate-700 mt-5"><b>Format:</b> video + aplikasi web + PDF · <b>Harga:</b> <span data-produk-harga="program-90-hari">Segera diumumkan</span></p>
             <div class="mt-4"><a href="daftar-tunggu.html?produk=program-90-hari" data-produk="program-90-hari" data-label-buka="Ikuti program" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Ikuti program</span></a></div>
             <p class="text-[11px] text-slate-400 mt-3 italic">Program bersifat edukasi umum, tidak menjamin kehamilan, dan tidak menggantikan konsultasi atau pemeriksaan langsung. Tidak memuat rekomendasi merek obat maupun suplemen. Sumber rujukan: POGI, WHO, ACOG, ASRM, dan Kemenkes.</p>
         </section>
@@ -176,7 +177,7 @@
             document.getElementById('fase').innerHTML = FASE.map(function (f) {
                 return '<div class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 fade-up">' +
                     '<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl ' + C[f.warna][0] + ' flex items-center justify-center shrink-0"><i class="fa-solid ' + f.ikon + ' ' + C[f.warna][1] + '"></i></div>' +
-                    '<div><h3 class="font-black text-slate-800 text-base">' + f.judul + '</h3><p class="text-xs text-slate-500">' + f.minggu + '</p></div></div>' +
+                    '<div><h3 class="font-black text-slate-800 text-base">' + f.judul + '</h3><p class="text-xs text-slate-500">' + f.minggu + ' · 4 video</p></div></div>' +
                     '<ol class="mt-4 space-y-3">' + f.isi.map(function (m) {
                         n++;
                         return '<li class="flex gap-3"><span class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 text-xs font-black flex items-center justify-center shrink-0">' + n + '</span>' +
