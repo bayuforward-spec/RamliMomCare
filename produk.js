@@ -23,7 +23,6 @@
         'ebook-siap-hamil':   { nama: 'E-book Siap Hamil',                                  kategori: 'ebook',   akad: 'bai',    status: 'waitlist', harga: null, mayarUrl: null },
         'ebook-40-minggu':    { nama: 'E-book 40 Minggu dengan Tenang (Edisi 1: Trimester 1)', kategori: 'ebook',   akad: 'bai',    status: 'buka', harga: 149000, mayarUrl: 'https://bayu-maulana.myr.id/pl/e-book-40-minggu-dengan-tenang' },
         'program-90-hari':    { nama: 'Siap Hamil 90 Hari — Kelas & Program Persiapan Kehamilan', kategori: 'program', akad: 'ijarah', status: 'buka', harga: 99000, mayarUrl: 'https://bayu-maulana.myr.id/pl/siap-hamil-90-hari-kelas-program-persiapan-kehamilan-untuk-suami-istri' },
-        'kelas-a':            { nama: 'Kelas Rekaman A — Siap Hamil',                       kategori: 'kelas',   akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
         'kelas-b':            { nama: 'Kelas Rekaman B — Kehamilan Sehat & Persiapan Persalinan', kategori: 'kelas', akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
         'kelas-c':            { nama: 'Kelas Rekaman C — Nifas & Menyusui',                 kategori: 'kelas',   akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
         'sejawat-langganan':  { nama: 'Langganan Sejawat',                                  kategori: 'sejawat', akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null, periode: 'bulan' },
@@ -62,9 +61,9 @@
     function waitlistUrl(id) { return WAITLIST_PAGE + '?produk=' + encodeURIComponent(id); }
 
     // Hubungkan tombol & label harga di halaman:
-    //   <a data-produk="kelas-a">…</a>          → href ke Mayar atau daftar tunggu
-    //   <span data-produk-harga="kelas-a"></span> → "Rp…" atau "Segera diumumkan"
-    //   <span data-produk-status="kelas-a"></span>→ badge status
+    //   <a data-produk="kelas-b">…</a>          → href ke Mayar atau daftar tunggu
+    //   <span data-produk-harga="kelas-b"></span> → "Rp…" atau "Segera diumumkan"
+    //   <span data-produk-status="kelas-b"></span>→ badge status
     function wire(root) {
         root = root || document;
         root.querySelectorAll('[data-produk]').forEach(function (a) {
