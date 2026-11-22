@@ -10,8 +10,8 @@ window.SH90 = {
     ruangKelas: 'ruang-kelas-90-hari-0c8b7bbe9e89.html',
     unduhan: {
         sumber: 'unduhan/234e9b442415a3f1/daftar-sumber-siap-hamil-90-hari.pdf',
-        konsultasi: null,   // Lembar Persiapan Konsultasi (PDF)
-        cekPraHamil: null   // Daftar Cek Sebelum Hamil (PDF)
+        konsultasi: 'unduhan/5747d686459ab810/lembar-persiapan-konsultasi.pdf',
+        cekPraHamil: 'unduhan/5747d686459ab810/daftar-cek-sebelum-hamil.pdf'
     },
     videos: [
  {
@@ -27,7 +27,7 @@ window.SH90 = {
   "id": "00",
   "fase": "pengantar",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-00.pdf"
  },
  {
   "no": "01",
@@ -43,7 +43,7 @@ window.SH90 = {
   "id": "01",
   "fase": "1",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-01.pdf"
  },
  {
   "no": "02",
@@ -60,7 +60,7 @@ window.SH90 = {
   "id": "02",
   "fase": "1",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-02.pdf"
  },
  {
   "no": "03",
@@ -79,7 +79,7 @@ window.SH90 = {
   "id": "03",
   "fase": "1",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-03.pdf"
  },
  {
   "no": "04",
@@ -99,7 +99,7 @@ window.SH90 = {
   "id": "04",
   "fase": "1",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-04.pdf"
  },
  {
   "no": "05",
@@ -119,7 +119,7 @@ window.SH90 = {
   "id": "05",
   "fase": "2",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-05.pdf"
  },
  {
   "no": "06",
@@ -139,7 +139,7 @@ window.SH90 = {
   "id": "06",
   "fase": "2",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-06.pdf"
  },
  {
   "no": "07",
@@ -160,7 +160,7 @@ window.SH90 = {
   "id": "07",
   "fase": "2",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-07.pdf"
  },
  {
   "no": "08",
@@ -181,7 +181,7 @@ window.SH90 = {
   "id": "08",
   "fase": "2",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-08.pdf"
  },
  {
   "no": "09",
@@ -202,7 +202,7 @@ window.SH90 = {
   "id": "09",
   "fase": "3",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-09.pdf"
  },
  {
   "no": "10",
@@ -222,7 +222,7 @@ window.SH90 = {
   "id": "10",
   "fase": "3",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-10.pdf"
  },
  {
   "no": "11",
@@ -242,7 +242,7 @@ window.SH90 = {
   "id": "11",
   "fase": "3",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-11.pdf"
  },
  {
   "no": "12",
@@ -262,7 +262,7 @@ window.SH90 = {
   "id": "12",
   "fase": "3",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/ringkasan-video-12.pdf"
  },
  {
   "no": "BONUS",
@@ -282,7 +282,7 @@ window.SH90 = {
   "id": "bonus",
   "fase": "bonus",
   "youtube": null,
-  "pdf": null
+  "pdf": "unduhan/5747d686459ab810/bonus-khusus-suami.pdf"
  }
 ]
 };
