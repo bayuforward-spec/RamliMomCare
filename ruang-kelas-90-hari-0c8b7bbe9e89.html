@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruang Kelas · Siap Hamil 90 Hari</title>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        h1,h2,h3,p,span,li,a,div,label { overflow-wrap: break-word; }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] .chev { transform: rotate(180deg); }
+        .yt { aspect-ratio: 16 / 9; }
+        #fontCtl button:active { transform: scale(.92); }
+    </style>
+    <script src="ruang-kelas-90-hari-0c8b7bbe9e89.js"></script>
+</head>
+<body class="bg-rose-50/40 text-slate-800">
+    <header class="bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 text-white">
+        <div class="max-w-3xl mx-auto px-5 pt-6 pb-12">
+            <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-full text-xs font-bold"><i class="fa-solid fa-lock"></i> Khusus peserta</span>
+                <a href="#unduhan" class="text-xs font-bold text-white/90 underline underline-offset-4">Unduhan</a>
+            </div>
+            <h1 class="text-2xl sm:text-4xl font-black leading-tight mt-4">Ruang Kelas</h1>
+            <p class="text-lg font-bold text-white/95">Siap Hamil 90 Hari</p>
+            <p class="text-rose-50/90 mt-2 text-sm leading-relaxed">Tiga bulan bersiap, berdua. Tonton satu video setiap minggu, lalu kerjakan checklist-nya bersama pasangan.</p>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-5 -mt-6 pb-24 space-y-5">
+
+        <!-- Persetujuan hak cipta (muncul bila belum disetujui di perangkat ini) -->
+        <section id="gate" class="hidden bg-white rounded-2xl border-2 border-rose-200 shadow-sm p-5 sm:p-6">
+            <h2 class="font-black text-slate-800 text-lg"><i class="fa-solid fa-shield-halved text-rose-500 mr-1"></i> Sebelum masuk</h2>
+            <div class="text-sm text-slate-600 mt-2 leading-relaxed" data-pernyataan></div>
+            <label class="mt-4 flex items-start gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:border-rose-400 has-[:checked]:bg-rose-50">
+                <input type="checkbox" id="gateCb" class="mt-0.5 w-5 h-5 accent-rose-500 shrink-0">
+                <span class="text-sm font-bold text-slate-800">Saya memahami dan setuju menggunakan materi ini hanya untuk saya dan pasangan.</span>
+            </label>
+            <button type="button" id="gateBtn" disabled class="mt-4 w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-rose-500 disabled:bg-slate-300 text-white font-bold text-sm px-6 py-3 rounded-full shadow transition-colors">Masuk ke Ruang Kelas <i class="fa-solid fa-arrow-right"></i></button>
+        </section>
+
+        <div id="isi" class="hidden space-y-5">
+
+        <!-- Progres -->
+        <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6">
+            <div class="flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                    <p class="text-xs font-bold text-rose-600 uppercase tracking-wide">Progres Anda</p>
+                    <p class="text-xl font-black text-slate-800 mt-1" id="mingguLbl">Atur tanggal mulai</p>
+                </div>
+                <label class="text-xs font-bold text-slate-600">Tanggal mulai program
+                    <input type="date" id="mulai" class="mt-1 block px-3 py-2 rounded-xl border border-slate-200 focus:border-rose-400 outline-none text-sm font-normal">
+                </label>
+            </div>
+            <div class="mt-4 h-2.5 rounded-full bg-rose-100 overflow-hidden"><div id="bar" class="h-full bg-rose-500 rounded-full transition-all" style="width:0%"></div></div>
+            <p class="text-xs text-slate-500 mt-2"><span id="doneLbl">0</span> dari <span id="totalLbl">0</span> tugas checklist selesai · Tersimpan hanya di perangkat ini.</p>
+            <a id="lanjut" href="#" class="hidden mt-4 inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-play"></i> <span>Lanjutkan</span></a>
+        </section>
+
+        <!-- Video per fase -->
+        <div id="daftarVideo" class="space-y-6"></div>
+
+        <!-- Kalender siklus -->
+        <section id="kalender" class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6">
+            <h2 class="font-black text-slate-800 text-lg flex items-center gap-2"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Kalender Siklus &amp; Masa Subur</h2>
+            <p class="text-sm text-slate-600 mt-2 leading-relaxed">Catat <b>hari pertama haid</b> setiap bulan. Kalender menghitung rata-rata siklus dan perkiraan masa subur. Data hanya tersimpan di perangkat ini.</p>
+            <div class="mt-4 flex flex-col sm:flex-row gap-2 sm:items-end">
+                <label class="text-xs font-bold text-slate-600 flex-1">Hari pertama haid
+                    <input type="date" id="haidInput" class="mt-1 w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-rose-400 outline-none text-sm font-normal">
+                </label>
+                <button type="button" id="haidAdd" class="inline-flex justify-center items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600"><i class="fa-solid fa-plus"></i> Tambah</button>
+            </div>
+            <ul id="haidList" class="mt-4 flex flex-wrap gap-2"></ul>
+            <div id="prediksi" class="mt-4"></div>
+            <p class="text-[11px] text-slate-400 mt-3 italic">Perkiraan berdasarkan kalender, bukan kepastian ovulasi. Bila siklus tidak teratur, kenali juga tanda tubuh (lihat Video 02) dan periksa ke dokter bila jarak haid sering lebih dari 35 hari.</p>
+        </section>
+
+        <!-- Unduhan -->
+        <section id="unduhan" class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6">
+            <h2 class="font-black text-slate-800 text-lg flex items-center gap-2"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Unduhan</h2>
+            <div class="mt-3 space-y-2" id="unduhanList"></div>
+        </section>
+
+        <!-- Bantuan & rambu -->
+        <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 text-sm text-slate-600 leading-relaxed">
+            <p><i class="fa-brands fa-instagram text-rose-500 mr-1"></i> <b class="text-slate-800">Kendala akses?</b> Kirim DM ke <a href="https://www.instagram.com/bayumaulanaspog/" target="_blank" rel="noopener" class="underline font-bold text-rose-600">@bayumaulanaspog</a> dengan menyebutkan email saat membayar. Jangan menuliskan data kesehatan di pesan.</p>
+            <p class="mt-2 text-xs text-slate-500">Program ini edukasi umum, tidak menjamin kehamilan, dan bukan konsultasi medis. Pertanyaan tentang kondisi pribadi silakan diperiksakan langsung ke dokter atau bidan.</p>
+        </section>
+        <section class="bg-red-50 border border-red-200 rounded-2xl p-5">
+            <p class="text-sm text-red-800 leading-relaxed"><i class="fa-solid fa-triangle-exclamation mr-1"></i> <b>Gawat darurat</b> (nyeri perut hebat, perdarahan banyak, atau pingsan, terutama saat terlambat haid): segera ke <b>IGD terdekat</b>.</p>
+        </section>
+        </div>
+
+        <p class="text-center text-[11px] text-slate-400 mt-8 leading-relaxed">© <span id="yr"></span> dr. Bayu Maulana, Sp.O.G · bayumaulanaspog.com<br>Seluruh materi dilindungi UU No. 28 Tahun 2014 tentang Hak Cipta. Dilarang menyebarkan, mengunggah ulang, atau menjual materi ini.</p>
+    </main>
+
+    <!-- Kontrol ukuran huruf -->
+    <div id="fontCtl" class="fixed z-50 bottom-4 right-4 flex items-center gap-0.5 bg-white/95 backdrop-blur border border-slate-200 shadow-lg rounded-full p-1" role="group" aria-label="Ukuran huruf">
+        <button type="button" onclick="setFont(-1)" aria-label="Perkecil huruf" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center"><span class="text-xs font-bold leading-none">A</span></button>
+        <span id="fontLbl" class="text-[10px] text-slate-400 w-9 text-center tabular-nums select-none">100%</span>
+        <button type="button" onclick="setFont(1)" aria-label="Perbesar huruf" class="w-9 h-9 rounded-full hover:bg-slate-100 text-slate-800 flex items-center justify-center"><span class="text-lg font-black leading-none">A</span></button>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+        document.getElementById('yr').textContent = new Date().getFullYear();
+        var C = window.SH90 || { videos: [], unduhan: {} };
+        var K = { setuju: 'sh90_setuju_v1', cek: 'sh90_cek_v1', mulai: 'sh90_mulai_v1', haid: 'sh90_haid_v1', tonton: 'sh90_tonton_v1' };
+        function get(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+        function set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+        function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+        // ---- Pernyataan hak cipta
+        var PERNYATAAN = '<p>Materi <b>Siap Hamil 90 Hari</b> (video, PDF, checklist, dan seluruh isinya) dilindungi <b>UU No. 28 Tahun 2014 tentang Hak Cipta</b>.</p>' +
+            '<ul class="list-disc pl-5 mt-2 space-y-1"><li>Hanya untuk Anda dan pasangan.</li><li>Dilarang membagikan link, mengunduh ulang, merekam layar, mengunggah ulang, atau menjual materi ini, baik sebagian maupun seluruhnya.</li><li>Pelanggaran dapat dikenai sanksi sesuai undang-undang dan akses dapat dihentikan.</li></ul>';
+        document.querySelectorAll('[data-pernyataan]').forEach(function (el) { el.innerHTML = PERNYATAAN; });
+        var gate = document.getElementById('gate'), isi = document.getElementById('isi');
+        function buka() { gate.classList.add('hidden'); isi.classList.remove('hidden'); }
+        if (get(K.setuju, false)) buka(); else gate.classList.remove('hidden');
+        var gcb = document.getElementById('gateCb'), gbtn = document.getElementById('gateBtn');
+        gcb.addEventListener('change', function () { gbtn.disabled = !gcb.checked; });
+        gbtn.addEventListener('click', function () { set(K.setuju, { t: Date.now() }); buka(); window.scrollTo({ top: 0 }); });
+
+        // ---- YouTube
+        function ytId(u) {
+            if (!u) return null;
+            var m = String(u).match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/);
+            return m ? m[1] : (/^[A-Za-z0-9_-]{11}$/.test(u) ? u : null);
+        }
+        function player(v) {
+            var id = ytId(v.youtube);
+            if (!id) return '<div class="yt w-full rounded-xl bg-slate-100 border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-500 text-sm"><i class="fa-solid fa-clapperboard text-2xl mb-2"></i>Video segera tersedia</div>';
+            return '<button type="button" data-yt="' + id + '" data-vid="' + v.id + '" class="yt relative w-full rounded-xl overflow-hidden bg-slate-900 group" aria-label="Putar video ' + esc(v.judul) + '">' +
+                '<img src="https://i.ytimg.com/vi/' + id + '/hqdefault.jpg" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">' +
+                '<span class="absolute inset-0 flex items-center justify-center"><span class="w-16 h-16 rounded-full bg-rose-500/95 text-white flex items-center justify-center shadow-xl"><i class="fa-solid fa-play text-xl ml-1"></i></span></span></button>';
+        }
+        document.addEventListener('click', function (e) {
+            var b = e.target.closest('[data-yt]'); if (!b) return;
+            var f = document.createElement('iframe');
+            f.src = 'https://www.youtube-nocookie.com/embed/' + b.getAttribute('data-yt') + '?autoplay=1&rel=0&modestbranding=1';
+            f.className = 'yt w-full rounded-xl'; f.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen'; f.allowFullscreen = true;
+            f.title = b.getAttribute('aria-label') || 'Video';
+            b.replaceWith(f);
+            var t = get(K.tonton, {}); t[b.getAttribute('data-vid')] = Date.now(); set(K.tonton, t); render();
+        });
+
+        // ---- Daftar video
+        var FASE = [
+            { k: 'pengantar', judul: 'Mulai di sini', ket: 'Tonton sebelum Minggu 1.' },
+            { k: '1', judul: 'Fase 1 · Kenali & Periksa', ket: 'Minggu 1–4' },
+            { k: '2', judul: 'Fase 2 · Perbaiki', ket: 'Minggu 5–8' },
+            { k: '3', judul: 'Fase 3 · Mencoba dengan Tenang', ket: 'Minggu 9–12' },
+            { k: 'bonus', judul: 'Bonus · Khusus Suami', ket: 'Bisa ditonton kapan saja.' }
+        ];
+        var cek = get(K.cek, {});
+        var total = C.videos.reduce(function (a, v) { return a + v.checklist.length; }, 0);
+
+        function card(v) {
+            var label = v.no === '00' ? 'Pengantar' : v.no === 'BONUS' ? 'Bonus' : 'Minggu ' + parseInt(v.no, 10);
+            var tonton = get(K.tonton, {})[v.id];
+            var done = v.checklist.filter(function (_, i) { return cek[v.id + ':' + i]; }).length;
+            var items = v.checklist.map(function (c, i) {
+                var key = v.id + ':' + i;
+                return '<label class="flex items-start gap-3 p-2.5 rounded-lg hover:bg-rose-50 cursor-pointer"><input type="checkbox" data-cek="' + key + '"' + (cek[key] ? ' checked' : '') + ' class="mt-0.5 w-5 h-5 accent-rose-500 shrink-0"><span class="text-sm text-slate-700' + (cek[key] ? ' line-through text-slate-400' : '') + '">' + esc(c) + '</span></label>';
+            }).join('');
+            var pdf = v.pdf ? '<a href="' + esc(v.pdf) + '" download class="inline-flex items-center gap-2 text-sm font-bold text-rose-600 underline"><i class="fa-solid fa-file-pdf"></i> Ringkasan PDF</a>'
+                            : '<span class="inline-flex items-center gap-2 text-sm text-slate-400"><i class="fa-solid fa-file-pdf"></i> Ringkasan PDF segera tersedia</span>';
+            return '<article id="v-' + v.id + '" class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 scroll-mt-4">' +
+                '<div class="flex items-start justify-between gap-3"><div><p class="text-xs font-bold text-rose-600 uppercase tracking-wide">' + label + ' · ' + esc(v.durasi) + '</p>' +
+                '<h3 class="font-black text-slate-800 text-base sm:text-lg mt-0.5">' + esc(v.judul) + '</h3></div>' +
+                (tonton ? '<span class="shrink-0 text-[11px] font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full"><i class="fa-solid fa-check"></i> Ditonton</span>' : '') + '</div>' +
+                '<div class="mt-4">' + player(v) + '</div>' +
+                '<details class="mt-4"><summary class="cursor-pointer text-sm font-bold text-slate-700 flex justify-between gap-2">Ringkasan video <i class="chev fa-solid fa-chevron-down text-slate-400 transition-transform"></i></summary><p class="text-sm text-slate-600 leading-relaxed mt-2">' + esc(v.ringkasan) + '</p></details>' +
+                (v.checklist.length ? '<div class="mt-4 rounded-xl bg-rose-50/60 border border-rose-100 p-3"><p class="text-xs font-bold text-slate-600 uppercase tracking-wide px-2.5 pt-1">Checklist minggu ini · ' + done + '/' + v.checklist.length + '</p><div class="mt-1">' + items + '</div></div>' : '') +
+                '<div class="mt-4">' + pdf + '</div></article>';
+        }
+
+        function render() {
+            cek = get(K.cek, {});
+            document.getElementById('daftarVideo').innerHTML = FASE.map(function (f) {
+                var vs = C.videos.filter(function (v) { return v.fase === f.k; });
+                if (!vs.length) return '';
+                return '<section><h2 class="font-black text-slate-800 text-lg flex items-center gap-2"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> ' + f.judul + '</h2><p class="text-xs text-slate-500 mt-0.5 mb-3 ml-3.5">' + f.ket + '</p><div class="space-y-4">' + vs.map(card).join('') + '</div></section>';
+            }).join('');
+            progres();
+        }
+
+        document.addEventListener('change', function (e) {
+            var k = e.target.getAttribute && e.target.getAttribute('data-cek'); if (!k) return;
+            cek = get(K.cek, {}); if (e.target.checked) cek[k] = 1; else delete cek[k]; set(K.cek, cek);
+            var y = window.scrollY; render(); window.scrollTo(0, y);
+        });
+
+        // ---- Progres & minggu berjalan
+        var mulai = document.getElementById('mulai');
+        mulai.value = get(K.mulai, '') || '';
+        mulai.addEventListener('change', function () { set(K.mulai, mulai.value); progres(); });
+        function progres() {
+            var done = Object.keys(get(K.cek, {})).length;
+            document.getElementById('doneLbl').textContent = done;
+            document.getElementById('totalLbl').textContent = total;
+            document.getElementById('bar').style.width = (total ? Math.round(done / total * 100) : 0) + '%';
+            var lbl = document.getElementById('mingguLbl'), lanjut = document.getElementById('lanjut');
+            if (!mulai.value) { lbl.textContent = 'Atur tanggal mulai'; lanjut.classList.add('hidden'); return; }
+            var hari = Math.floor((Date.now() - new Date(mulai.value + 'T00:00:00').getTime()) / 864e5);
+            var w = Math.floor(hari / 7) + 1;
+            if (hari < 0) { lbl.textContent = 'Program dimulai ' + new Date(mulai.value).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' }); w = 1; }
+            else if (w > 12) { lbl.textContent = '90 hari selesai 🎉'; w = 12; }
+            else lbl.textContent = 'Minggu ' + w + ' dari 12';
+            lanjut.href = '#v-' + ('0' + w).slice(-2);
+            lanjut.querySelector('span').textContent = 'Lanjutkan ke Video Minggu ' + w;
+            lanjut.classList.remove('hidden');
+        }
+
+        // ---- Kalender siklus
+        var DAY = 864e5;
+        function parse(s) { return new Date(s + 'T00:00:00'); }
+        function fmt(d) { return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); }
+        function haid() { return (get(K.haid, []) || []).slice().sort(); }
+        document.getElementById('haidAdd').addEventListener('click', function () {
+            var v = document.getElementById('haidInput').value; if (!v) return;
+            var h = haid(); if (h.indexOf(v) === -1) h.push(v); set(K.haid, h.sort()); kalender();
+        });
+        document.getElementById('haidList').addEventListener('click', function (e) {
+            var b = e.target.closest('[data-del]'); if (!b) return;
+            set(K.haid, haid().filter(function (x) { return x !== b.getAttribute('data-del'); })); kalender();
+        });
+        function kalender() {
+            var h = haid();
+            document.getElementById('haidList').innerHTML = h.slice().reverse().map(function (x) {
+                return '<li class="inline-flex items-center gap-2 bg-rose-50 border border-rose-100 rounded-full pl-3 pr-1 py-1 text-xs font-bold text-slate-700">' + fmt(parse(x)) + '<button type="button" data-del="' + x + '" aria-label="Hapus" class="w-6 h-6 rounded-full hover:bg-rose-100 text-slate-400"><i class="fa-solid fa-xmark"></i></button></li>';
+            }).join('');
+            var out = document.getElementById('prediksi');
+            if (!h.length) { out.innerHTML = '<p class="text-sm text-slate-500">Belum ada catatan. Mulai dengan hari pertama haid terakhir.</p>'; return; }
+            var gaps = [];
+            for (var i = 1; i < h.length; i++) { var g = Math.round((parse(h[i]) - parse(h[i - 1])) / DAY); if (g >= 15 && g <= 90) gaps.push(g); }
+            var avg = gaps.length ? Math.round(gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length) : 28;
+            var irr = gaps.length >= 2 && (Math.max.apply(null, gaps) - Math.min.apply(null, gaps) > 7);
+            var last = parse(h[h.length - 1]), rows = '';
+            for (var c = 1; c <= 3; c++) {
+                var next = new Date(last.getTime() + avg * c * DAY), ov = new Date(next.getTime() - 14 * DAY), aw = new Date(ov.getTime() - 5 * DAY);
+                rows += '<tr class="border-t border-rose-100"><td class="py-2 pr-3 font-bold text-rose-600">' + fmt(aw) + ' – ' + fmt(ov) + '</td><td class="py-2 pr-3">' + fmt(ov) + '</td><td class="py-2">' + fmt(next) + '</td></tr>';
+            }
+            out.innerHTML = '<div class="grid grid-cols-2 gap-3"><div class="rounded-xl bg-rose-50 p-3"><p class="text-xs text-slate-500">Rata-rata siklus</p><p class="text-lg font-black text-slate-800">' + avg + ' hari</p><p class="text-[11px] text-slate-500">' + (gaps.length ? 'dari ' + gaps.length + ' siklus tercatat' : 'perkiraan awal, tambah catatan bulan depan') + '</p></div>' +
+                '<div class="rounded-xl bg-rose-50 p-3"><p class="text-xs text-slate-500">Haid terakhir</p><p class="text-lg font-black text-slate-800">' + fmt(last) + '</p></div></div>' +
+                (irr ? '<p class="mt-3 text-xs rounded-xl bg-amber-50 border border-amber-200 text-amber-900 p-3"><i class="fa-solid fa-circle-info mr-1"></i> Jarak siklus Anda cukup bervariasi, jadi perkiraan kalender kurang tepat. Kenali juga tanda tubuh (Video 02).</p>' : '') +
+                (avg > 35 ? '<p class="mt-3 text-xs rounded-xl bg-amber-50 border border-amber-200 text-amber-900 p-3"><i class="fa-solid fa-user-doctor mr-1"></i> Rata-rata siklus lebih dari 35 hari. Sebaiknya periksa ke dokter (Video 12).</p>' : '') +
+                '<div class="mt-3 overflow-x-auto"><table class="w-full text-xs text-left text-slate-600"><thead><tr class="text-slate-500"><th class="py-2 pr-3">Perkiraan masa subur</th><th class="py-2 pr-3">Perkiraan ovulasi</th><th class="py-2">Perkiraan haid berikutnya</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+        }
+
+        // ---- Unduhan
+        var U = C.unduhan || {};
+        var dl = [
+            { u: U.sumber, t: 'Daftar Sumber', d: 'Semua penelitian dan panduan resmi di setiap video.' },
+            { u: U.konsultasi, t: 'Lembar Persiapan Konsultasi', d: 'Ringkasan riwayat dan daftar pertanyaan untuk dibawa saat periksa.' },
+            { u: U.cekPraHamil, t: 'Daftar Cek Sebelum Hamil', d: 'Pemeriksaan untuk istri dan suami, beserta alasannya.' }
+        ];
+        document.getElementById('unduhanList').innerHTML = dl.map(function (x) {
+            return (x.u ? '<a href="' + esc(x.u) + '" download' : '<div') + ' class="flex items-center gap-3 p-3 rounded-xl border ' + (x.u ? 'border-rose-100 hover:bg-rose-50' : 'border-dashed border-slate-200') + '">' +
+                '<div class="w-10 h-10 rounded-xl ' + (x.u ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-400') + ' flex items-center justify-center shrink-0"><i class="fa-solid fa-file-pdf"></i></div>' +
+                '<div class="min-w-0 flex-1"><p class="font-bold text-sm ' + (x.u ? 'text-slate-800' : 'text-slate-400') + '">' + x.t + '</p><p class="text-xs text-slate-500">' + (x.u ? x.d : 'Segera tersedia') + '</p></div>' +
+                (x.u ? '<i class="fa-solid fa-download text-rose-500"></i></a>' : '</div>');
+        }).join('');
+
+        render(); kalender();
+        if (location.hash) { var t = document.querySelector(location.hash); if (t && !isi.classList.contains('hidden')) t.scrollIntoView(); }
+    })();
+
+    (function () {
+        var KEY = 'ramli_font_scale', STEPS = [90, 100, 112, 125, 140, 160];
+        function idx() { var v; try { v = parseInt(localStorage.getItem(KEY), 10); } catch (e) {} var i = STEPS.indexOf(v); return i < 0 ? 1 : i; }
+        function apply(i) { var p = STEPS[i]; document.documentElement.style.fontSize = p + '%'; var l = document.getElementById('fontLbl'); if (l) l.textContent = p + '%'; }
+        window.setFont = function (d) { var i = Math.max(0, Math.min(STEPS.length - 1, idx() + d)); try { localStorage.setItem(KEY, STEPS[i]); } catch (e) {} apply(i); };
+        apply(idx());
+    })();
+    </script>
+</body>
+</html>
