@@ -11,8 +11,10 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        h1,h2,h3,p,span,li,a,div { overflow-wrap: break-word; }
+        h1,h2,h3,p,span,li,a,div,label { overflow-wrap: break-word; }
+        .yt { aspect-ratio: 16 / 9; }
     </style>
+    <script src="ruang-kelas-90-hari-0c8b7bbe9e89.js"></script>
 </head>
 <body class="bg-rose-50/40 text-slate-800" data-bms-purchase="program-90-hari">
     <header class="bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 text-white">
@@ -26,30 +28,29 @@
 
     <main class="max-w-2xl mx-auto px-5 -mt-6 pb-16 space-y-4">
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6">
-            <h2 class="font-black text-slate-800 text-lg"><i class="fa-solid fa-circle-play text-rose-500 mr-1"></i> Akses kelas video</h2>
-            <p class="text-sm text-slate-600 mt-2 leading-relaxed">Bukti pembayaran dan akses kelas dikirim oleh <b>Mayar</b> ke <b>email yang Anda pakai saat membayar</b>. Bila belum masuk dalam beberapa menit, periksa folder <i>Spam</i> atau <i>Promosi</i>.</p>
-            <p class="text-sm text-slate-600 mt-2 leading-relaxed">Simpan email tersebut, dan <b>simpan juga alamat halaman ini (bookmark)</b> untuk melihat panduan memulai.</p>
-            <!-- DISEMBUNYIKAN sampai ada isi: tombol akses kelas / unduhan PDF fase 1
-            <div class="mt-4 flex flex-col gap-3">
-                <a href="[isi: link akses kelas]" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-3 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-circle-play"></i> Buka kelas video</a>
+            <p class="text-xs font-bold text-rose-600 uppercase tracking-wide">Langkah 1</p>
+            <h2 class="font-black text-slate-800 text-lg mt-0.5"><i class="fa-solid fa-circle-play text-rose-500 mr-1"></i> Tonton Video Pengantar berdua</h2>
+            <p class="text-sm text-slate-600 mt-2 leading-relaxed">Sekitar 15 menit: cara memakai program ini, mengapa 90 hari, dan kapan sebaiknya langsung ke dokter.</p>
+            <div class="mt-4" id="video00"></div>
+        </section>
+
+        <section class="bg-white rounded-2xl border-2 border-rose-200 shadow-sm p-5 sm:p-6">
+            <p class="text-xs font-bold text-rose-600 uppercase tracking-wide">Langkah 2</p>
+            <h2 class="font-black text-slate-800 text-lg mt-0.5"><i class="fa-solid fa-shield-halved text-rose-500 mr-1"></i> Pernyataan penggunaan materi</h2>
+            <div class="text-sm text-slate-600 mt-2 leading-relaxed">
+                <p>Materi <b>Siap Hamil 90 Hari</b> (video, PDF, checklist, dan seluruh isinya) dilindungi <b>UU No. 28 Tahun 2014 tentang Hak Cipta</b>.</p>
+                <ul class="list-disc pl-5 mt-2 space-y-1">
+                    <li>Hanya untuk Anda dan pasangan.</li>
+                    <li>Dilarang membagikan link, mengunduh ulang, merekam layar, mengunggah ulang, atau menjual materi ini, baik sebagian maupun seluruhnya.</li>
+                    <li>Pelanggaran dapat dikenai sanksi sesuai undang-undang dan akses dapat dihentikan.</li>
+                </ul>
             </div>
-            -->
-            <p class="text-xs text-slate-500 mt-4 leading-relaxed">Materi untuk penggunaan pribadi pembeli dan pasangannya. Mohon tidak dibagikan atau diperjualbelikan ulang.</p>
-        </section>
-
-        <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6">
-            <h2 class="font-black text-slate-800 text-lg"><i class="fa-solid fa-book-medical text-rose-500 mr-1"></i> Daftar sumber program</h2>
-            <p class="text-sm text-slate-600 mt-2 leading-relaxed">Semua penelitian dan panduan resmi yang dipakai di setiap video, dalam satu PDF. Nomor sumbernya sama dengan penanda di video, dan setiap artikel bisa dibuka lewat tautan PMID/DOI.</p>
-            <a href="unduhan/234e9b442415a3f1/daftar-sumber-siap-hamil-90-hari.pdf" download class="mt-4 inline-flex items-center justify-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-3 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-file-pdf"></i> Unduh Daftar Sumber (PDF)</a>
-        </section>
-
-        <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6">
-            <h2 class="font-black text-slate-800 text-lg"><i class="fa-solid fa-flag-checkered text-rose-500 mr-1"></i> Mulai Minggu 1 hari ini</h2>
-            <ol class="mt-3 space-y-3 text-sm text-slate-600">
-                <li class="flex gap-3"><span class="w-7 h-7 rounded-full bg-rose-100 text-rose-600 text-xs font-black flex items-center justify-center shrink-0">1</span><span><b class="text-slate-800">Tonton video pengantar berdua</b> dengan suami. Hanya beberapa menit.</span></li>
-                <li class="flex gap-3"><span class="w-7 h-7 rounded-full bg-rose-100 text-rose-600 text-xs font-black flex items-center justify-center shrink-0">2</span><span><b class="text-slate-800">Isi <a href="cek-kesiapan-hamil.html" class="underline text-rose-600">Cek Kesiapan Hamil</a></b> untuk melihat apa yang perlu diprioritaskan, termasuk bila ada hal yang sebaiknya diperiksa dokter lebih awal.</span></li>
-                <li class="flex gap-3"><span class="w-7 h-7 rounded-full bg-rose-100 text-rose-600 text-xs font-black flex items-center justify-center shrink-0">3</span><span><b class="text-slate-800">Catat tanggal hari pertama haid terakhir</b>, lalu tanyakan ke dokter, bidan, atau apoteker tentang asam folat bila belum rutin diminum.</span></li>
-            </ol>
+            <label class="mt-4 flex items-start gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:border-rose-400 has-[:checked]:bg-rose-50">
+                <input type="checkbox" id="setuju" class="mt-0.5 w-5 h-5 accent-rose-500 shrink-0">
+                <span class="text-sm font-bold text-slate-800">Saya memahami dan setuju menggunakan materi ini hanya untuk saya dan pasangan.</span>
+            </label>
+            <a id="masuk" href="#" aria-disabled="true" class="mt-4 w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-slate-300 pointer-events-none text-white font-black text-base px-7 py-3.5 rounded-full shadow transition-colors">Masuk ke Ruang Kelas <i class="fa-solid fa-arrow-right"></i></a>
+            <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-bookmark mr-1"></i> Simpan (bookmark) halaman Ruang Kelas agar mudah dibuka lagi. Link akses juga dikirim ke email Anda oleh Mayar.</p>
         </section>
 
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6">
@@ -60,13 +61,38 @@
         </section>
 
         <section class="bg-red-50 border border-red-200 rounded-2xl p-5">
-            <p class="text-sm text-red-800 leading-relaxed"><i class="fa-solid fa-triangle-exclamation mr-1"></i> <b>Gawat darurat</b> (nyeri perut hebat, perdarahan banyak, atau pingsan, terutama saat terlambat haid): jangan menunggu balasan DM. Hubungi <b>119</b> atau segera ke <b>IGD terdekat</b>.</p>
+            <p class="text-sm text-red-800 leading-relaxed"><i class="fa-solid fa-triangle-exclamation mr-1"></i> <b>Gawat darurat</b> (nyeri perut hebat, perdarahan banyak, atau pingsan, terutama saat terlambat haid): jangan menunggu balasan DM, segera ke <b>IGD terdekat</b>.</p>
         </section>
 
         <p class="text-center text-[11px] text-slate-400 mt-8">© <span id="yr"></span> dr. Bayu, Sp.O.G · bayumaulanaspog.com</p>
         <p class="text-center text-[11px] text-slate-400 mt-1"><a href="kontak.html" class="underline hover:text-rose-600">Kontak</a> · <a href="kebijakan-privasi.html" class="underline hover:text-rose-600">Kebijakan Privasi</a></p>
     </main>
-    <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+    <script>
+    (function () {
+        document.getElementById('yr').textContent = new Date().getFullYear();
+        var C = window.SH90 || { videos: [] }, KEY = 'sh90_setuju_v1';
+        // Video 00
+        var v = (C.videos || []).filter(function (x) { return x.no === '00'; })[0] || {};
+        var m = String(v.youtube || '').match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/);
+        var id = m ? m[1] : (/^[A-Za-z0-9_-]{11}$/.test(v.youtube || '') ? v.youtube : null);
+        document.getElementById('video00').innerHTML = id
+            ? '<iframe class="yt w-full rounded-xl" src="https://www.youtube-nocookie.com/embed/' + id + '?rel=0&modestbranding=1" title="Video 00 Pengantar" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe>'
+            : '<div class="yt w-full rounded-xl bg-slate-100 border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-500 text-sm"><i class="fa-solid fa-clapperboard text-2xl mb-2"></i>Video segera tersedia</div>';
+        // Persetujuan → tombol Ruang Kelas
+        var cb = document.getElementById('setuju'), a = document.getElementById('masuk');
+        function sudah() { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } }
+        function aktif(on) {
+            a.href = on ? (C.ruangKelas || '#') : '#';
+            a.setAttribute('aria-disabled', on ? 'false' : 'true');
+            a.className = a.className.replace(on ? 'bg-slate-300 pointer-events-none' : 'bg-rose-500 hover:bg-rose-600', on ? 'bg-rose-500 hover:bg-rose-600' : 'bg-slate-300 pointer-events-none');
+        }
+        if (sudah()) { cb.checked = true; aktif(true); }
+        cb.addEventListener('change', function () {
+            try { if (cb.checked) localStorage.setItem(KEY, JSON.stringify({ t: Date.now() })); else localStorage.removeItem(KEY); } catch (e) {}
+            aktif(cb.checked);
+        });
+    })();
+    </script>
     <script src="/analytics.js" data-ga4="G-R8GPD1TV67" defer></script>
 </body>
 </html>
