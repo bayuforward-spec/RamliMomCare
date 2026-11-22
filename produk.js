@@ -22,7 +22,7 @@
     var PRODUK = {
         'ebook-siap-hamil':   { nama: 'E-book Siap Hamil',                                  kategori: 'ebook',   akad: 'bai',    status: 'waitlist', harga: null, mayarUrl: null },
         'ebook-40-minggu':    { nama: 'E-book 40 Minggu dengan Tenang (Edisi 1: Trimester 1)', kategori: 'ebook',   akad: 'bai',    status: 'buka', harga: 149000, mayarUrl: 'https://bayu-maulana.myr.id/pl/e-book-40-minggu-dengan-tenang' },
-        'program-90-hari':    { nama: 'Siap Hamil 90 Hari — Kelas & Program Persiapan Kehamilan', kategori: 'program', akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
+        'program-90-hari':    { nama: 'Siap Hamil 90 Hari — Kelas & Program Persiapan Kehamilan', kategori: 'program', akad: 'ijarah', status: 'buka', harga: 99000, mayarUrl: 'https://bayu-maulana.myr.id/pl/siap-hamil-90-hari-kelas-program-persiapan-kehamilan-untuk-suami-istri' },
         'kelas-a':            { nama: 'Kelas Rekaman A — Siap Hamil',                       kategori: 'kelas',   akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
         'kelas-b':            { nama: 'Kelas Rekaman B — Kehamilan Sehat & Persiapan Persalinan', kategori: 'kelas', akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
         'kelas-c':            { nama: 'Kelas Rekaman C — Nifas & Menyusui',                 kategori: 'kelas',   akad: 'ijarah', status: 'waitlist', harga: null, mayarUrl: null },
@@ -32,7 +32,6 @@
 
     // Kategori yang tampil sebagai pilihan minat di formulir daftar tunggu.
     var KATEGORI = {
-        program: { label: 'Siap Hamil 90 Hari',     ket: 'Kelas video & program 12 minggu untuk suami & istri' },
         ebook:   { label: 'E-book',                 ket: 'Siap Hamil · 40 Minggu dengan Tenang' },
         kelas:   { label: 'Kelas rekaman',          ket: 'Video rekaman, ditonton kapan saja' },
         sejawat: { label: 'Langganan sejawat',      ket: 'Untuk dokter, bidan, dan tenaga kesehatan' },
