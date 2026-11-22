@@ -39,6 +39,14 @@
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         details[open] .chev { transform: rotate(180deg); }
+        /* CTA melayang */
+        #stickyCta { transform: translateY(140%); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+        #stickyCta.show { transform: translateY(0); }
+        #fontCtl { transition: bottom .35s cubic-bezier(.2,.8,.2,1); }
+        body.cta-on #fontCtl { bottom: 6.5rem; }
+        @keyframes shine { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(220%); } }
+        .shine { position: relative; overflow: hidden; isolation: isolate; }
+        .shine::after { content: ""; position: absolute; inset: 0; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent); animation: shine 3.6s ease-in-out infinite; z-index: -1; }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; } }
     </style>
     <script src="produk.js" defer></script>
@@ -65,18 +73,25 @@
                 <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur px-3 py-1 rounded-full text-xs font-bold tracking-wide mb-3"><i class="fa-solid fa-seedling"></i> Kelas &amp; Program untuk Suami &amp; Istri</div>
                 <h1 class="text-3xl sm:text-5xl font-black leading-tight">Siap Hamil 90 Hari</h1>
                 <p class="text-lg sm:text-xl font-bold text-white/95 mt-1">Tiga bulan bersiap, berdua.</p>
-                <p class="text-rose-50/90 mt-3 leading-relaxed max-w-2xl">Kelas video dan program 12 minggu dari dokter kandungan untuk suami &amp; istri yang merencanakan kehamilan: kenali siklus, cek kesehatan, perbaiki gaya hidup, lalu mencoba dengan tenang.</p>
-                <div class="mt-5 flex flex-col sm:flex-row gap-2">
-                    <a href="daftar-tunggu.html?produk=program-90-hari" data-produk="program-90-hari" data-label-buka="Ikut Siap Hamil 90 Hari" class="checkout-link inline-flex justify-center items-center gap-2 bg-white text-rose-600 font-bold text-sm px-5 py-2.5 rounded-full shadow-lg hover:bg-rose-50 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Ikut Siap Hamil 90 Hari</span></a>
-                    <a href="cek-kesiapan-hamil.html" class="inline-flex justify-center items-center gap-2 bg-white/15 border border-white/40 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-white/25 transition-colors"><i class="fa-solid fa-clipboard-check"></i> Cek Kesiapan Dulu (gratis)</a>
+                <p class="text-rose-50/95 mt-3 leading-relaxed max-w-2xl">Berhenti menebak-nebak soal promil. Selama 12 minggu, Anda dan suami dipandu dokter kandungan, langkah demi langkah: <b class="text-white">apa yang perlu diperiksa, apa yang perlu diubah, dan kapan perlu ke dokter.</b></p>
+                <ul class="mt-4 space-y-1.5 text-sm text-white/95">
+                    <li class="flex gap-2"><i class="fa-solid fa-circle-check mt-0.5"></i> 13 video kelas + bonus video khusus suami</li>
+                    <li class="flex gap-2"><i class="fa-solid fa-circle-check mt-0.5"></i> Checklist mingguan untuk dijalani berdua</li>
+                    <li class="flex gap-2"><i class="fa-solid fa-circle-check mt-0.5"></i> Disusun dari pedoman POGI, WHO &amp; Kemenkes</li>
+                </ul>
+                <div class="mt-6 flex flex-col sm:flex-row sm:items-center gap-3" id="heroCta">
+                    <a href="daftar-tunggu.html?produk=program-90-hari" data-produk="program-90-hari" data-label-buka="Mulai Program Sekarang" class="checkout-link shine inline-flex justify-center items-center gap-2 bg-white text-rose-600 font-black text-base px-7 py-4 rounded-full shadow-xl shadow-rose-900/25 ring-4 ring-white/30 hover:bg-rose-50 hover:-translate-y-0.5 transition-all"><span data-label>Mulai Program Sekarang</span> <i class="fa-solid fa-arrow-right"></i></a>
+                    <div class="text-sm leading-tight"><span class="block font-black text-white text-lg" data-produk-harga="program-90-hari">Rp99.000</span><span class="block text-white/80 text-xs">± Rp1.100 per hari · sekali bayar</span></div>
                 </div>
+                <p class="mt-3 text-xs text-white/80"><i class="fa-solid fa-envelope-circle-check mr-1"></i> Akses dikirim ke email setelah pembayaran · Tonton kapan saja</p>
+                <a href="cek-kesiapan-hamil.html" class="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-white underline decoration-white/50 underline-offset-4 hover:decoration-white"><i class="fa-solid fa-clipboard-check"></i> Belum yakin? Cek kesiapan hamil dulu, gratis 3 menit</a>
               </div>
               <img src="siap-hamil-90-hari.png" width="260" height="260" alt="Sampul Siap Hamil 90 Hari: 90 titik dalam tiga fase, dari lingkaran kosong hingga penuh" class="w-full max-w-[260px] mx-auto rounded-2xl shadow-2xl ring-1 ring-white/30">
             </div>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-5 pb-28 -mt-6">
+    <main class="max-w-4xl mx-auto px-5 pb-36 -mt-6">
 
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
             <div class="flex items-start justify-between gap-2 flex-wrap">
@@ -106,6 +121,13 @@
         <section id="isi" class="mb-6">
             <h2 class="font-black text-slate-800 text-lg flex items-center gap-2 mb-3"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span> Isi program: 3 fase, 12 minggu</h2>
             <div class="space-y-3" id="fase"></div>
+            <div class="mt-4 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md">
+                <div>
+                    <p class="font-black text-lg leading-snug">Minggu 1 bisa dimulai hari ini.</p>
+                    <p class="text-sm text-rose-50/90 mt-1">Tonton video pengantar berdua malam ini, dan Anda sudah memulai.</p>
+                </div>
+                <a href="daftar-tunggu.html?produk=program-90-hari" data-produk="program-90-hari" data-label-buka="Mulai Program" class="checkout-link inline-flex justify-center items-center gap-2 bg-white text-rose-600 font-black text-sm px-6 py-3 rounded-full shadow-lg hover:bg-rose-50 transition-colors shrink-0"><span data-label>Mulai Program</span> <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
         </section>
 
         <section class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 mb-6 fade-up">
@@ -120,8 +142,13 @@
                 <div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-file-pdf text-rose-600"></i></div><div><p class="font-bold text-slate-800 text-sm">Ringkasan PDF tiap video</p><p class="text-xs text-slate-500 mt-0.5">Bisa dibaca ulang atau dicetak, lengkap dengan sumber rujukan.</p></div></div>
                 <div class="flex gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-flask-vial text-rose-600"></i></div><div><p class="font-bold text-slate-800 text-sm">Daftar cek sebelum hamil</p><p class="text-xs text-slate-500 mt-0.5">Pemeriksaan untuk istri dan suami, beserta alasannya.</p></div></div>
             </div>
-            <p class="text-sm text-slate-700 mt-5"><b>Format:</b> kelas video + aplikasi web + PDF · <b>Harga:</b> <span data-produk-harga="program-90-hari">Segera diumumkan</span></p>
-            <div class="mt-4"><a href="daftar-tunggu.html?produk=program-90-hari" data-produk="program-90-hari" data-label-buka="Ikut Siap Hamil 90 Hari" class="checkout-link inline-flex items-center gap-2 bg-rose-500 text-white font-bold text-sm px-5 py-2.5 rounded-full shadow hover:bg-rose-600 transition-colors"><i class="fa-solid fa-cart-shopping"></i> <span data-label>Ikut Siap Hamil 90 Hari</span></a></div>
+            <div id="beli" class="mt-6 rounded-2xl border-2 border-rose-200 bg-rose-50/60 p-5 sm:p-6 text-center">
+                <p class="text-xs font-bold text-rose-600 uppercase tracking-wide">Semua di atas, dalam satu program</p>
+                <p class="mt-2 text-4xl font-black text-slate-800" data-produk-harga="program-90-hari">Rp99.000</p>
+                <p class="text-sm text-slate-500 mt-1">± Rp1.100 per hari, untuk berdua · sekali bayar</p>
+                <a href="daftar-tunggu.html?produk=program-90-hari" data-produk="program-90-hari" data-label-buka="Mulai Program Sekarang" class="checkout-link shine mt-5 w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-rose-500 text-white font-black text-base px-8 py-4 rounded-full shadow-lg shadow-rose-500/30 hover:bg-rose-600 hover:-translate-y-0.5 transition-all"><span data-label>Mulai Program Sekarang</span> <i class="fa-solid fa-arrow-right"></i></a>
+                <p class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-lock mr-1"></i> Pembayaran aman lewat Mayar · Akses dikirim ke email · Format: kelas video + aplikasi web + PDF</p>
+            </div>
             <p class="text-[11px] text-slate-400 mt-3 italic">Program bersifat edukasi umum, tidak menjamin kehamilan, dan tidak menggantikan konsultasi atau pemeriksaan langsung. Tidak memuat rekomendasi merek obat maupun suplemen. Sumber rujukan: POGI, WHO, ACOG, ASRM, dan Kemenkes.</p>
         </section>
 
@@ -150,9 +177,28 @@
             </div>
         </section>
 
+        <section class="rounded-2xl bg-slate-900 text-white p-6 sm:p-8 text-center fade-up">
+            <p class="text-xs font-bold text-rose-300 uppercase tracking-wide">90 hari dari sekarang</p>
+            <p class="text-2xl sm:text-3xl font-black mt-2 leading-tight">Waktunya akan berlalu juga.<br class="hidden sm:block"> Lebih baik dilalui dengan bersiap, berdua.</p>
+            <a href="daftar-tunggu.html?produk=program-90-hari" data-produk="program-90-hari" data-label-buka="Mulai Program Sekarang" class="checkout-link shine mt-6 inline-flex justify-center items-center gap-2 bg-rose-500 text-white font-black text-base px-8 py-4 rounded-full shadow-lg hover:bg-rose-600 transition-colors"><span data-label>Mulai Program Sekarang</span> <i class="fa-solid fa-arrow-right"></i></a>
+            <p class="text-xs text-white/60 mt-3"><span data-produk-harga="program-90-hari">Rp99.000</span> · sekali bayar · akses dikirim ke email</p>
+        </section>
+
         <p class="text-center text-[11px] text-slate-400 mt-8">© <span id="yr"></span> dr. Bayu, Sp.O.G · bayumaulanaspog.com · Dibuat untuk edukasi &amp; alat bantu klinis.</p>
         <p class="text-center text-[11px] text-slate-400 mt-1"><a href="kontak.html" class="underline hover:text-rose-600">Kontak</a> · <a href="kebijakan-privasi.html" class="underline hover:text-rose-600">Kebijakan Privasi</a> · <a href="undang-pembicara.html" class="underline hover:text-rose-600">Undang Pembicara</a></p>
     </main>
+
+    <!-- CTA melayang: muncul setelah tombol utama di hero tidak terlihat -->
+    <div id="stickyCta" class="fixed z-40 inset-x-0 bottom-0 sm:bottom-4 px-0 sm:px-4 pointer-events-none" aria-hidden="true">
+        <div class="pointer-events-auto max-w-2xl mx-auto bg-white/95 backdrop-blur border-t sm:border border-rose-100 shadow-[0_-8px_30px_rgba(190,24,93,.15)] sm:shadow-2xl sm:rounded-full px-4 sm:pl-6 sm:pr-2 py-3 sm:py-2 flex items-center gap-3" style="padding-bottom: max(.75rem, env(safe-area-inset-bottom));">
+            <img src="siap-hamil-90-hari.png" alt="" width="40" height="40" class="w-10 h-10 rounded-lg shrink-0 hidden sm:block">
+            <div class="min-w-0 flex-1 leading-tight">
+                <p class="font-black text-slate-800 text-sm truncate">Siap Hamil 90 Hari</p>
+                <p class="text-xs text-slate-500 truncate"><b class="text-rose-600" data-produk-harga="program-90-hari">Rp99.000</b> · ± Rp1.100/hari</p>
+            </div>
+            <a href="daftar-tunggu.html?produk=program-90-hari" data-produk="program-90-hari" data-label-buka="Mulai Sekarang" tabindex="-1" class="checkout-link shine inline-flex items-center gap-2 bg-rose-500 text-white font-black text-sm px-5 py-3 rounded-full shadow-lg shadow-rose-500/30 hover:bg-rose-600 transition-colors shrink-0"><span data-label>Mulai Sekarang</span> <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </div>
 
     <!-- Kontrol ukuran huruf -->
     <div id="fontCtl" class="fixed z-50 bottom-4 right-4 flex items-center gap-0.5 bg-white/95 backdrop-blur border border-slate-200 shadow-lg rounded-full p-1" role="group" aria-label="Ukuran huruf">
@@ -198,6 +244,22 @@
                             '<span><span class="block font-bold text-slate-800 text-sm">' + m[0] + '</span><span class="block text-xs text-slate-500 mt-0.5">' + m[1] + '</span></span></li>';
                     }).join('') + '</ol></div>';
             }).join('');
+        })();
+
+        // CTA melayang: tampil saat CTA hero sudah lewat dan kotak harga tidak sedang terlihat.
+        (function () {
+            var bar = document.getElementById('stickyCta'), hero = document.getElementById('heroCta'), box = document.getElementById('beli');
+            if (!bar || !hero || !('IntersectionObserver' in window)) { if (bar) { bar.classList.add('show'); document.body.classList.add('cta-on'); } return; }
+            var heroVisible = true, boxVisible = false;
+            function update() {
+                var on = !heroVisible && !boxVisible;
+                bar.classList.toggle('show', on);
+                bar.setAttribute('aria-hidden', on ? 'false' : 'true');
+                var a = bar.querySelector('a'); if (a) { if (on) a.removeAttribute('tabindex'); else a.setAttribute('tabindex', '-1'); }
+                document.body.classList.toggle('cta-on', on);
+            }
+            new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; update(); }).observe(hero);
+            if (box) new IntersectionObserver(function (e) { boxVisible = e[0].isIntersecting; update(); }, { threshold: 0.3 }).observe(box);
         })();
 
         (function () {
