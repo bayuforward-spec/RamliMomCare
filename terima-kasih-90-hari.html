@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terima Kasih · Siap Hamil 90 Hari · dr. Bayu Maulana, Sp.O.G</title>
     <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -76,7 +77,8 @@
         var m = String(v.youtube || '').match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/);
         var id = m ? m[1] : (/^[A-Za-z0-9_-]{11}$/.test(v.youtube || '') ? v.youtube : null);
         document.getElementById('video00').innerHTML = id
-            ? '<iframe class="yt w-full rounded-xl" src="https://www.youtube-nocookie.com/embed/' + id + '?rel=0&modestbranding=1" title="Video 00 Pengantar" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe>'
+            ? '<iframe class="yt w-full rounded-xl" src="https://www.youtube.com/embed/' + id + '?rel=0&playsinline=1&modestbranding=1" title="Video 00 Pengantar" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>' +
+              '<p class="mt-2 text-xs text-slate-500">Video tidak bisa diputar? <a href="https://www.youtube.com/watch?v=' + id + '" target="_blank" rel="noopener" class="underline font-bold text-rose-600">Buka di YouTube</a></p>'
             : '<div class="yt w-full rounded-xl bg-slate-100 border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-500 text-sm"><i class="fa-solid fa-clapperboard text-2xl mb-2"></i>Video segera tersedia</div>';
         // Persetujuan → tombol Ruang Kelas
         var cb = document.getElementById('setuju'), a = document.getElementById('masuk');

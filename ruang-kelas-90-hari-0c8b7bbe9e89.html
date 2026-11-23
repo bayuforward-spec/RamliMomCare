@@ -164,12 +164,21 @@
         }
         document.addEventListener('click', function (e) {
             var b = e.target.closest('[data-yt]'); if (!b) return;
+            var id = b.getAttribute('data-yt'), vid = b.getAttribute('data-vid');
             var f = document.createElement('iframe');
-            f.src = 'https://www.youtube-nocookie.com/embed/' + b.getAttribute('data-yt') + '?autoplay=1&rel=0&modestbranding=1';
-            f.className = 'yt w-full rounded-xl'; f.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen'; f.allowFullscreen = true;
+            f.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+            f.className = 'yt w-full rounded-xl';
+            f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
+            f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+            f.allowFullscreen = true;
             f.title = b.getAttribute('aria-label') || 'Video';
             b.replaceWith(f);
-            var t = get(K.tonton, {}); t[b.getAttribute('data-vid')] = Date.now(); set(K.tonton, t); render();
+            // Tandai "Ditonton" tanpa menggambar ulang daftar (agar pemutar tidak hilang)
+            var t = get(K.tonton, {}); t[vid] = Date.now(); set(K.tonton, t);
+            var art = document.getElementById('v-' + vid);
+            if (art && !art.querySelector('[data-badge]')) {
+                var head = art.querySelector('h3'); if (head) head.parentNode.parentNode.insertAdjacentHTML('beforeend', '<span data-badge class="shrink-0 text-[11px] font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full"><i class="fa-solid fa-check"></i> Ditonton</span>');
+            }
         });
 
         // ---- Daftar video
@@ -196,10 +205,10 @@
             return '<article id="v-' + v.id + '" class="bg-white rounded-2xl border border-rose-100 shadow-sm p-5 sm:p-6 scroll-mt-4">' +
                 '<div class="flex items-start justify-between gap-3"><div><p class="text-xs font-bold text-rose-600 uppercase tracking-wide">' + label + ' · ' + esc(v.durasi) + '</p>' +
                 '<h3 class="font-black text-slate-800 text-base sm:text-lg mt-0.5">' + esc(v.judul) + '</h3></div>' +
-                (tonton ? '<span class="shrink-0 text-[11px] font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full"><i class="fa-solid fa-check"></i> Ditonton</span>' : '') + '</div>' +
-                '<div class="mt-4">' + player(v) + '</div>' +
+                (tonton ? '<span data-badge class="shrink-0 text-[11px] font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full"><i class="fa-solid fa-check"></i> Ditonton</span>' : '') + '</div>' +
+                '<div class="mt-4">' + player(v) + '</div>' + (ytId(v.youtube) ? '<p class="mt-2 text-xs text-slate-500">Video tidak bisa diputar? <a href="https://www.youtube.com/watch?v=' + ytId(v.youtube) + '" target="_blank" rel="noopener" class="underline font-bold text-rose-600">Buka di YouTube</a></p>' : '') +
                 '<details class="mt-4"><summary class="cursor-pointer text-sm font-bold text-slate-700 flex justify-between gap-2">Ringkasan video <i class="chev fa-solid fa-chevron-down text-slate-400 transition-transform"></i></summary><p class="text-sm text-slate-600 leading-relaxed mt-2">' + esc(v.ringkasan) + '</p></details>' +
-                (v.checklist.length ? '<div class="mt-4 rounded-xl bg-rose-50/60 border border-rose-100 p-3"><p class="text-xs font-bold text-slate-600 uppercase tracking-wide px-2.5 pt-1">Checklist minggu ini · ' + done + '/' + v.checklist.length + '</p><div class="mt-1">' + items + '</div></div>' : '') +
+                (v.checklist.length ? '<div class="mt-4 rounded-xl bg-rose-50/60 border border-rose-100 p-3"><p data-cek-lbl class="text-xs font-bold text-slate-600 uppercase tracking-wide px-2.5 pt-1">Checklist minggu ini · ' + done + '/' + v.checklist.length + '</p><div class="mt-1">' + items + '</div></div>' : '') +
                 '<div class="mt-4">' + pdf + '</div></article>';
         }
 
@@ -216,7 +225,14 @@
         document.addEventListener('change', function (e) {
             var k = e.target.getAttribute && e.target.getAttribute('data-cek'); if (!k) return;
             cek = get(K.cek, {}); if (e.target.checked) cek[k] = 1; else delete cek[k]; set(K.cek, cek);
-            var y = window.scrollY; render(); window.scrollTo(0, y);
+            var span = e.target.nextElementSibling;
+            if (span) { span.classList.toggle('line-through', e.target.checked); span.classList.toggle('text-slate-400', e.target.checked); span.classList.toggle('text-slate-700', !e.target.checked); }
+            var vid = k.split(':')[0], art = document.getElementById('v-' + vid), v = C.videos.filter(function (x) { return x.id === vid; })[0];
+            if (art && v) {
+                var done = v.checklist.filter(function (_, i) { return cek[vid + ':' + i]; }).length;
+                var lbl = art.querySelector('[data-cek-lbl]'); if (lbl) lbl.textContent = 'Checklist minggu ini · ' + done + '/' + v.checklist.length;
+            }
+            progres();
         });
 
         // ---- Progres & minggu berjalan
