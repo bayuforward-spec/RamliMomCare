@@ -29,7 +29,7 @@ window.SH90 = {
   ],
   "id": "00",
   "fase": "pengantar",
-  "youtube": null,
+  "youtube": "https://youtu.be/KuE1eyKxY-U",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-00.pdf"
  },
  {
@@ -45,7 +45,7 @@ window.SH90 = {
   ],
   "id": "01",
   "fase": "1",
-  "youtube": null,
+  "youtube": "https://youtu.be/uhOsR7BSYAM",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-01.pdf"
  },
  {
@@ -62,7 +62,7 @@ window.SH90 = {
   ],
   "id": "02",
   "fase": "1",
-  "youtube": null,
+  "youtube": "https://youtu.be/LuID5F6_G-A",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-02.pdf"
  },
  {
@@ -81,7 +81,7 @@ window.SH90 = {
   ],
   "id": "03",
   "fase": "1",
-  "youtube": null,
+  "youtube": "https://youtu.be/cGLzDLKE_oA",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-03.pdf"
  },
  {
@@ -101,7 +101,7 @@ window.SH90 = {
   ],
   "id": "04",
   "fase": "1",
-  "youtube": null,
+  "youtube": "https://youtu.be/wE0b8uVzgRU",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-04.pdf"
  },
  {
@@ -121,7 +121,7 @@ window.SH90 = {
   ],
   "id": "05",
   "fase": "2",
-  "youtube": null,
+  "youtube": "https://youtu.be/pjyfs5URpmA",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-05.pdf"
  },
  {
@@ -141,7 +141,7 @@ window.SH90 = {
   ],
   "id": "06",
   "fase": "2",
-  "youtube": null,
+  "youtube": "https://youtu.be/6y2g2Ajd4qY",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-06.pdf"
  },
  {
@@ -162,7 +162,7 @@ window.SH90 = {
   ],
   "id": "07",
   "fase": "2",
-  "youtube": null,
+  "youtube": "https://youtu.be/Kn5UiP9ZvRM",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-07.pdf"
  },
  {
@@ -183,7 +183,7 @@ window.SH90 = {
   ],
   "id": "08",
   "fase": "2",
-  "youtube": null,
+  "youtube": "https://youtu.be/9fJrpHE9pX4",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-08.pdf"
  },
  {
@@ -204,7 +204,7 @@ window.SH90 = {
   ],
   "id": "09",
   "fase": "3",
-  "youtube": null,
+  "youtube": "https://youtu.be/nZjPmiNyQP4",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-09.pdf"
  },
  {
@@ -224,7 +224,7 @@ window.SH90 = {
   ],
   "id": "10",
   "fase": "3",
-  "youtube": null,
+  "youtube": "https://youtu.be/G5hI4_E0ClY",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-10.pdf"
  },
  {
@@ -244,7 +244,7 @@ window.SH90 = {
   ],
   "id": "11",
   "fase": "3",
-  "youtube": null,
+  "youtube": "https://youtu.be/8HZ_XcNrAw0",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-11.pdf"
  },
  {
@@ -264,7 +264,7 @@ window.SH90 = {
   ],
   "id": "12",
   "fase": "3",
-  "youtube": null,
+  "youtube": "https://youtu.be/cPd-EahWY10",
   "pdf": "unduhan/5747d686459ab810/ringkasan-video-12.pdf"
  },
  {
@@ -284,7 +284,7 @@ window.SH90 = {
   ],
   "id": "bonus",
   "fase": "bonus",
-  "youtube": null,
+  "youtube": "https://youtu.be/XtAHt4KVaw8",
   "pdf": "unduhan/5747d686459ab810/bonus-khusus-suami.pdf"
  }
 ]
