@@ -10,7 +10,7 @@ window.SH90 = {
     ruangKelas: 'ruang-kelas-90-hari-0c8b7bbe9e89.html',
     // Asisten AI: isi dengan URL Cloudflare Worker setelah dipasang,
     // mis. 'https://asisten-sh90.<akun>.workers.dev'. Selama null, chat tampil "segera aktif".
-    ai: { endpoint: null, limit: 10 },
+    ai: { endpoint: 'https://asisten-sh90.bayuforward.workers.dev', limit: 10 },
     unduhan: {
         sumber: 'unduhan/234e9b442415a3f1/daftar-sumber-siap-hamil-90-hari.pdf',
         konsultasi: 'unduhan/5747d686459ab810/lembar-persiapan-konsultasi.pdf',
